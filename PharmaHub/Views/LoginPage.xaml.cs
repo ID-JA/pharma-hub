@@ -1,4 +1,4 @@
-namespace PharmaHub.Presentation;
+namespace PharmaHub.Views;
 
 public sealed partial class LoginPage : Page
 {
