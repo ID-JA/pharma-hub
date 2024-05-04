@@ -1,4 +1,4 @@
-namespace PharmaHub.Presentation;
+namespace PharmaHub.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {

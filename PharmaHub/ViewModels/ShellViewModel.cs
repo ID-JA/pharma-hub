@@ -1,4 +1,4 @@
-namespace PharmaHub.Presentation;
+namespace PharmaHub.ViewModels;
 
 public class ShellViewModel
 {
