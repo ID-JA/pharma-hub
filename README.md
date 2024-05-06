@@ -1,2 +1,2 @@
 # pharma-hub
-PharmaHub Next Gen to manage pharmacies
+PharmaHub Next Gen to manage pharmacies.
