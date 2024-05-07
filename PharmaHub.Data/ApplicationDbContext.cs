@@ -16,9 +16,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<SaleDrug> SaleDrugs { get; set; }
     public DbSet<StockHistory> StockHistories { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
-    public ApplicationDbContext(DbContextOptions options)
-       : base(options)
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        optionsBuilder.UseSqlite("Filename=Database.db");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
