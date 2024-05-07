@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PharmaHub.Data.Models;
-internal class Sale
+public class Sale
 {
 }
