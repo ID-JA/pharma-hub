@@ -15,10 +15,8 @@ public class Drug : BaseModel
     public string Familly { get; set; }
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
-
     public List<StockHistory> StockHistories { get; set; }
     public List<SaleDrug> SaleDrugs { get; set; }
-
 }
 public enum UsedBy
 {

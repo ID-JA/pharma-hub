@@ -46,5 +46,14 @@
     <PackageCertificateThumbprint>BFD504EFBD5B922A79FA6D9103BA7AF30BE26975</PackageCertificateThumbprint>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PharmaHub.Data\PharmaHub.Data.csproj" />
+  </ItemGroup>
 
 </Project>
