@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using PharmaHub.Data;
 using Uno.Resizetizer;
 
 namespace PharmaHub;
@@ -117,10 +119,15 @@ public partial class App : Application
                 .ConfigureServices((context, services) =>
                 {
                     // TODO: Register your services
+                    //services.AddDbContext<ApplicationDbContext>(options =>
+                    //{
+                    //    options.UseSqlite("Filename= demo.db",
+                    //        opt => opt.MigrationsAssembly("PharmaHub.Data"));
+                    //});
                     //services.AddSingleton<IMyService, MyService>();
                 })
                 .UseNavigation(RegisterRoutes)
-            );
+            ); ;
         MainWindow = builder.Window;
 
 #if DEBUG
