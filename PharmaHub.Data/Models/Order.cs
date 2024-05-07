@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PharmaHub.Data.Models;
-internal class Order:BaseModel
-
+public class Order : BaseModel
 {
-
+    public string Status { get; set; }
+    public int TotalQuantity { get; set; }
+    // add totél price
+    public int DeliveryNoteId { get; set; }
+    public DeliveryNote DeliveryNote { get; set; }
 }

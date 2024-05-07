@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PharmaHub.Data.Models;
-internal class StockHistory
+public class StockHistory : BaseModel
 {
+    public int QuantityChanged { get; set; }
+    public int DrugId { get; set; }
+    public Drug Drug { get; set; }
+    // todo: add FK Sale and ORDER ids
+    public List<Drug> Drugs { get; set; }
 }
