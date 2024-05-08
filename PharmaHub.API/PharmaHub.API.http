@@ -1,0 +1,6 @@
+@PharmaHub.API_HostAddress = http://localhost:5023
+
+GET {{PharmaHub.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
