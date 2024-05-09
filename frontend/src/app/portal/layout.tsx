@@ -2,8 +2,9 @@
 import { AppShell, Burger, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { PortalNavbar } from "@/components/navbar/navbar";
+import { ReactNode } from "react";
 
-function PortalLayout({ children }) {
+function PortalLayout({ children }:{children:ReactNode}) {
   const [opened, { toggle }] = useDisclosure();
   return (
     <AppShell

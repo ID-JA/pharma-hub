@@ -25,11 +25,13 @@
     "@mantine/hooks": "^7.9.1",
     "@mantine/modals": "^7.9.1",
     "@tabler/icons-react": "^3.3.0",
+    "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
     "electron-is-dev": "^3.0.1",
     "electron-log": "^5.1.2",
     "electron-store": "^9.0.0",
     "electron-updater": "^6.1.8",
+    "mantine-react-table": "^2.0.0-beta.1",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18"
