@@ -1,1 +1,1 @@
-﻿global using PharmaHub.Data.Models;
+﻿global using PharmaHub.API.Models;

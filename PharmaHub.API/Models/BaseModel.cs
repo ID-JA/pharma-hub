@@ -1,4 +1,4 @@
-namespace PharmaHub.Data.Models;
+namespace PharmaHub.API.Models;
 public class BaseModel
 {
     public int Id { get; set; }
