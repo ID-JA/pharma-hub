@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+
 import { useMemo, useState } from "react";
 import {
   MantineReactTable,
@@ -18,16 +18,18 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import { ModalsProvider, modals } from "@mantine/modals";
+import { modals } from "@mantine/modals";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
 import {
-  QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-const UsersTable = () => {
+  useCreateUser,
+  useDeleteUser,
+  useGetUsers,
+  useUpdateUser,
+  validateUser,
+} from "@/services/users.service";
+import { User } from "@/types";
+
+function UsersPage() {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
@@ -175,6 +177,7 @@ const UsersTable = () => {
     ],
     [validationErrors]
   );
+
   //call CREATE hook
   const { mutateAsync: createUser, isPending: isCreatingUser } =
     useCreateUser();
@@ -312,139 +315,6 @@ const UsersTable = () => {
     },
   });
   return <MantineReactTable table={table} />;
-};
-
-//CREATE hook (post new user to api)
-function useCreateUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(
-        ["users"],
-        (prevUsers: any) =>
-          [
-            ...prevUsers,
-            {
-              ...newUserInfo,
-              id: (Math.random() + 1).toString(36).substring(7),
-            },
-          ] as User[]
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
 }
-//READ hook (get users from api)
-function useGetUsers() {
-  return useQuery<User[]>({
-    queryKey: ["users"],
-    queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(users);
-    },
-    refetchOnWindowFocus: false,
-  });
-}
-//UPDATE hook (put user in api)
-function useUpdateUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(["users"], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser
-        )
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
-}
-//DELETE hook (delete user in api)
-function useDeleteUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(["users"], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId)
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
-}
-const queryClient = new QueryClient();
-
-const UsersPage = () => (
-  //Put this with your other react-query providers near root of your app
-  <QueryClientProvider client={queryClient}>
-    <ModalsProvider>
-      <UsersTable />
-    </ModalsProvider>
-  </QueryClientProvider>
-);
-
-const validateRequired = (value: string) => !!value.length;
-const validateEmail = (Email: string) =>
-  !!Email.length &&
-  Email.toLowerCase().match(
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  );
-function validateUser(user: User) {
-  return {
-    FirstName: !validateRequired(user.firstName)
-      ? "First Name is Required"
-      : "",
-    LastName: !validateRequired(user.lastName) ? "Last Name is Required" : "",
-    Email: !validateEmail(user.email) ? "Incorrect Email Format" : "",
-  };
-}
-
-type User = {
-  id: string;
-  firstName: string;
-  lastName: string;
-
-  cin: string;
-  password: string;
-  gender: string;
-  phone: string;
-  email: string;
-  address: string;
-  role: string;
-};
-
-const users: User[] = [
-  {
-    id: "1",
-    firstName: "Kevin",
-    lastName: "Yan",
-
-    cin: "bj86799",
-    password: "12345",
-    gender: "Male",
-    phone: "0654321",
-    email: "KevinYan@gmail.com",
-    address: "casa street 4",
-    role: "ADMIN",
-  },
-];
 
 export default UsersPage;
