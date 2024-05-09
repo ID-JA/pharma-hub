@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PharmaHub.API;
 using PharmaHub.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddIdentityCore<User>()
   .AddSignInManager<SignInManager<User>>()
   .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+// register custom services
+builder.Services.AddScoped<IUserSerivce, UserSerivce>();
 
 var app = builder.Build();
 
