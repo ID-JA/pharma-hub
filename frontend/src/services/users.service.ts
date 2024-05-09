@@ -33,8 +33,8 @@ export function useGetUsers() {
     queryKey: ["users"],
     queryFn: async () => {
       //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(users);
+      const res = await http.get("/api/Users");
+      return res.data;
     },
     refetchOnWindowFocus: false,
   });
