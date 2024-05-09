@@ -25,6 +25,7 @@
     "@mantine/hooks": "^7.9.1",
     "@mantine/modals": "^7.9.1",
     "@tabler/icons-react": "^3.3.0",
+    "@tanstack/react-query": "^5.35.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
     "electron-is-dev": "^3.0.1",
