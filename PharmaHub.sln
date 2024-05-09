@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34825.169
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PharmaHub.API", "PharmaHub.API\PharmaHub.API.csproj", "{F26A1338-EF63-42CB-8947-B44FBAD1EDD7}"
+EndProject
+Global
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F5C39D2B-D32B-40FA-970A-17D35451BCE1}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F26A1338-EF63-42CB-8947-B44FBAD1EDD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F26A1338-EF63-42CB-8947-B44FBAD1EDD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F26A1338-EF63-42CB-8947-B44FBAD1EDD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F26A1338-EF63-42CB-8947-B44FBAD1EDD7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
