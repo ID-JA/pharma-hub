@@ -32,7 +32,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddIdentityCore<User>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+  .AddSignInManager<SignInManager<User>>()
+  .AddEntityFrameworkStores<ApplicationDbContext>();
 
 var app = builder.Build();
 
