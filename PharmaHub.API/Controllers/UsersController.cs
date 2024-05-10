@@ -18,4 +18,11 @@ public class UsersController(IUserSerivce userSerivce) : ControllerBase
         var result = await userSerivce.UpdateUserAsync(request, cancellationToken);
         return result ? Created() : NotFound("user not exists");
     }
+
+    [HttpDelete("{userId:int}")]
+    public async Task<ActionResult> DeleteUser([FromRoute] int userId, CancellationToken cancellationToken)
+    {
+        await userSerivce.DeleteUserAsync(userId, cancellationToken);
+        return NoContent();
+    }
 }

@@ -5,7 +5,14 @@ namespace PharmaHub.API;
 
 public class UserSerivce(ApplicationDbContext dbContext) : IUserSerivce
 {
+    public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users
+                    .FindAsync([userId], cancellationToken);
 
+        dbContext.Users.Remove(user);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<List<User>> GetUsersAsync()
     {

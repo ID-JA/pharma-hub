@@ -118,6 +118,21 @@ function UsersPage() {
         },
       },
       {
+        accessorKey: "password",
+        header: "Password",
+        mantineEditTextInputProps: {
+          type: "text",
+          required: true,
+          error: validationErrors?.password,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              password: undefined,
+            }),
+        },
+      },
+      {
         accessorKey: "gender",
         header: "Gender",
 
