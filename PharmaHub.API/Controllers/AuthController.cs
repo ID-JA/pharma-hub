@@ -36,7 +36,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
 
         if (!result.Succeeded)
         {
-            return BadRequest("Something went wrong while creating the user");
+            return BadRequest(result.Errors);
         }
 
         return Ok(new { message = "User created successfully" });

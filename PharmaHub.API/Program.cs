@@ -39,6 +39,7 @@ builder.Services.AddIdentityCore<User>()
 
 // register custom services
 builder.Services.AddScoped<IUserSerivce, UserSerivce>();
+builder.Services.AddScoped<IDrugService, DrugService>();
 
 var app = builder.Build();
 
