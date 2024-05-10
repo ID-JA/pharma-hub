@@ -2,11 +2,11 @@
 
 namespace PharmaHub.API;
 
-public class DrugService(ApplicationDbContext dbContext) : IDrugService
+public class MedicamentService(ApplicationDbContext dbContext) : IMedicamentService
 {
-    public async Task<int> CreateDrugAsync(CreateDrugRequest request, CancellationToken cancellationToken)
+    public async Task<int> CreateMedicamentAsync(CreateMedicamentRequest request, CancellationToken cancellationToken)
     {
-        Drug enity = new()
+        Medicament enity = new()
         {
             Name = request.Name,
             DCI = request.DCI,
@@ -19,33 +19,33 @@ public class DrugService(ApplicationDbContext dbContext) : IDrugService
             Type = request.Type,
             Marge = request.Marge,
             Codebar = request.Codebar,
-            Familly = request.Familly,
+            Family = request.Familly,
             UsedBy = request.UsedBy,
             WithPrescription = request.WithPrescription,
 
         };
 
-        var result = dbContext.Drugs.Add(enity);
+        var result = dbContext.Medicaments.Add(enity);
         await dbContext.SaveChangesAsync(cancellationToken);
         return result.Entity.Id;
     }
 
-    public Task DeleteDrug(int drugId, CancellationToken cancellationToken)
+    public Task DeleteMedicament(int medicamentsId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Drug> GetDrugAsync(int drugId, CancellationToken cancellationToken)
+    public Task<Medicament> GetMedicamentAsync(int medicamentsId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<Drug>> GetDrugsAsync(CancellationToken cancellationToken)
+    public Task<List<Medicament>> GetMedicamentsAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task UpdateDrugAsync(CreateDrugRequest drug, CancellationToken cancellationToken)
+    public Task UpdateMedicamentAsync(CreateMedicamentRequest request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

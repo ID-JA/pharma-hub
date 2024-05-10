@@ -1,6 +1,6 @@
 ﻿namespace PharmaHub.API;
 
-public class CreateDrugRequest
+public class CreateMedicamentRequest
 {
     public string Name { get; set; }
     public string DCI { get; set; }

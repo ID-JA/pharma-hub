@@ -6,13 +6,13 @@ namespace PharmaHub.API.Controllers;
 [Route("/api/[controller]")]
 [ApiController]
 [Authorize]
-public class DrugsController(IDrugService drugService) : ControllerBase
+public class DrugsController(IMedicamentService medicamentService) : ControllerBase
 {
 
     [HttpPost]
-    public async Task<ActionResult> CreateDrug([FromBody] CreateDrugRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateDrug([FromBody] CreateMedicamentRequest request, CancellationToken cancellationToken)
     {
-        await drugService.CreateDrugAsync(request, cancellationToken);
+        await medicamentService.CreateMedicamentAsync(request, cancellationToken);
         return Created();
     }
 }

@@ -1,10 +1,10 @@
 ﻿namespace PharmaHub.API;
 
-public interface IDrugService
+public interface IMedicamentService
 {
-    public Task<int> CreateDrugAsync(CreateDrugRequest drug, CancellationToken cancellationToken);
-    public Task DeleteDrug(int drugId, CancellationToken cancellationToken);
-    public Task UpdateDrugAsync(CreateDrugRequest drug, CancellationToken cancellationToken);
-    public Task<Drug> GetDrugAsync(int drugId, CancellationToken cancellationToken);
-    public Task<List<Drug>> GetDrugsAsync(CancellationToken cancellationToken);
+    public Task<int> CreateMedicamentAsync(CreateMedicamentRequest Medicament, CancellationToken cancellationToken);
+    public Task DeleteMedicament(int medicamentId, CancellationToken cancellationToken);
+    public Task UpdateMedicamentAsync(CreateMedicamentRequest Medicament, CancellationToken cancellationToken);
+    public Task<Medicament> GetMedicamentAsync(int MedicamentId, CancellationToken cancellationToken);
+    public Task<List<Medicament>> GetMedicamentsAsync(CancellationToken cancellationToken);
 }

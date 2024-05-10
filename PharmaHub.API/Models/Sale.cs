@@ -9,6 +9,6 @@ public class Sale : BaseModel
     public int SaleNumber { get; set; }
     public int UserId { get; set; }
     public User User { get; set; }
-    public List<SaleDrug> SaleDrugs { get; set; }
+    public List<SaleMedicament> SaleMedicaments { get; set; }
     public List<StockHistory> StockHistories { get; set; }
 }

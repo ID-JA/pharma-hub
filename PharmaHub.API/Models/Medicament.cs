@@ -1,6 +1,6 @@
 namespace PharmaHub.API.Models;
 
-public class Drug : BaseModel
+public class Medicament : BaseModel
 {
     public string Name { get; set; }
     public string DCI { get; set; }
@@ -13,11 +13,11 @@ public class Drug : BaseModel
     public string Type { get; set; }
     public int Marge { get; set; }
     public string Codebar { get; set; }
-    public string Familly { get; set; }
+    public string Family { get; set; }
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
     public List<StockHistory> StockHistories { get; set; }
-    public List<SaleDrug> SaleDrugs { get; set; }
+    public List<SaleMedicament> SaleMedicaments { get; set; }
 }
 public enum UsedBy
 {
