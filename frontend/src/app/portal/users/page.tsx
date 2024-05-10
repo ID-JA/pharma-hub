@@ -13,8 +13,10 @@ import {
   ActionIcon,
   Button,
   Flex,
+  Group,
   Stack,
   Text,
+  TextInput,
   Title,
   Tooltip,
 } from "@mantine/core";
@@ -86,35 +88,6 @@ function UsersPage() {
         },
       },
       {
-        accessorKey: "password",
-        header: "Password",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.Password,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Password: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "gender",
-        header: "Gender",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.Gender,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Gender: undefined,
-            }),
-        },
-      },
-      {
         accessorKey: "phone",
         header: "Phone",
         mantineEditTextInputProps: {
@@ -145,6 +118,24 @@ function UsersPage() {
         },
       },
       {
+        accessorKey: "gender",
+        header: "Gender",
+
+        mantineEditSelectProps: {
+          data: ["M", "F"],
+          type: "submit",
+          required: true,
+          error: validationErrors?.Gender,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              Gender: undefined,
+            }),
+        },
+      },
+
+      {
         accessorKey: "address",
         header: "Address",
         mantineEditTextInputProps: {
@@ -156,21 +147,6 @@ function UsersPage() {
             setValidationErrors({
               ...validationErrors,
               Address: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "role",
-        header: "Role",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.Role,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Role: undefined,
             }),
         },
       },
@@ -262,8 +238,9 @@ function UsersPage() {
     onEditingRowSave: handleSaveUser,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Create New User</Title>
+        <Title order={3}>Create New User </Title>
         {internalEditComponents}
+
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
         </Flex>
@@ -280,14 +257,20 @@ function UsersPage() {
     ),
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
-        <Tooltip label="Edit">
-          <ActionIcon onClick={() => table.setEditingRow(row)}>
-            <IconEdit />
+        <Tooltip label="Edit" onClick={() => table.setEditingRow(row)}>
+          <ActionIcon variant="filled" aria-label="Delete" size="sm">
+            <IconEdit style={{ width: "70%", height: "70%" }} stroke={1.5} />
           </ActionIcon>
         </Tooltip>
         <Tooltip label="Delete">
-          <ActionIcon color="red" onClick={() => openDeleteConfirmModal(row)}>
-            <IconTrash />
+          <ActionIcon
+            size="sm"
+            variant="filled"
+            aria-label="Delete"
+            color="red"
+            onClick={() => openDeleteConfirmModal(row)}
+          >
+            <IconTrash style={{ width: "70%", height: "70%" }} stroke={1.5} />
           </ActionIcon>
         </Tooltip>
       </Flex>
@@ -312,6 +295,12 @@ function UsersPage() {
       isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
       showAlertBanner: isLoadingUsersError,
       showProgressBars: isFetchingUsers,
+    },
+    mantinePaperProps: {
+      withBorder: false,
+    },
+    mantineCreateRowModalProps: {
+      size: "lg",
     },
   });
   return <MantineReactTable table={table} />;
