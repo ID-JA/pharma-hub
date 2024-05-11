@@ -4,12 +4,28 @@ import { http } from "@/utils";
 
 //CREATE hook (post new user to api)
 export function useCreateUser() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (user: User) => {
       //send api update request here
       const res = await http.post("/register", user);
       return res.data;
     },
+    onMutate: (newUserInfo: User) => {
+      queryClient.setQueryData(
+        ["users"],
+        (prevUsers: any) =>
+          [
+            ...prevUsers,
+            {
+              ...newUserInfo,
+              id: (Math.random() + 1).toString(36).substring(7),
+            },
+          ] as User[]
+      );
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["users"] }), //refetch users after mutation, disabled for demo
   });
 }
 //READ hook (get users from api)

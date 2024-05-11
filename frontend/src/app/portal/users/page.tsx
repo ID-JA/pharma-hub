@@ -30,6 +30,7 @@ import {
   validateUser,
 } from "@/services/users.service";
 import { User } from "@/types";
+import { useAddEditUserModal } from "@/components/modals/add-edit-user-modal";
 
 function UsersPage() {
   const [validationErrors, setValidationErrors] = useState<
@@ -47,131 +48,36 @@ function UsersPage() {
       {
         accessorKey: "firstName",
         header: "First Name",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.FirstName,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              FirstName: undefined,
-            }),
-        },
       },
       {
         accessorKey: "lastName",
         header: "Last Name",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.LastName,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              LastName: undefined,
-            }),
-        },
       },
       {
         accessorKey: "cni",
         header: "CNI",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.CNI,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              CNI: undefined,
-            }),
-        },
       },
       {
         accessorKey: "phone",
         header: "Phone",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.Phone,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Phone: undefined,
-            }),
-        },
       },
       {
         accessorKey: "email",
         header: "Email",
-        mantineEditTextInputProps: {
-          type: "email",
-          required: true,
-          error: validationErrors?.Email,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Email: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "password",
-        header: "Password",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.password,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              password: undefined,
-            }),
-        },
       },
       {
         accessorKey: "gender",
         header: "Gender",
-
-        mantineEditSelectProps: {
-          data: ["M", "F"],
-          type: "submit",
-          required: true,
-          error: validationErrors?.Gender,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Gender: undefined,
-            }),
-        },
       },
 
       {
         accessorKey: "address",
         header: "Address",
-        mantineEditTextInputProps: {
-          type: "text",
-          required: true,
-          error: validationErrors?.Address,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              Address: undefined,
-            }),
-        },
       },
     ],
     [validationErrors]
   );
 
-  //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
   //call READ hook
   const {
     data: fetchedUsers = [],
@@ -185,21 +91,6 @@ function UsersPage() {
   //call DELETE hook
   const { mutateAsync: deleteUser, isPending: isDeletingUser } =
     useDeleteUser();
-
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>["onCreatingRowSave"] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
-    const newValidationErrors = validateUser(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
-    setValidationErrors({});
-    await createUser(values);
-    exitCreatingMode();
-  };
 
   //UPDATE action
   const handleSaveUser: MRT_TableOptions<User>["onEditingRowSave"] = async ({
@@ -232,14 +123,13 @@ function UsersPage() {
   const table = useMantineReactTable({
     columns,
     data: fetchedUsers,
-    createDisplayMode: "modal", //default ('row', and 'custom' are also available)
-    editDisplayMode: "modal", //default ('row', 'cell', 'table', and 'custom' are also available)
+    editDisplayMode: "modal",
     enableEditing: true,
     getRowId: (row) => row.id,
     mantineToolbarAlertBannerProps: isLoadingUsersError
       ? {
           color: "red",
-          children: "Error loading data",
+          children: "Error loading Users. Please refresh and try again.",
         }
       : undefined,
     mantineTableContainerProps: {
@@ -247,20 +137,8 @@ function UsersPage() {
         minHeight: "500px",
       },
     },
-    onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
     onEditingRowCancel: () => setValidationErrors({}),
     onEditingRowSave: handleSaveUser,
-    renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
-      <Stack>
-        <Title order={3}>Create New User </Title>
-        {internalEditComponents}
-
-        <Flex justify="flex-end" mt="xl">
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </Flex>
-      </Stack>
-    ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Edit User</Title>
@@ -290,24 +168,10 @@ function UsersPage() {
         </Tooltip>
       </Flex>
     ),
-    renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
-        }}
-      >
-        Create New User
-      </Button>
-    ),
+
     state: {
       isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
+      isSaving: isUpdatingUser || isDeletingUser,
       showAlertBanner: isLoadingUsersError,
       showProgressBars: isFetchingUsers,
     },
@@ -318,7 +182,14 @@ function UsersPage() {
       size: "lg",
     },
   });
-  return <MantineReactTable table={table} />;
+  const { AddEditUserButton, AddEditUserModal } = useAddEditUserModal({});
+  return (
+    <>
+      <AddEditUserModal />
+      <AddEditUserButton />
+      <MantineReactTable table={table} />
+    </>
+  );
 }
 
 export default UsersPage;
