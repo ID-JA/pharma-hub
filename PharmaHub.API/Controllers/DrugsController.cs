@@ -5,7 +5,6 @@ namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
-[Authorize]
 public class DrugsController(IMedicamentService medicamentService) : ControllerBase
 {
 

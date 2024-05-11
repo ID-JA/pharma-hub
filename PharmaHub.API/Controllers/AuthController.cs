@@ -8,7 +8,7 @@ namespace PharmaHub.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<IdentityRole> roleManager) : ControllerBase
+public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager) : ControllerBase
 {
     [HttpPost("/register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)

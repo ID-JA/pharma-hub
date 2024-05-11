@@ -30,15 +30,13 @@ var builder = WebApplication.CreateBuilder(args);
         });
     });
 
-    builder.Services.AddIdentity<User, Role>()
-        .AddSignInManager<SignInManager<User>>()
-        .AddRoles<Role>()
-        .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
     // register custom services
     builder.Services.AddScoped<IUserSerivce, UserSerivce>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
+
+    builder.Services.AddAuth();
 
 }
 
