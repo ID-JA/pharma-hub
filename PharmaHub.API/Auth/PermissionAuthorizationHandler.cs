@@ -2,7 +2,7 @@
 
 namespace PharmaHub.API;
 
-public class PermissionAuthorizationHandler(IUserSerivce userService) : AuthorizationHandler<PermissionRequirement>
+public class PermissionAuthorizationHandler(IUserService userService) : AuthorizationHandler<PermissionRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {

@@ -33,7 +33,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
     // register custom services
-    builder.Services.AddScoped<IUserSerivce, UserSerivce>();
+    builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
 
     builder.Services.AddAuth();

@@ -4,20 +4,20 @@ namespace PharmaHub.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController(IUserSerivce userSerivce) : ControllerBase
+public class UsersController(IUserService userService) : ControllerBase
 {
     [HttpGet]
     [MustHavePermission(AppAction.View, AppResource.Users)]
     public async Task<ActionResult> GetUsers()
     {
-        return Ok(await userSerivce.GetUsersAsync());
+        return Ok(await userService.GetUsersAsync());
     }
 
     [HttpPut]
     [MustHavePermission(AppAction.Update, AppResource.Users)]
     public async Task<ActionResult> UpdateUser([FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
     {
-        var result = await userSerivce.UpdateUserAsync(request, cancellationToken);
+        var result = await userService.UpdateUserAsync(request, cancellationToken);
         return result ? Created() : NotFound("user not exists");
     }
 
@@ -25,7 +25,7 @@ public class UsersController(IUserSerivce userSerivce) : ControllerBase
     [MustHavePermission(AppAction.Delete, AppResource.Users)]
     public async Task<ActionResult> DeleteUser([FromRoute] int userId, CancellationToken cancellationToken)
     {
-        await userSerivce.DeleteUserAsync(userId, cancellationToken);
+        await userService.DeleteUserAsync(userId, cancellationToken);
         return NoContent();
     }
 }

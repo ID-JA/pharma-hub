@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PharmaHub.API;
 
-public class UserSerivce(ApplicationDbContext dbContext, UserManager<User> userManager, RoleManager<Role> roleManager) : IUserSerivce
+public class UserService(ApplicationDbContext dbContext, UserManager<User> userManager, RoleManager<Role> roleManager) : IUserService
 {
     public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
     {

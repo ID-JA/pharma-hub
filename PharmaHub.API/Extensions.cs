@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace PharmaHub.API;
 
-public static class Extenstions
+public static class Extensions
 {
     public static async Task InitializeDatabasesAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
     {
