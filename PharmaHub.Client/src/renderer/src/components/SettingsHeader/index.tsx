@@ -1,20 +1,37 @@
 import { Container, Tabs } from '@mantine/core'
 import classes from './SettingsHeader.module.css'
-
-const tabs = ['Users Management', 'Account', 'Security', 'Application']
+import { Link } from '@tanstack/react-router'
 
 export function SettingsHeader() {
-  const items = tabs.map((tab) => (
-    <Tabs.Tab value={tab} key={tab}>
-      {tab}
-    </Tabs.Tab>
-  ))
-
+  const items = (
+    [
+      ['/settings', 'Summary', true],
+      ['/settings/users', 'Users management']
+    ] as const
+  ).map(([to, label, exact]) => {
+    return (
+      <Tabs.Tab
+        key={to}
+        value={label}
+        component={(props: any) => (
+          <Link
+            {...props}
+            to={to}
+            label={label}
+            activeOptions={{ exact }}
+            activeProps={{ className: `font-bold` }}
+          />
+        )}
+      >
+        {label}
+      </Tabs.Tab>
+    )
+  })
   return (
     <div className={classes.header}>
       <Container size="md">
         <Tabs
-          defaultValue="Home"
+          defaultValue="Summary"
           variant="outline"
           visibleFrom="sm"
           classNames={{

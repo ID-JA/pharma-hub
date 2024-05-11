@@ -13,9 +13,11 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as PortalImport } from './routes/_portal'
 import { Route as IndexImport } from './routes/index'
-import { Route as PortalSettingsImport } from './routes/_portal.settings'
+import { Route as PortalSettingsImport } from './routes/_portal/settings'
 import { Route as PortalMedicamentsImport } from './routes/_portal/medicaments'
 import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
+import { Route as PortalSettingsIndexImport } from './routes/_portal/settings/index'
+import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
 
 // Create/Update Routes
 
@@ -44,6 +46,16 @@ const PortalDashboardRoute = PortalDashboardImport.update({
   getParentRoute: () => PortalRoute,
 } as any)
 
+const PortalSettingsIndexRoute = PortalSettingsIndexImport.update({
+  path: '/',
+  getParentRoute: () => PortalSettingsRoute,
+} as any)
+
+const PortalSettingsUsersRoute = PortalSettingsUsersImport.update({
+  path: '/users',
+  getParentRoute: () => PortalSettingsRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -68,6 +80,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSettingsImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/settings/users': {
+      preLoaderRoute: typeof PortalSettingsUsersImport
+      parentRoute: typeof PortalSettingsImport
+    }
+    '/_portal/settings/': {
+      preLoaderRoute: typeof PortalSettingsIndexImport
+      parentRoute: typeof PortalSettingsImport
+    }
   }
 }
 
@@ -78,7 +98,10 @@ export const routeTree = rootRoute.addChildren([
   PortalRoute.addChildren([
     PortalDashboardRoute,
     PortalMedicamentsRoute,
-    PortalSettingsRoute,
+    PortalSettingsRoute.addChildren([
+      PortalSettingsUsersRoute,
+      PortalSettingsIndexRoute,
+    ]),
   ]),
 ])
 

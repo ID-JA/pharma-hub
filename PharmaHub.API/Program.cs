@@ -25,7 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
             p.AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
-                .WithOrigins("https://localhost:3000", "http://localhost:3000");
+                .WithOrigins("https://localhost:3000", "http://localhost:3000","https://localhost:5173", "http://localhost:5173");
 
         });
     });
