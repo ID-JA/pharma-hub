@@ -1,14 +1,5 @@
-import {
-  Button,
-  Container,
-  Flex,
-  Paper,
-  PasswordInput,
-  Text,
-  TextInput,
-  Title
-} from '@mantine/core'
-import { createFileRoute } from '@tanstack/react-router'
+import { Button, Container, Paper, PasswordInput, TextInput, Title } from '@mantine/core'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
@@ -24,6 +15,7 @@ const schema = z.object({
 })
 
 function LoginRoute() {
+  const navigate = useNavigate()
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -34,7 +26,15 @@ function LoginRoute() {
   })
   return (
     <Container size={500} h="100vh" style={{ display: 'grid', placeItems: 'center' }}>
-      <form style={{ width: '100%' }} onSubmit={form.onSubmit((values) => console.log(values))}>
+      <form
+        style={{ width: '100%' }}
+        onSubmit={form.onSubmit((values) => {
+          navigate({
+            to: '/dashboard'
+          })
+          console.log(values)
+        })}
+      >
         <Title ta="center">PharmaHub App</Title>
         <Paper withBorder shadow="md" p={30} mt={30} radius="md" w="100%">
           <TextInput

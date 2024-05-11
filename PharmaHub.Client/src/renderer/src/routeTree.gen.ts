@@ -11,13 +11,37 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as PortalImport } from './routes/_portal'
 import { Route as IndexImport } from './routes/index'
+import { Route as PortalSettingsImport } from './routes/_portal.settings'
+import { Route as PortalMedicamentsImport } from './routes/_portal/medicaments'
+import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
 
 // Create/Update Routes
+
+const PortalRoute = PortalImport.update({
+  id: '/_portal',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const PortalSettingsRoute = PortalSettingsImport.update({
+  path: '/settings',
+  getParentRoute: () => PortalRoute,
+} as any)
+
+const PortalMedicamentsRoute = PortalMedicamentsImport.update({
+  path: '/medicaments',
+  getParentRoute: () => PortalRoute,
+} as any)
+
+const PortalDashboardRoute = PortalDashboardImport.update({
+  path: '/dashboard',
+  getParentRoute: () => PortalRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -28,11 +52,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/_portal': {
+      preLoaderRoute: typeof PortalImport
+      parentRoute: typeof rootRoute
+    }
+    '/_portal/dashboard': {
+      preLoaderRoute: typeof PortalDashboardImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/medicaments': {
+      preLoaderRoute: typeof PortalMedicamentsImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/settings': {
+      preLoaderRoute: typeof PortalSettingsImport
+      parentRoute: typeof PortalImport
+    }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([IndexRoute])
+export const routeTree = rootRoute.addChildren([
+  IndexRoute,
+  PortalRoute.addChildren([
+    PortalDashboardRoute,
+    PortalMedicamentsRoute,
+    PortalSettingsRoute,
+  ]),
+])
 
 /* prettier-ignore-end */
