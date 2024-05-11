@@ -8,7 +8,7 @@ namespace PharmaHub.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager) : ControllerBase
+public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<IdentityRole> roleManager) : ControllerBase
 {
     [HttpPost("/register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
@@ -37,6 +37,13 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);
+        }
+
+        var role = roleManager.FindByNameAsync(registerRequest.Role).Result;
+
+        if (role is not null)
+        {
+            var roleresult = await userManager.AddToRoleAsync(newUser, role.Name!);
         }
 
         return Ok(new { message = "User created successfully" });
@@ -69,6 +76,7 @@ public class RegisterRequest
     public char Gender { get; set; }
     public string Phone { get; set; }
     public string CNI { get; set; }
+    public string Role { get; set; }
 }
 
 

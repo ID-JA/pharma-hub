@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API;
-using PharmaHub.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
+// builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+//     .AddIdentityCookies();
 builder.Services.AddAuthorizationBuilder();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -31,8 +30,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddIdentityCore<User>()
+builder.Services.AddIdentity<User, Role>()
   .AddSignInManager<SignInManager<User>>()
+  .AddRoles<Role>()
   .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
@@ -56,5 +56,23 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// TODO: Move this code to seed roles with database migration
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+    var roles = new[] { "Admin", "Manager", "Member" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new Role()
+            {
+                Name = role
+            });
+        }
+    }
+}
 
 app.Run();
