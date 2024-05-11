@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateUser } from "@/services/users.service";
+import { useCreateUser, useUpdateUser } from "@/services/users.service";
 import { User } from "@/types";
 import { Button, Group, Modal, Select, Stack, TextInput } from "@mantine/core";
 import {
@@ -12,6 +12,19 @@ import {
   useState,
 } from "react";
 
+const DEFAULT_USER_DATA = {
+  id: "",
+  firstName: "",
+  lastName: "",
+  cni: "",
+  phone: "",
+  email: "",
+  password: "",
+  role: "Admin",
+  address: "",
+  gender: "M",
+};
+
 function AddEditUserModal({
   showAddEditUserModal,
   setShowAddEditUserModal,
@@ -19,20 +32,9 @@ function AddEditUserModal({
 }: {
   showAddEditUserModal: boolean;
   setShowAddEditUserModal: Dispatch<SetStateAction<boolean>>;
-  props?: any;
+  props?: User;
 }) {
-  const [data, setData] = useState<User>({
-    id: "",
-    firstName: "",
-    lastName: "",
-    cni: "",
-    phone: "",
-    email: "",
-    password: "",
-    role: "Admin",
-    address: "",
-    gender: "M",
-  });
+  const [data, setData] = useState<User>(props || DEFAULT_USER_DATA);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -41,6 +43,21 @@ function AddEditUserModal({
   //call CREATE hook
   const { mutateAsync: createUser, isPending: isCreatingUser } =
     useCreateUser();
+
+  //call UPDATE hook
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
+    useUpdateUser();
+  const handleSubmit = useCallback(async () => {
+    if (props?.id) {
+      await updateUser(data);
+    } else {
+      await createUser(data);
+    }
+  }, [data, props]);
+
+  const isLoading = useMemo(() => {
+    return isCreatingUser || isUpdatingUser;
+  }, [isCreatingUser, isUpdatingUser]);
   return (
     <div>
       <Modal
@@ -49,9 +66,12 @@ function AddEditUserModal({
         onClose={() => {
           setShowAddEditUserModal(false);
         }}
-        title={props ? "Edit User" : "Add User"}
+        title={
+          props
+            ? `Edit user ${props?.firstName} ${props?.lastName}`
+            : "Add new user"
+        }
       >
-        {JSON.stringify(props, null, 2)}
         <Stack
           align="stretch"
           justify="center"
@@ -59,7 +79,7 @@ function AddEditUserModal({
           component="form"
           onSubmit={async (e) => {
             e.preventDefault();
-            await createUser(data);
+            await handleSubmit();
             setShowAddEditUserModal(false);
           }}
         >
@@ -132,18 +152,14 @@ function AddEditUserModal({
           <Group justify="end" mt="md">
             <Button
               variant="outline"
-              disabled={isCreatingUser}
+              disabled={isLoading}
               onClick={() => {
                 setShowAddEditUserModal(false);
               }}
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              loading={isCreatingUser}
-              disabled={isCreatingUser}
-            >
+            <Button type="submit" loading={isLoading} disabled={isLoading}>
               Submit
             </Button>
           </Group>

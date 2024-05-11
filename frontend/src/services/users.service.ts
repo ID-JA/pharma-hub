@@ -42,12 +42,14 @@ export function useGetUsers() {
 }
 //UPDATE hook (put user in api)
 export function useUpdateUser() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (user: User) => {
       //send api update request here
       const res = await http.put(`/api/users`, user);
       return res.data;
     },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 }
 //DELETE hook (delete user in api)
