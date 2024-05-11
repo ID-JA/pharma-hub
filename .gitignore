@@ -612,3 +612,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+node_modules
+dist
+out
+.DS_Store
+*.log*
