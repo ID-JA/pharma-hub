@@ -14,10 +14,7 @@ export const Route = createFileRoute('/_portal/medicaments')({
     const medicamentsQuery = useSuspenseQuery(medicamentsQueryOptions(Route.useLoaderDeps()))
 
     return (
-      <div
-        ref={ref}
-        style={{ height: 'inherit', background: 'green', position: 'relative', overflow: 'hidden' }}
-      >
+      <div ref={ref} style={{ height: 'inherit' }}>
         {/* TODO: add search bar */}
         <SimpleGrid
           cols={{ base: 1, sm: 2 }}
@@ -25,8 +22,10 @@ export const Route = createFileRoute('/_portal/medicaments')({
           verticalSpacing={{ base: 'md', sm: 'xl' }}
         >
           <ScrollArea h={height}>
+            {/* Todo: abstract the component paper to a reusable component (MedicamentCard) */}
             {medicamentsQuery.data.map((item) => (
               <Paper
+                px="md"
                 py="xl"
                 component={Link}
                 key={item.id}
@@ -35,7 +34,6 @@ export const Route = createFileRoute('/_portal/medicaments')({
                   medicamentId: item.id
                 }}
                 preload="intent"
-                className="block py-2 px-3 text-blue-700"
                 activeProps={{ className: `font-bold` }}
               >
                 {item.name}
