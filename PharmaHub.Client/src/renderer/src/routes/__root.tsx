@@ -7,13 +7,16 @@ import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createTheme, MantineProvider } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
+import { createRootRouteWithContext } from '@tanstack/react-router'
 
 const theme = createTheme({
   primaryColor: 'green'
 })
-const queryClient = new QueryClient()
+export const queryClient = new QueryClient()
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
   component: () => (
     <>
       <QueryClientProvider client={queryClient}>
