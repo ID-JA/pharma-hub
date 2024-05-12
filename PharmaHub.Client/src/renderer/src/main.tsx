@@ -3,14 +3,17 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import { routeTree } from './routeTree.gen'
+import { queryClient } from './routes/__root'
 
 // Set up a Router instance
 const router = createRouter({
+  context: {
+    queryClient
+  },
   routeTree,
   defaultPreload: 'intent'
 })
 
-// Register things for typesafety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
