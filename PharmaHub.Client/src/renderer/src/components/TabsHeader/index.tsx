@@ -1,5 +1,5 @@
 import { Container, Tabs } from '@mantine/core'
-import classes from './SettingsHeader.module.css'
+import classes from './TabsHeader.module.css'
 import { Link } from '@tanstack/react-router'
 
 export function TabsHeader({ links }: { links: { to: string; label: string; exact?: boolean }[] }) {
