@@ -30,7 +30,7 @@ var builder = WebApplication.CreateBuilder(args);
         });
     });
 
-
+    builder.Services.AddMapster();
 
     // register custom services
     builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));

@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Reflection;
+using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using PharmaHub.API.Dtos;
 
 namespace PharmaHub.API;
 
@@ -39,4 +42,12 @@ public static class Extensions
         services
             .AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
             .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+    public static void AddMapster(this IServiceCollection services)
+    {
+        var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
+        Assembly applicationAssembly = typeof(BaseDto<,>).Assembly;
+        typeAdapterConfig.Scan(applicationAssembly);
+    }
+
 }

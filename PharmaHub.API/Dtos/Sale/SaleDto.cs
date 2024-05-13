@@ -1,16 +1,16 @@
-﻿namespace PharmaHub.API.Contracts;
+﻿namespace PharmaHub.API.Dtos;
 
-public class CreateSaleRequest
+public class SaleDto : BaseDto<SaleDto, Sale>
 {
+    public int Id { get; set; }
     public int TotalQuantity { get; set; }
     public int TotalPrice { get; set; }
     public string Status { get; set; } = "Pending";
     public float Discount { get; set; }
-    public List<SaleItem> SaleItems { get; set; } = [];
+    public List<SaleMedicamentDto> SaleMedicaments { get; set; } = [];
 }
 
-
-public class SaleItem
+public class SaleMedicamentDto : BaseDto<SaleMedicamentDto, SaleMedicament>
 {
     public int MedicamentId { get; set; }
     public int Quantity { get; set; }
