@@ -1,5 +1,7 @@
-﻿namespace PharmaHub.API.Services;
+﻿using PharmaHub.API.Services.Interfaces;
 
-public class MedicamentService(ApplicationDbContext dbContext) : BaseService<Medicament>(dbContext)
+namespace PharmaHub.API.Services;
+
+public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicament>(dbContext), IMedicamentService
 {
 }

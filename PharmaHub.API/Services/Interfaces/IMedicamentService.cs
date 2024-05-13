@@ -1,7 +1,7 @@
-﻿using PharmaHub.API.Services.Interfaces;
+﻿using PharmaHub.API.Services;
 
-namespace PharmaHub.API;
+namespace PharmaHub.API.Services.Interfaces;
 
-public interface IMedicamentService : IBaseService<Medicament>
+public interface IMedicamentService : IService<Medicament>
 {
 }

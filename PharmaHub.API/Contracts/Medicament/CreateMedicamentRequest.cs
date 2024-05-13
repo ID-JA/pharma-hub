@@ -13,7 +13,7 @@ public class CreateMedicamentRequest
     public string Type { get; set; }
     public int Marge { get; set; }
     public string Codebar { get; set; }
-    public string Familly { get; set; }
+    public string Family { get; set; }
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
 }

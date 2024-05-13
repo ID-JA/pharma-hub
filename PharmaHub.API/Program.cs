@@ -25,7 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
             p.AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
-                .WithOrigins("https://localhost:3000", "http://localhost:3000","https://localhost:5173", "http://localhost:5173");
+                .WithOrigins("https://localhost:3000", "http://localhost:3000", "https://localhost:5173", "http://localhost:5173");
 
         });
     });
@@ -33,6 +33,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
     // register custom services
+    builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
 
