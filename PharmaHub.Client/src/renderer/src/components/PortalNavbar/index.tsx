@@ -13,7 +13,7 @@ import { Link } from '@tanstack/react-router'
 
 const data = [
   { link: '/dashboard', label: 'Dashboard', icon: IconDashboard },
-  { link: '/dashboard', label: 'Sales', icon: IconBox },
+  { link: '/sales', label: 'Sales', icon: IconBox },
   { link: '/medicaments', label: 'Medicaments', icon: IconPill },
   { link: '/dashboard', label: 'Orders', icon: IconTruckDelivery },
   { link: '/dashboard', label: 'Stock History', icon: IconHistory }
