@@ -8,3 +8,5 @@ global using PharmaHub.API.Attributes;
 global using PharmaHub.API.Services.Interfaces;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Authorization;
+global using PharmaHub.API.Dtos;
+

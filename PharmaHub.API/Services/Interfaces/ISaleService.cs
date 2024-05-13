@@ -14,7 +14,7 @@ public interface ISaleService
 }
 
 
-public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedicament> saleMedicamentRepository, ICurrentUser currentUserService) : ISaleService
+public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedicament> saleMedicamentRepository, ICurrentUser currentUserService, IMedicamentService medicamentService) : ISaleService
 {
     public async Task CreateSale(CreateSaleDto request)
     {
@@ -41,7 +41,18 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                     PPV = item.PPV,
                     Discount = item.Discount
                 };
+
                 await saleMedicamentRepository.AddAsync(saleMedicament);
+
+                if (request.Status == "Paid")
+                {
+                    await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
+                    {
+                        MedicamentId = item.MedicamentId,
+                        QuantityChanged = result.TotalQuantity,
+                        SaleId = result.Id
+                    });
+                }
             }
         }
 
@@ -73,6 +84,16 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                 };
 
                 sale.SaleMedicaments.Add(saleItemDetail);
+
+                if (request.Status == "Paid")
+                {
+                    await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
+                    {
+                        MedicamentId = item.MedicamentId,
+                        QuantityChanged = sale.TotalQuantity,
+                        SaleId = sale.Id
+                    });
+                }
             }
             await dbContext.SaveChangesAsync(cancellationToken);
             return true;
