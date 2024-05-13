@@ -19,9 +19,11 @@ public class CurrentUser : ICurrentUser, ICurrentUserInitializer
         return IsAuthenticated() ? user!.GetEmail() : string.Empty;
     }
 
-    public Guid GetUserId()
+    public int GetUserId()
     {
-        throw new NotImplementedException();
+        return int.Parse(IsAuthenticated()
+            ? user!.GetUserId()
+            : userId);
     }
 
     public bool IsAuthenticated()

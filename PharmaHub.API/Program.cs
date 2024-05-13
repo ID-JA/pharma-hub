@@ -36,6 +36,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
+    builder.Services.AddScoped<ISaleService, SaleService>();
 
     builder.Services.AddAuth();
 
@@ -56,6 +57,8 @@ var app = builder.Build();
 
     app.UseHttpsRedirection();
 
+    app.UseAuthentication();
+    app.UseCurrentUser();
     app.UseAuthorization();
 
     app.MapControllers();

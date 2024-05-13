@@ -5,7 +5,7 @@ namespace PharmaHub.API;
 public interface ICurrentUser
 {
     string? Name { get; }
-    Guid GetUserId();
+    int GetUserId();
     string? GetUserEmail();
     bool IsAuthenticated();
     bool IsInRole(string role);
