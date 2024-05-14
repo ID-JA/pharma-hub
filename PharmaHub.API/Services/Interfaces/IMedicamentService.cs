@@ -9,7 +9,7 @@ public interface IMedicamentService : IService<Medicament>
     Task<List<MedicamentDto>> GetMedicamentsAsync(CancellationToken cancellationToken = default);
     Task<MedicamentDto?> GetMedicamentAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteMedicament(int id, CancellationToken cancellationToken = default);
-
+    Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
     Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
 
 }
@@ -50,4 +50,9 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         throw new NotImplementedException();
     }
 
+    public async Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default)
+    {
+        var medicamentQte = await dbContext.Medicaments.Where(m => m.Id == medicamentId).Select(m => m.Quantity).FirstOrDefaultAsync(cancellationToken);
+        return medicamentQte > orderedQuantity;
+    }
 }

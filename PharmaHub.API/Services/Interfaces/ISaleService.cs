@@ -33,23 +33,25 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         {
             foreach (var item in request.SaleMedicaments)
             {
+                var isSufficient = await medicamentService.IsSufficientQuantity(item.MedicamentId, item.Quantity);
+
                 var saleMedicament = new SaleMedicament
                 {
                     SaleId = result.Id,
                     MedicamentId = item.MedicamentId,
-                    Quantity = item.Quantity,
+                    Quantity = isSufficient ? item.Quantity : -item.Quantity,
                     PPV = item.PPV,
                     Discount = item.Discount
                 };
 
                 await saleMedicamentRepository.AddAsync(saleMedicament);
 
-                if (request.Status == "Paid")
+                if (request.Status == "Paid" && isSufficient is true)
                 {
                     await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
                     {
                         MedicamentId = item.MedicamentId,
-                        QuantityChanged = result.TotalQuantity,
+                        QuantityChanged = item.Quantity,
                         SaleId = result.Id
                     });
                 }
