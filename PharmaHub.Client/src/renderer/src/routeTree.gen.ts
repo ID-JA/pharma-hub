@@ -18,11 +18,12 @@ import { Route as PortalSalesImport } from './routes/_portal/sales'
 import { Route as PortalMedicamentsImport } from './routes/_portal/medicaments'
 import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
 import { Route as PortalSettingsIndexImport } from './routes/_portal/settings/index'
-import { Route as PortalSalesIndexImport } from './routes/_portal/sales/index'
 import { Route as PortalMedicamentsIndexImport } from './routes/_portal/medicaments.index'
 import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
-import { Route as PortalSalesNewImport } from './routes/_portal/sales/new'
+import { Route as PortalSalesNewImport } from './routes/_portal/sales_/new'
+import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
 import { Route as PortalMedicamentsMedicamentIdImport } from './routes/_portal/medicaments.$medicamentId'
+import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
 
 // Create/Update Routes
 
@@ -61,11 +62,6 @@ const PortalSettingsIndexRoute = PortalSettingsIndexImport.update({
   getParentRoute: () => PortalSettingsRoute,
 } as any)
 
-const PortalSalesIndexRoute = PortalSalesIndexImport.update({
-  path: '/',
-  getParentRoute: () => PortalSalesRoute,
-} as any)
-
 const PortalMedicamentsIndexRoute = PortalMedicamentsIndexImport.update({
   path: '/',
   getParentRoute: () => PortalMedicamentsRoute,
@@ -77,7 +73,12 @@ const PortalSettingsUsersRoute = PortalSettingsUsersImport.update({
 } as any)
 
 const PortalSalesNewRoute = PortalSalesNewImport.update({
-  path: '/new',
+  path: '/sales/new',
+  getParentRoute: () => PortalRoute,
+} as any)
+
+const PortalSalesSaleIdRoute = PortalSalesSaleIdImport.update({
+  path: '/$saleId',
   getParentRoute: () => PortalSalesRoute,
 } as any)
 
@@ -85,6 +86,12 @@ const PortalMedicamentsMedicamentIdRoute =
   PortalMedicamentsMedicamentIdImport.update({
     path: '/$medicamentId',
     getParentRoute: () => PortalMedicamentsRoute,
+  } as any)
+
+const PortalMedicamentsMedicamentIdHistoryRoute =
+  PortalMedicamentsMedicamentIdHistoryImport.update({
+    path: '/history',
+    getParentRoute: () => PortalMedicamentsMedicamentIdRoute,
   } as any)
 
 // Populate the FileRoutesByPath interface
@@ -119,9 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMedicamentsMedicamentIdImport
       parentRoute: typeof PortalMedicamentsImport
     }
+    '/_portal/sales/$saleId': {
+      preLoaderRoute: typeof PortalSalesSaleIdImport
+      parentRoute: typeof PortalSalesImport
+    }
     '/_portal/sales/new': {
       preLoaderRoute: typeof PortalSalesNewImport
-      parentRoute: typeof PortalSalesImport
+      parentRoute: typeof PortalImport
     }
     '/_portal/settings/users': {
       preLoaderRoute: typeof PortalSettingsUsersImport
@@ -131,13 +142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMedicamentsIndexImport
       parentRoute: typeof PortalMedicamentsImport
     }
-    '/_portal/sales/': {
-      preLoaderRoute: typeof PortalSalesIndexImport
-      parentRoute: typeof PortalSalesImport
-    }
     '/_portal/settings/': {
       preLoaderRoute: typeof PortalSettingsIndexImport
       parentRoute: typeof PortalSettingsImport
+    }
+    '/_portal/medicaments/$medicamentId/history': {
+      preLoaderRoute: typeof PortalMedicamentsMedicamentIdHistoryImport
+      parentRoute: typeof PortalMedicamentsMedicamentIdImport
     }
   }
 }
@@ -149,14 +160,17 @@ export const routeTree = rootRoute.addChildren([
   PortalRoute.addChildren([
     PortalDashboardRoute,
     PortalMedicamentsRoute.addChildren([
-      PortalMedicamentsMedicamentIdRoute,
+      PortalMedicamentsMedicamentIdRoute.addChildren([
+        PortalMedicamentsMedicamentIdHistoryRoute,
+      ]),
       PortalMedicamentsIndexRoute,
     ]),
-    PortalSalesRoute.addChildren([PortalSalesNewRoute, PortalSalesIndexRoute]),
+    PortalSalesRoute.addChildren([PortalSalesSaleIdRoute]),
     PortalSettingsRoute.addChildren([
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
     ]),
+    PortalSalesNewRoute,
   ]),
 ])
 
