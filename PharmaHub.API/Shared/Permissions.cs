@@ -19,6 +19,7 @@ public static class AppResource
     public const string Users = nameof(Users);
     public const string Sales = nameof(Sales);
     public const string Orders = nameof(Orders);
+    public const string Suppliers = nameof(Suppliers);
 
 }
 
@@ -46,6 +47,13 @@ public static class AppPermissions
         new("Update Orders", AppAction.Update, AppResource.Orders),
         new("Delete Orders", AppAction.Delete, AppResource.Orders),
         new("Export Orders", AppAction.Export, AppResource.Orders),
+
+        new("View Suppliers", AppAction.View, AppResource.Suppliers),
+        new("Search Suppliers", AppAction.Search, AppResource.Suppliers),
+        new("Create Suppliers", AppAction.Create, AppResource.Suppliers),
+        new("Update Suppliers", AppAction.Update, AppResource.Suppliers),
+        new("Delete Suppliers", AppAction.Delete, AppResource.Suppliers),
+        new("Export Suppliers", AppAction.Export, AppResource.Suppliers),
     ];
 
     public static IReadOnlyList<AppPermission> All { get; } = new ReadOnlyCollection<AppPermission>(_all);
