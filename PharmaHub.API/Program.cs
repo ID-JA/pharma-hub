@@ -37,6 +37,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
     builder.Services.AddScoped<ISaleService, SaleService>();
+    builder.Services.AddScoped<IOrderService, OrderSerivce>();
 
     builder.Services.AddAuth();
 
