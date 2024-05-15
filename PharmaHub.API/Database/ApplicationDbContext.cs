@@ -16,6 +16,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(s => s.SaleNumber)
             .HasDefaultValueSql("NEXT VALUE FOR SaleNumbers");
 
+        builder.Entity<OrderMedicament>()
+            .HasKey(om => new { om.OrderId, om.MedicamentId });
+
+        builder.Entity<OrderMedicament>()
+            .HasOne(om => om.Order)
+            .WithMany(o => o.OrderMedicaments)
+            .HasForeignKey(om => om.OrderId);
+
+        builder.Entity<OrderMedicament>()
+            .HasOne(om => om.Medicament)
+            .WithMany(m => m.OrderMedicaments)
+            .HasForeignKey(om => om.MedicamentId);
+
         base.OnModelCreating(builder);
     }
 
@@ -28,6 +41,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Order> Orders { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<SaleMedicament> SaleMedicaments { get; set; }
+    public DbSet<OrderMedicament> OrderMedicaments { get; set; }
     public DbSet<StockHistory> StockHistories { get; set; }
     public DbSet<DeliveryNote> DeliveryNotes { get; set; }
 }

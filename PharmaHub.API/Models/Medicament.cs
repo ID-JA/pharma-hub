@@ -19,6 +19,7 @@ public class Medicament : BaseModel
     public bool WithPrescription { get; set; }
     public List<StockHistory> StockHistories { get; set; }
     public List<SaleMedicament> SaleMedicaments { get; set; }
+    public List<OrderMedicament> OrderMedicaments { get; set; } = [];
 }
 public enum UsedBy
 {

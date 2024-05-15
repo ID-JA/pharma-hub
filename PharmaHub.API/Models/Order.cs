@@ -11,4 +11,5 @@ public class Order : BaseModel
     public int? DeliveryNoteId { get; set; }
     public DeliveryNote DeliveryNote { get; set; }
     public List<StockHistory> StockHistories { get; set; }
+    public List<OrderMedicament> OrderMedicaments { get; set; } = [];
 }
