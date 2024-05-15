@@ -19,45 +19,61 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
     public async Task CreateSale(CreateSaleDto request)
     {
         var userId = currentUserService.GetUserId();
-        Sale sale = new()
+
+        var sale = new Sale
         {
             TotalQuantity = request.TotalQuantity,
             TotalPrice = request.TotalPrice,
             Status = request.Status,
             Discount = request.Discount,
-            UserId = userId
+            UserId = userId,
+            SaleMedicaments = new List<SaleMedicament>()
         };
-        var result = await saleRepository.AddAsync(sale);
 
-        if (result is not null)
+        dbContext.Sales.Add(sale);
+        await dbContext.SaveChangesAsync();
+
+        if (sale.Id != 0)
         {
             foreach (var item in request.SaleMedicaments)
             {
                 var isSufficient = await medicamentService.IsSufficientQuantity(item.MedicamentId, item.Quantity);
 
-                var saleMedicament = new SaleMedicament
+                var quantityToChange = isSufficient ? item.Quantity : -item.Quantity;
+
+                var saleItem = new SaleMedicament
                 {
-                    SaleId = result.Id,
+                    SaleId = sale.Id,
                     MedicamentId = item.MedicamentId,
-                    Quantity = isSufficient ? item.Quantity : -item.Quantity,
+                    Quantity = quantityToChange,
                     PPV = item.PPV,
-                    Discount = item.Discount
+                    Discount = item.Discount,
                 };
 
-                await saleMedicamentRepository.AddAsync(saleMedicament);
+                sale.SaleMedicaments.Add(saleItem);
 
-                if (request.Status == "Paid" && isSufficient is true)
+                if (quantityToChange < 0)
+                {
+                    sale.Status = "Out of Stock";
+                }
+                else if (request.Status == "Paid" && isSufficient)
                 {
                     await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
                     {
                         MedicamentId = item.MedicamentId,
                         QuantityChanged = item.Quantity,
-                        SaleId = result.Id
+                        SaleId = sale.Id
                     });
                 }
             }
-        }
 
+            if (request.Status == "Paid" && sale.Status != "Out of Stock")
+            {
+                sale.Status = "Paid";
+            }
+
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public async Task<bool> UpdateSale(int id, CreateSaleDto request, CancellationToken cancellationToken = default)
