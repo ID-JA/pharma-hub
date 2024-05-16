@@ -46,7 +46,7 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: async (user: User) => {
       //send api update request here
-      const res = await http.put(`/api/users`, user)
+      const res = await http.put(`/api/users/${user.id}`, user)
       return res.data
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] })

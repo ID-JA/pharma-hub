@@ -13,19 +13,21 @@ public class UsersController(IUserService userService) : ControllerBase
         return Ok(await userService.GetAllAsync());
     }
 
-    [HttpPut]
+    [HttpPut("{id:int}")]
     [MustHavePermission(AppAction.Update, AppResource.Users)]
-    public async Task<ActionResult> UpdateUser([FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> UpdateUser([FromRoute] int id, [FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
     {
-        User user = new()
-        {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Address = request.Address,
-            CNI = request.CNI,
-            Phone = request.Phone,
-            Gender = request.Gender,
-        };
+        var user = await userService.GetByIdAsync(id, cancellationToken);
+        if (user is null)
+            return NotFound();
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.Address = request.Address;
+        user.CNI = request.CNI;
+        user.Phone = request.Phone;
+        user.Gender = request.Gender;
+
         await userService.UpdateAsync(user, cancellationToken);
         return NoContent();
     }
