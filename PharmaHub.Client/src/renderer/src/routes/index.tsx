@@ -4,6 +4,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
 import { useForm } from '@mantine/form'
+import { useMutation } from '@tanstack/react-query'
+import { http } from '@renderer/utils/http'
 
 export const Route = createFileRoute('/')({
   component: LoginRoute
@@ -11,7 +13,7 @@ export const Route = createFileRoute('/')({
 
 const schema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-  email: z.string().email({ message: 'Invalid email' })
+  email: z.string().min(10, { message: 'Email is required' })
 })
 
 function LoginRoute() {
@@ -19,20 +21,28 @@ function LoginRoute() {
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      password: '',
-      email: ''
+      password: 'Admin@123',
+      email: 'AdminJake91'
     },
     validate: zodResolver(schema)
+  })
+
+  const mutation = useMutation({
+    mutationFn: async (values: any) => {
+      await http.post('/login', values)
+    },
+    onSuccess: () => {
+      navigate({
+        to: '/dashboard'
+      })
+    }
   })
   return (
     <Container size={500} h="100vh" style={{ display: 'grid', placeItems: 'center' }}>
       <form
         style={{ width: '100%' }}
         onSubmit={form.onSubmit((values) => {
-          navigate({
-            to: '/dashboard'
-          })
-          console.log(values)
+          mutation.mutate(values)
         })}
       >
         <Title ta="center">PharmaHub App</Title>
@@ -50,7 +60,7 @@ function LoginRoute() {
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
-          <Button fullWidth mt="xl" type="submit">
+          <Button fullWidth mt="xl" type="submit" loading={mutation.isPending}>
             Sign in
           </Button>
         </Paper>

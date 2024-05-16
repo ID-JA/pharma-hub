@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
+import { http } from '@renderer/utils/http'
 
 const mockData = [
   {
@@ -109,3 +110,23 @@ export const medicamentQueryOptions = (userId: number) =>
     queryKey: ['users', userId],
     queryFn: () => mockData.filter((user) => user.id === userId)[0]
   })
+
+export const dcisQueryOptions = (opts) => {
+  return queryOptions({
+    queryKey: ['dcis', opts],
+    queryFn: async () => {
+      const res = await http.get('/api/medicaments/dcis')
+      return res.data
+    }
+  })
+}
+
+export const formsQueryOptions = (opts) => {
+  return queryOptions({
+    queryKey: ['forms', opts],
+    queryFn: async () => {
+      const res = await http.get('/api/medicaments/forms')
+      return res.data
+    }
+  })
+}

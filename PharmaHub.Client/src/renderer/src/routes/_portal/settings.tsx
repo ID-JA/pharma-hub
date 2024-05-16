@@ -6,18 +6,22 @@ import { createFileRoute } from '@tanstack/react-router'
 const links = [
   {
     to: '/settings',
-    label: 'Summary',
+    label: 'General',
     exact: true
   },
   {
     to: '/settings/users',
     label: 'Users management'
+  },
+  {
+    to: '/settings/form-dci',
+    label: 'Form & DCI'
   }
 ]
 export const Route = createFileRoute('/_portal/settings')({
   component: () => (
     <div>
-      <TabsHeader links={links} />
+      <TabsHeader defaultValue="General" links={links} />
       <Box p="md">
         <Outlet />
       </Box>

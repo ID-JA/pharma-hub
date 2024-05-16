@@ -20,6 +20,7 @@ import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
 import { Route as PortalSettingsIndexImport } from './routes/_portal/settings/index'
 import { Route as PortalMedicamentsIndexImport } from './routes/_portal/medicaments.index'
 import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
+import { Route as PortalSettingsFormDciImport } from './routes/_portal/settings/form-dci'
 import { Route as PortalSalesNewImport } from './routes/_portal/sales_/new'
 import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
 import { Route as PortalMedicamentsMedicamentIdImport } from './routes/_portal/medicaments.$medicamentId'
@@ -69,6 +70,11 @@ const PortalMedicamentsIndexRoute = PortalMedicamentsIndexImport.update({
 
 const PortalSettingsUsersRoute = PortalSettingsUsersImport.update({
   path: '/users',
+  getParentRoute: () => PortalSettingsRoute,
+} as any)
+
+const PortalSettingsFormDciRoute = PortalSettingsFormDciImport.update({
+  path: '/form-dci',
   getParentRoute: () => PortalSettingsRoute,
 } as any)
 
@@ -134,6 +140,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSalesNewImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/settings/form-dci': {
+      preLoaderRoute: typeof PortalSettingsFormDciImport
+      parentRoute: typeof PortalSettingsImport
+    }
     '/_portal/settings/users': {
       preLoaderRoute: typeof PortalSettingsUsersImport
       parentRoute: typeof PortalSettingsImport
@@ -167,6 +177,7 @@ export const routeTree = rootRoute.addChildren([
     ]),
     PortalSalesRoute.addChildren([PortalSalesSaleIdRoute]),
     PortalSettingsRoute.addChildren([
+      PortalSettingsFormDciRoute,
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
     ]),

@@ -49,7 +49,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
         return Ok(new { message = "User created successfully" });
     }
 
-    [HttpGet("/login")]
+    [HttpPost("/login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
     {
         if (loginRequest.Email.IsNullOrEmpty() || loginRequest.Password.IsNullOrEmpty())

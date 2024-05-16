@@ -1,5 +1,9 @@
 import axios from 'axios'
 
 export const http = axios.create({
-  baseURL: 'http://localhost:5023'
+  baseURL: 'http://localhost:5023',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
