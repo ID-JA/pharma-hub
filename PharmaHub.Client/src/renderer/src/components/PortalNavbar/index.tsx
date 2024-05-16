@@ -1,37 +1,34 @@
-import { useState } from 'react'
 import {
   IconLogout,
   IconDashboard,
   IconPill,
   IconBox,
-  IconHistory,
   IconTruckDelivery,
   IconSettings
 } from '@tabler/icons-react'
 import classes from './PortalNavbar.module.css'
 import { Link } from '@tanstack/react-router'
-import { Code, Title } from '@mantine/core'
+import { Box, Code, Title } from '@mantine/core'
+import { LinksGroup } from './LinksGroup'
 
 const data = [
-  { link: '/dashboard', label: 'Dashboard', icon: IconDashboard },
-  { link: '/sales', label: 'Sales', icon: IconBox },
-  { link: '/medicaments', label: 'Medicaments', icon: IconPill },
-  { link: '/dashboard', label: 'Orders', icon: IconTruckDelivery },
-  { link: '/dashboard', label: 'Stock History', icon: IconHistory }
+  { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
+  { to: '/sales', label: 'Sales', icon: IconBox },
+  {
+    label: 'Medicaments',
+    icon: IconPill,
+    links: [
+      { label: 'Inventory', to: '/medicaments', exact: true },
+      { label: 'Inventory History', to: '/medicaments/forms' },
+      { label: 'DCIs', to: '/medicaments/dci' },
+      { label: 'Forms', to: '/medicaments/forms' }
+    ]
+  },
+  { to: '/dashboard', label: 'Orders', icon: IconTruckDelivery }
 ]
 
 export function PortalNavbar() {
-  const links = data.map((item) => (
-    <Link
-      to={item.link}
-      href={item.link}
-      className={classes.link}
-      activeProps={{ className: classes.activeLink }}
-    >
-      <item.icon className={classes.linkIcon} stroke={1.5} />
-      <span>{item.label}</span>
-    </Link>
-  ))
+  const links = data.map((item) => <LinksGroup {...item} key={item.label} />)
 
   return (
     <>
@@ -43,14 +40,16 @@ export function PortalNavbar() {
       <div className={classes.footer}>
         <Link
           to="/settings"
-          className={classes.link}
+          className={classes.control}
           activeProps={{ className: classes.activeLink }}
         >
-          <IconSettings className={classes.linkIcon} stroke={1.5} />
-          <span>Settings</span>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <IconSettings className={classes.linkIcon} stroke={1.5} />
+            <Box ml="md">Settings</Box>
+          </Box>
         </Link>
 
-        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
+        <a href="#" className={classes.control} onClick={(event) => event.preventDefault()}>
           <IconLogout className={classes.linkIcon} stroke={1.5} />
           <span>Logout</span>
         </a>

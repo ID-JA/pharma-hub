@@ -12,16 +12,12 @@ const links = [
   {
     to: '/settings/users',
     label: 'Users management'
-  },
-  {
-    to: '/settings/form-dci',
-    label: 'Form & DCI'
   }
 ]
 export const Route = createFileRoute('/_portal/settings')({
   component: () => (
     <div>
-      <TabsHeader defaultValue="General" links={links} />
+      <TabsHeader links={links} />
       <Box p="md">
         <Outlet />
       </Box>

@@ -1,19 +1,15 @@
 import { Container, Tabs } from '@mantine/core'
 import classes from './TabsHeader.module.css'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 
-export function TabsHeader({
-  links,
-  defaultValue
-}: {
-  links: { to: string; label: string; exact?: boolean }[]
-  defaultValue: string
-}) {
+export function TabsHeader({ links }: { links: { to: string; label: string; exact?: boolean }[] }) {
+  const router = useRouter()
+
   const items = links.map(({ to, label, exact }) => {
     return (
       <Tabs.Tab
         key={to}
-        value={label}
+        value={to}
         component={(props: any) => (
           <Link
             {...props}
@@ -32,7 +28,7 @@ export function TabsHeader({
     <div className={classes.header}>
       <Container size="md">
         <Tabs
-          defaultValue={defaultValue}
+          defaultValue={router.state.location.pathname}
           variant="outline"
           visibleFrom="sm"
           classNames={{
