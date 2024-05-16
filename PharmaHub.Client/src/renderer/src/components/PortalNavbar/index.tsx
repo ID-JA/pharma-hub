@@ -10,6 +10,7 @@ import {
 } from '@tabler/icons-react'
 import classes from './PortalNavbar.module.css'
 import { Link } from '@tanstack/react-router'
+import { Code, Title } from '@mantine/core'
 
 const data = [
   { link: '/dashboard', label: 'Dashboard', icon: IconDashboard },
@@ -34,6 +35,9 @@ export function PortalNavbar() {
 
   return (
     <>
+      <Title c="green" order={4} mb="xl">
+        PharmaHub App <Code>v0.0.1</Code>
+      </Title>
       <div className={classes.navbarMain}>{links}</div>
 
       <div className={classes.footer}>

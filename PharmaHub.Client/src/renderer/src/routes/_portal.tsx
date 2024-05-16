@@ -9,19 +9,18 @@ export const Route = createFileRoute('/_portal')({
     return (
       <div>
         <AppShell
-          header={{ height: 60 }}
           navbar={{
             width: 300,
             breakpoint: 'sm',
             collapsed: { mobile: !opened }
           }}
         >
-          <AppShell.Header style={{ display: 'flex', alignItems: 'center' }} px="xl">
+          {/* <AppShell.Header style={{ display: 'flex', alignItems: 'center' }} px="xl">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title c="green" order={4}>
               PharmaHub App
             </Title>
-          </AppShell.Header>
+          </AppShell.Header> */}
 
           <AppShell.Navbar p="md">
             <PortalNavbar />
