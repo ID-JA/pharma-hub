@@ -26,7 +26,7 @@ export const Route = createFileRoute('/_portal')({
             <PortalNavbar />
           </AppShell.Navbar>
 
-          <AppShell.Main style={{ height: 'calc(100vh - 60px)' }}>
+          <AppShell.Main style={{ height: '100vh' }}>
             <Outlet />
           </AppShell.Main>
         </AppShell>

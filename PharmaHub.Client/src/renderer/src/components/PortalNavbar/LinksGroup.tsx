@@ -12,6 +12,7 @@ export function LinksGroup({ icon: Icon, label, to, initiallyOpened, links }: an
     return hasLinks
       ? links.map((subLink) => (
           <Link
+            key={subLink.label}
             to={subLink.to}
             className={classes.link}
             activeOptions={{ exact: subLink.exact }}

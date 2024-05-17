@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 
 const mockData = [
@@ -94,15 +94,18 @@ const mockData = [
   }
 ]
 
-export const medicamentsQueryOptions = (opts: {
-  filterBy?: string
-  sortBy?: 'name' | 'id' | 'email'
-}) =>
-  queryOptions({
+const fetchMedicaments = async ({ pageParam }) => {
+  console.log({ pageParam })
+  return (await http.get(`/api/medicaments?pageNumber=${pageParam}&pageSize=10`)).data
+}
+export const medicamentsInfiniteQueryOptions = (opts: { query?: string }) =>
+  infiniteQueryOptions({
     queryKey: ['medicaments', opts],
-    queryFn: () => {
-      return mockData
-    }
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.hasNextPage ? allPages.length + 1 : undefined
+    },
+    queryFn: fetchMedicaments
   })
 
 export const medicamentQueryOptions = (userId: number) =>
