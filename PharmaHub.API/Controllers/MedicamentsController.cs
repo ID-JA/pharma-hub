@@ -32,9 +32,9 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAllMedicaments(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetAllMedicaments([FromQuery] SearchQuery query, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.GetAllAsync(cancellationToken));
+        return Ok(await medicamentService.SearchMedicamentsAsync(query, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
