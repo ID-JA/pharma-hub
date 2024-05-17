@@ -3,7 +3,7 @@ import { useCallback, useMemo, useRef } from 'react'
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 import { useElementSize } from '@mantine/hooks'
-import { Paper, ScrollArea, SimpleGrid } from '@mantine/core'
+import { Paper, ScrollArea, SimpleGrid, TextInput } from '@mantine/core'
 
 import { medicamentsInfiniteQueryOptions } from '@renderer/services/medicaments.service'
 
@@ -12,44 +12,51 @@ export const Route = createFileRoute('/_portal/medicaments')({
     opts.context.queryClient.fetchInfiniteQuery(
       medicamentsInfiniteQueryOptions(opts.deps as { query?: string })
     ),
-  component: () => {
-    const { ref, height } = useElementSize()
-    const observer = useRef<IntersectionObserver>()
+  component: MedicamentsPage
+})
+function MedicamentsPage() {
+  const { ref, height } = useElementSize()
+  const observer = useRef<IntersectionObserver>()
 
-    const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isLoading } =
-      useSuspenseInfiniteQuery(medicamentsInfiniteQueryOptions(Route.useLoaderDeps()))
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isLoading } =
+    useSuspenseInfiniteQuery(medicamentsInfiniteQueryOptions(Route.useLoaderDeps()))
 
-    const medicaments = useMemo(() => {
-      return data?.pages.reduce((acc, page) => {
-        return [...acc, ...page.data]
-      }, [])
-    }, [data])
+  const medicaments = useMemo(() => {
+    return data?.pages.reduce((acc, page) => {
+      return [...acc, ...page.data]
+    }, [])
+  }, [data])
 
-    const lastElementRef = useCallback(
-      (element: HTMLAnchorElement | null) => {
-        if (isLoading) return
+  const lastElementRef = useCallback(
+    (element: HTMLAnchorElement | null) => {
+      if (isLoading) return
 
-        if (observer.current) observer.current.disconnect()
+      if (observer.current) observer.current.disconnect()
 
-        observer.current = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting && hasNextPage && !isFetching) {
-            fetchNextPage()
-          }
-        })
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetching) {
+          fetchNextPage()
+        }
+      })
 
-        if (element) observer.current.observe(element)
-      },
-      [fetchNextPage, hasNextPage, isFetching, isLoading]
-    )
+      if (element) observer.current.observe(element)
+    },
+    [fetchNextPage, hasNextPage, isFetching, isLoading]
+  )
 
-    return (
-      <div ref={ref} style={{ height: 'inherit' }}>
-        {/* TODO: add search bar */}
-        <SimpleGrid
-          cols={{ base: 1, sm: 2 }}
-          spacing={{ base: 10, sm: 'xl' }}
-          verticalSpacing={{ base: 'md', sm: 'xl' }}
-        >
+  return (
+    <div ref={ref} style={{ height: 'inherit' }}>
+      {/* TODO: add search bar */}
+      <SimpleGrid
+        cols={{ base: 1, sm: 2 }}
+        spacing={{ base: 10, sm: 'xl' }}
+        verticalSpacing={{ base: 'md', sm: 'xl' }}
+      >
+        <div style={{ padding: 'var(--mantine-spacing-md)' }}>
+          <div>
+            <TextInput label="Search for medicaments" mb="md" />
+          </div>
+
           <ScrollArea h={height}>
             {/* Todo: abstract the component paper to a reusable component (MedicamentCard) */}
             {medicaments &&
@@ -73,11 +80,11 @@ export const Route = createFileRoute('/_portal/medicaments')({
             {isFetchingNextPage && <div>Fetching more data...</div>}
             <div>{isFetching && !isFetchingNextPage ? 'Fetching...' : null}</div>
           </ScrollArea>
-          <ScrollArea h={height}>
-            <Outlet />
-          </ScrollArea>
-        </SimpleGrid>
-      </div>
-    )
-  }
-})
+        </div>
+        <ScrollArea h={height}>
+          <Outlet />
+        </ScrollArea>
+      </SimpleGrid>
+    </div>
+  )
+}
