@@ -94,11 +94,18 @@ const mockData = [
   }
 ]
 
-const fetchMedicaments = async ({ pageParam }) => {
-  console.log({ pageParam })
-  return (await http.get(`/api/medicaments?pageNumber=${pageParam}&pageSize=10`)).data
+const fetchMedicaments = async ({ pageParam, queryKey }) => {
+  return (
+    await http.get(`/api/medicaments`, {
+      params: {
+        'query.PageNumber': pageParam,
+        'query.PageSize': 10,
+        'query.Query': queryKey[1].name
+      }
+    })
+  ).data
 }
-export const medicamentsInfiniteQueryOptions = (opts: { query?: string }) =>
+export const medicamentsInfiniteQueryOptions = (opts: { name?: string }) =>
   infiniteQueryOptions({
     queryKey: ['medicaments', opts],
     initialPageParam: 1,

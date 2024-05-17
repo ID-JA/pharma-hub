@@ -111,62 +111,107 @@ const PortalMedicamentsMedicamentIdHistoryRoute =
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
     '/_portal': {
+      id: '/_portal'
+      path: ''
+      fullPath: ''
       preLoaderRoute: typeof PortalImport
       parentRoute: typeof rootRoute
     }
     '/_portal/dashboard': {
+      id: '/_portal/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof PortalDashboardImport
       parentRoute: typeof PortalImport
     }
     '/_portal/medicaments': {
+      id: '/_portal/medicaments'
+      path: '/medicaments'
+      fullPath: '/medicaments'
       preLoaderRoute: typeof PortalMedicamentsImport
       parentRoute: typeof PortalImport
     }
     '/_portal/sales': {
+      id: '/_portal/sales'
+      path: '/sales'
+      fullPath: '/sales'
       preLoaderRoute: typeof PortalSalesImport
       parentRoute: typeof PortalImport
     }
     '/_portal/settings': {
+      id: '/_portal/settings'
+      path: '/settings'
+      fullPath: '/settings'
       preLoaderRoute: typeof PortalSettingsImport
       parentRoute: typeof PortalImport
     }
     '/_portal/medicaments/$medicamentId': {
+      id: '/_portal/medicaments/$medicamentId'
+      path: '/$medicamentId'
+      fullPath: '/medicaments/$medicamentId'
       preLoaderRoute: typeof PortalMedicamentsMedicamentIdImport
       parentRoute: typeof PortalMedicamentsImport
     }
     '/_portal/medicaments/dci': {
+      id: '/_portal/medicaments/dci'
+      path: '/medicaments/dci'
+      fullPath: '/medicaments/dci'
       preLoaderRoute: typeof PortalMedicamentsDciImport
       parentRoute: typeof PortalImport
     }
     '/_portal/medicaments/forms': {
+      id: '/_portal/medicaments/forms'
+      path: '/medicaments/forms'
+      fullPath: '/medicaments/forms'
       preLoaderRoute: typeof PortalMedicamentsFormsImport
       parentRoute: typeof PortalImport
     }
     '/_portal/sales/$saleId': {
+      id: '/_portal/sales/$saleId'
+      path: '/$saleId'
+      fullPath: '/sales/$saleId'
       preLoaderRoute: typeof PortalSalesSaleIdImport
       parentRoute: typeof PortalSalesImport
     }
     '/_portal/sales/new': {
+      id: '/_portal/sales/new'
+      path: '/sales/new'
+      fullPath: '/sales/new'
       preLoaderRoute: typeof PortalSalesNewImport
       parentRoute: typeof PortalImport
     }
     '/_portal/settings/users': {
+      id: '/_portal/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
       preLoaderRoute: typeof PortalSettingsUsersImport
       parentRoute: typeof PortalSettingsImport
     }
     '/_portal/medicaments/': {
+      id: '/_portal/medicaments/'
+      path: '/'
+      fullPath: '/medicaments/'
       preLoaderRoute: typeof PortalMedicamentsIndexImport
       parentRoute: typeof PortalMedicamentsImport
     }
     '/_portal/settings/': {
+      id: '/_portal/settings/'
+      path: '/'
+      fullPath: '/settings/'
       preLoaderRoute: typeof PortalSettingsIndexImport
       parentRoute: typeof PortalSettingsImport
     }
     '/_portal/medicaments/$medicamentId/history': {
+      id: '/_portal/medicaments/$medicamentId/history'
+      path: '/history'
+      fullPath: '/medicaments/$medicamentId/history'
       preLoaderRoute: typeof PortalMedicamentsMedicamentIdHistoryImport
       parentRoute: typeof PortalMedicamentsMedicamentIdImport
     }
@@ -175,25 +220,26 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([
+export const routeTree = rootRoute.addChildren({
   IndexRoute,
-  PortalRoute.addChildren([
+  PortalRoute: PortalRoute.addChildren({
     PortalDashboardRoute,
-    PortalMedicamentsRoute.addChildren([
-      PortalMedicamentsMedicamentIdRoute.addChildren([
-        PortalMedicamentsMedicamentIdHistoryRoute,
-      ]),
+    PortalMedicamentsRoute: PortalMedicamentsRoute.addChildren({
+      PortalMedicamentsMedicamentIdRoute:
+        PortalMedicamentsMedicamentIdRoute.addChildren({
+          PortalMedicamentsMedicamentIdHistoryRoute,
+        }),
       PortalMedicamentsIndexRoute,
-    ]),
-    PortalSalesRoute.addChildren([PortalSalesSaleIdRoute]),
-    PortalSettingsRoute.addChildren([
+    }),
+    PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
+    PortalSettingsRoute: PortalSettingsRoute.addChildren({
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
-    ]),
+    }),
     PortalMedicamentsDciRoute,
     PortalMedicamentsFormsRoute,
     PortalSalesNewRoute,
-  ]),
-])
+  }),
+})
 
 /* prettier-ignore-end */
