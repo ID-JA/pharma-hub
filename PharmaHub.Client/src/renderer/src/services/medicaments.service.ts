@@ -7,6 +7,7 @@ import {
 import { http } from '@renderer/utils/http'
 import { Medication } from '@renderer/utils/types'
 import { toast } from 'sonner'
+import { useNavigate } from '@tanstack/react-router'
 
 const fetchMedicaments = async ({ pageParam, queryKey }) => {
   return (
@@ -73,6 +74,23 @@ export const useUpdateMedicament = () => {
   return useMutation({
     mutationFn: async (data: any) => (await http.put(`/api/medicaments/${data.id}`, data)).data,
     onSuccess: () => toast.success('updated successfully !!!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicaments'] })
+  })
+}
+
+export const useDeleteMedicament = () => {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  return useMutation({
+    mutationFn: async (medicamentId: number) =>
+      (await http.delete(`/api/medicaments/${medicamentId}`)).data,
+    onSuccess: () => {
+      toast.success('deleted successfully !!!')
+      navigate({
+        to: '/medicaments',
+        replace: true
+      })
+    },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicaments'] })
   })
 }

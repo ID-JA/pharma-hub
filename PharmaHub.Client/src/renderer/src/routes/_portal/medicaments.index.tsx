@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Fieldset,
   Group,
   NumberInput,
   Select,
@@ -63,7 +64,7 @@ const DEFAULT_VALUE = {
   codebar: '',
   family: '',
   usedBy: 1,
-  withPrescription: true
+  withPrescription: false
 }
 
 function CreateEditMedicamentPage() {
@@ -103,24 +104,35 @@ function CreateEditMedicamentPage() {
           {searchParams.medicamentId ? 'Edit' : 'Create New'} Medicament
         </Title>
         <Stack gap="md">
-          <TextInput label="Name" {...form.getInputProps('name')} />
-          <TextInput label="Code bar" {...form.getInputProps('codebar')} />
+          <Fieldset legend="Basic information">
+            <Group grow align="start">
+              <TextInput label="Name" {...form.getInputProps('name')} />
+              <TextInput label="Code bar" {...form.getInputProps('codebar')} />
+            </Group>
+            <Group grow align="start">
+              <TextInput label="DCI" {...form.getInputProps('dci')} />
+              <TextInput label="Form" {...form.getInputProps('form')} />
+            </Group>
+            <Checkbox
+              mt="md"
+              label="With Prescription"
+              {...form.getInputProps('withPrescription', { type: 'checkbox' })}
+            />
+          </Fieldset>
+          <Fieldset legend="Pricing">
+            <Group grow align="start" mb="sm">
+              <NumberInput label="PPV" {...form.getInputProps('ppv')} />
+              <NumberInput label="PPH" {...form.getInputProps('pph')} />
+              <NumberInput label="PBR" {...form.getInputProps('pbr')} />
+            </Group>
+            <Group grow align="start">
+              <NumberInput label="TVA" {...form.getInputProps('tva')} />
+              <NumberInput label="Discount" {...form.getInputProps('discount')} />
+              <NumberInput label="Marge" {...form.getInputProps('marge')} />
+            </Group>
+          </Fieldset>
 
-          <Group grow align="start">
-            <TextInput label="DCI" {...form.getInputProps('dci')} />
-            <TextInput label="Form" {...form.getInputProps('form')} />
-          </Group>
-          <Group grow align="start">
-            <NumberInput label="PPV" {...form.getInputProps('ppv')} />
-            <NumberInput label="PPH" {...form.getInputProps('pph')} />
-            <NumberInput label="PBR" {...form.getInputProps('pbr')} />
-          </Group>
-          <Group grow align="start">
-            <NumberInput label="TVA" {...form.getInputProps('tva')} />
-            <NumberInput label="Discount" {...form.getInputProps('discount')} />
-            <NumberInput label="Marge" {...form.getInputProps('marge')} />
-          </Group>
-          <Group grow align="start">
+          <Fieldset legend="Categorization">
             <TextInput label="Family" {...form.getInputProps('family')} />
             <TextInput label="Type" {...form.getInputProps('type')} />
             <Select
@@ -137,12 +149,8 @@ function CreateEditMedicamentPage() {
               ]}
               {...form.getInputProps('usedBy')}
             />
-          </Group>
-          <Checkbox
-            mt="md"
-            label="With Prescription"
-            {...form.getInputProps('withPrescription', { type: 'checkbox' })}
-          />
+          </Fieldset>
+
           <Group justify="end" mt="md">
             <Button
               size="sm"
