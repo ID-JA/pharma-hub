@@ -13,10 +13,10 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "npm run typecheck && electron-vite build",
+    "build": "pnpm electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
+    "build:win": "pnpm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
   },
@@ -27,6 +27,7 @@
     "@tanstack/react-router": "^1.32.13",
     "electron-updater": "^6.1.8",
     "mantine-form-zod-resolver": "^1.1.0",
+    "sonner": "^1.4.41",
     "zod": "^3.23.8"
   },
   "devDependencies": {

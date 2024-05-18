@@ -1,4 +1,6 @@
-﻿namespace PharmaHub.API;
+﻿using System.Text.Json.Serialization;
+
+namespace PharmaHub.API;
 
 public class CreateMedicamentRequest
 {
@@ -14,6 +16,7 @@ public class CreateMedicamentRequest
     public int Marge { get; set; }
     public string Codebar { get; set; }
     public string Family { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter<UsedBy>))]
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
 }

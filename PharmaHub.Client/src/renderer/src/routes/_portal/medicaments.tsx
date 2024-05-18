@@ -3,10 +3,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query'
 import { Link, Outlet, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useElementSize } from '@mantine/hooks'
-import { Paper, ScrollArea, SimpleGrid, TextInput } from '@mantine/core'
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  Paper,
+  ScrollArea,
+  SimpleGrid,
+  Text,
+  TextInput
+} from '@mantine/core'
 import { z } from 'zod'
 
 import { medicamentsInfiniteQueryOptions } from '@renderer/services/medicaments.service'
+import { IconEye, IconPencil } from '@tabler/icons-react'
 
 export const Route = createFileRoute('/_portal/medicaments')({
   validateSearch: z.object({
@@ -47,7 +57,7 @@ function MedicamentsPage() {
   }, [data])
 
   const lastElementRef = useCallback(
-    (element: HTMLAnchorElement | null) => {
+    (element: HTMLDivElement | null) => {
       if (isLoading) return
 
       if (observer.current) observer.current.disconnect()
@@ -83,8 +93,8 @@ function MedicamentsPage() {
         spacing={{ base: 10, sm: 'xl' }}
         verticalSpacing={{ base: 'md', sm: 'xl' }}
       >
-        <div style={{ padding: 'var(--mantine-spacing-md)' }}>
-          <div>
+        <div>
+          <div style={{ padding: 'var(--mantine-spacing-md)' }}>
             <TextInput
               label="Search for medicaments"
               mb="md"
@@ -93,24 +103,51 @@ function MedicamentsPage() {
             />
           </div>
 
-          <ScrollArea h={height}>
+          <ScrollArea h={height - 120} mx="md">
             {/* Todo: abstract the component paper to a reusable component (MedicamentCard) */}
             {medicaments &&
               medicaments.map((medicament) => (
-                <Paper
-                  key={medicament.id}
-                  ref={lastElementRef}
-                  px="md"
-                  py="xl"
-                  component={Link}
-                  to="/medicaments/$medicamentId"
-                  params={{
-                    medicamentId: medicament.id
-                  }}
-                  preload="intent"
-                  activeProps={{ className: `font-bold` }}
-                >
-                  {medicament.name}
+                <Paper key={medicament.id} ref={lastElementRef} px="md" py="xl" withBorder mb="md">
+                  <Group justify="space-between" align="center">
+                    <Group grow flex={1} align="center">
+                      <Text fw="bold">{medicament.name}</Text>
+                      <Text fw="bold">$ {medicament.ppv}</Text>
+                      <div>
+                        <Badge
+                          color={
+                            medicament.status.toUpperCase() === 'OUT OF STOCK' ? 'red' : 'green'
+                          }
+                        >
+                          {medicament.status}
+                        </Badge>
+                      </div>
+                    </Group>
+
+                    <Group>
+                      <ActionIcon
+                        size="sm"
+                        component={Link}
+                        to="/medicaments/"
+                        search={{
+                          medicamentId: medicament.id
+                        }}
+                        preload="intent"
+                      >
+                        <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                      </ActionIcon>{' '}
+                      <ActionIcon
+                        size="sm"
+                        component={Link}
+                        to="/medicaments/$medicamentId"
+                        params={{
+                          medicamentId: medicament.id
+                        }}
+                        preload="intent"
+                      >
+                        <IconEye style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
                 </Paper>
               ))}
             {isFetchingNextPage && <div>Fetching more data...</div>}

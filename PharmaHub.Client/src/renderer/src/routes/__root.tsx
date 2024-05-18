@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createTheme, MantineProvider } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
+import { Toaster } from 'sonner'
 
 const theme = createTheme({
   primaryColor: 'green'
@@ -28,6 +29,7 @@ export const Route = createRootRouteWithContext<{
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={theme}>
           <ModalsProvider>
+            <Toaster position="top-right" />
             <Outlet />
           </ModalsProvider>
         </MantineProvider>
