@@ -25,8 +25,9 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
             Family = request.Family,
             UsedBy = request.UsedBy,
             WithPrescription = request.WithPrescription,
-
+            Status = "Out of stock"
         };
+
         await medicamentService.AddAsync(enity, cancellationToken);
         return Created();
     }

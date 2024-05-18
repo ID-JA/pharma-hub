@@ -11,6 +11,7 @@ public class Medicament : BaseModel
     public float Discount { get; set; }
     public double PBR { get; set; }
     public string Type { get; set; }
+    public string Status { get; set; }
     public int Marge { get; set; }
     public int Quantity { get; set; }
     public string Codebar { get; set; }

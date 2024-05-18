@@ -1,6 +1,6 @@
 ﻿namespace PharmaHub.API.Dtos;
 
-public class CreateMedicamentDto : BaseDto<CreateMedicamentHistoryDto, StockHistory>
+public class CreateMedicamentDto : BaseDto<CreateMedicamentDto, Medicament>
 {
     public string Name { get; set; }
     public string DCI { get; set; }
@@ -11,9 +11,10 @@ public class CreateMedicamentDto : BaseDto<CreateMedicamentHistoryDto, StockHist
     public float Discount { get; set; }
     public double PBR { get; set; }
     public string Type { get; set; }
-    public int Marge { get; set; }
+    public float Marge { get; set; }
     public string Codebar { get; set; }
     public string Family { get; set; }
+    public string Status { get; set; }
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
 }
