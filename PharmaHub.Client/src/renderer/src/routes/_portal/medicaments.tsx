@@ -9,6 +9,7 @@ import {
   Group,
   Paper,
   ScrollArea,
+  Select,
   SimpleGrid,
   Text,
   TextInput
@@ -16,15 +17,13 @@ import {
 import { z } from 'zod'
 
 import { medicamentsInfiniteQueryOptions } from '@renderer/services/medicaments.service'
-import { IconEye, IconPencil } from '@tabler/icons-react'
+import { IconEye, IconPencil, IconX } from '@tabler/icons-react'
 
 export const Route = createFileRoute('/_portal/medicaments')({
   validateSearch: z.object({
     name: z.string().optional()
   }).parse,
   preSearchFilters: [
-    // Persist (or set as default) the medicamentsView search param
-    // while navigating within or to this route (or it's children!)
     (search) => ({
       ...search,
       name: search.name || undefined
@@ -32,12 +31,10 @@ export const Route = createFileRoute('/_portal/medicaments')({
   ],
   loaderDeps: ({ search: { name } }) => ({ name }),
 
-  loader: (opts) => {
-    console.log(opts)
-    return opts.context.queryClient.fetchInfiniteQuery(
+  loader: (opts) =>
+    opts.context.queryClient.fetchInfiniteQuery(
       medicamentsInfiniteQueryOptions(opts.deps as { name?: string })
-    )
-  },
+    ),
   component: MedicamentsPage
 })
 function MedicamentsPage() {
@@ -94,17 +91,28 @@ function MedicamentsPage() {
         verticalSpacing={{ base: 'md', sm: 'xl' }}
       >
         <div>
-          <div style={{ padding: 'var(--mantine-spacing-md)' }}>
+          <Group style={{ padding: 'var(--mantine-spacing-md)' }}>
             <TextInput
+              flex="1"
               label="Search for medicaments"
-              mb="md"
+              placeholder="Name, Code bar, DCI..."
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
+              rightSection={
+                <ActionIcon variant="default" onClick={() => setFilterQuery('')}>
+                  <IconX size={14} />
+                </ActionIcon>
+              }
             />
-          </div>
+            <Select
+              defaultChecked
+              defaultValue="All"
+              label="Status"
+              data={['All', 'In Stock', 'Out of Stock']}
+            />
+          </Group>
 
           <ScrollArea h={height - 120} mx="md">
-            {/* Todo: abstract the component paper to a reusable component (MedicamentCard) */}
             {medicaments &&
               medicaments.map((medicament) => (
                 <Paper key={medicament.id} ref={lastElementRef} px="md" py="xl" withBorder mb="md">
@@ -114,6 +122,7 @@ function MedicamentsPage() {
                       <Text fw="bold">$ {medicament.ppv}</Text>
                       <div>
                         <Badge
+                          variant="outline"
                           color={
                             medicament.status.toUpperCase() === 'OUT OF STOCK' ? 'red' : 'green'
                           }
@@ -125,17 +134,24 @@ function MedicamentsPage() {
 
                     <Group>
                       <ActionIcon
-                        size="sm"
-                        component={Link}
-                        to="/medicaments/"
-                        search={{
-                          medicamentId: medicament.id
+                        variant="outline"
+                        onClick={() => {
+                          navigate({
+                            search: (old) => {
+                              return {
+                                ...old,
+                                medicamentId: medicament.id
+                              }
+                            },
+                            replace: true
+                          })
                         }}
-                        preload="intent"
+                        size="sm"
                       >
                         <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
                       </ActionIcon>{' '}
                       <ActionIcon
+                        variant="outline"
                         size="sm"
                         component={Link}
                         to="/medicaments/$medicamentId"
