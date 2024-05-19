@@ -47,6 +47,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                     MedicamentId = item.MedicamentId,
                     Quantity = quantityToChange,
                     PPV = item.PPV,
+                    TVA = item.TVA,
                     Discount = item.Discount,
                 };
 

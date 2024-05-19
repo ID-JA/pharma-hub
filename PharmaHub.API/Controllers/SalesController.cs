@@ -3,7 +3,7 @@ using PharmaHub.API.Dtos;
 
 namespace PharmaHub.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("/api/[controller]")]
 [ApiController]
 [Authorize]
 public class SalesController(ISaleService saleService) : ControllerBase
