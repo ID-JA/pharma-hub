@@ -98,7 +98,9 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                     MedicamentId = item.MedicamentId,
                     Quantity = item.Quantity,
                     PPV = item.PPV,
-                    Discount = item.Discount
+                    Discount = item.Discount,
+                    TotalPrice = item.TotalPrice,
+                    TVA = item.TVA,
                 };
 
                 sale.SaleMedicaments.Add(saleItemDetail);

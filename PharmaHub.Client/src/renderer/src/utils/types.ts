@@ -34,3 +34,21 @@ export interface Medication {
   createdAt: string // Consider using Date type if you plan to handle Date objects.
   updatedAt: string // Consider using Date type if you plan to handle Date objects.
 }
+
+export type Sale = {
+  status: string
+  discount: number
+  tva: number
+  totalPrice: number
+  totalQuantity: number
+  saleMedicaments: SaleMedicament[]
+}
+type SaleMedicament = {
+  medicamentId: number
+  name: string
+  ppv: number
+  quantity: number
+  tva: number
+  discount: number
+  totalPrice: number
+}
