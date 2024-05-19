@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react'
-
-import { Outlet, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useDebouncedState, useElementSize } from '@mantine/hooks'
-import { ActionIcon, Box, Group, ScrollArea, Select, SimpleGrid, TextInput } from '@mantine/core'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { useElementSize } from '@mantine/hooks'
+import { Box, ScrollArea, SimpleGrid } from '@mantine/core'
 import { z } from 'zod'
 
-import { IconX } from '@tabler/icons-react'
 import MedicamentList from '@renderer/components/Medicaments/MedicamentList'
 
 export const Route = createFileRoute('/_portal/medicaments')({
@@ -23,7 +20,7 @@ export const Route = createFileRoute('/_portal/medicaments')({
 })
 function MedicamentsPage() {
   const { ref, height } = useElementSize()
-
+  const search = Route.useSearch()
   return (
     <div ref={ref} style={{ height: 'inherit' }}>
       <SimpleGrid
@@ -32,9 +29,7 @@ function MedicamentsPage() {
         verticalSpacing={{ base: 'md', sm: 'xl' }}
       >
         <ScrollArea h={height}>
-          <Box p="md">
-            <MedicamentList />
-          </Box>
+          <MedicamentList search={search} />
         </ScrollArea>
         <ScrollArea h={height}>
           <Outlet />

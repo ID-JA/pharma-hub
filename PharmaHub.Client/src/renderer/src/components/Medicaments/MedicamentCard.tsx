@@ -1,10 +1,10 @@
 import { Paper, Group, Badge, ActionIcon, Text } from '@mantine/core'
-import { IconPencil, IconEye } from '@tabler/icons-react'
+import { IconPencil, IconEye, IconPlus } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { forwardRef } from 'react'
 
-const MedicamentCard = forwardRef<HTMLDivElement, any>(({ medicament }, ref) => {
+const MedicamentCard = forwardRef<HTMLDivElement, any>(({ medicament, handleAddItem }, ref) => {
   const navigate = useNavigate()
 
   return (
@@ -24,33 +24,46 @@ const MedicamentCard = forwardRef<HTMLDivElement, any>(({ medicament }, ref) => 
         </Group>
 
         <Group>
+          {handleAddItem && (
+            <ActionIcon
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                handleAddItem(medicament)
+              }}
+            >
+              <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.5} />
+            </ActionIcon>
+          )}
+          {!handleAddItem && (
+            <ActionIcon
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigate({
+                  search: (old) => {
+                    return {
+                      ...old,
+                      medicamentId: medicament.id
+                    }
+                  },
+                  to: '/medicaments',
+                  replace: true
+                })
+              }}
+            >
+              <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
+            </ActionIcon>
+          )}{' '}
           <ActionIcon
-            variant="outline"
-            onClick={() => {
-              navigate({
-                search: (old) => {
-                  return {
-                    ...old,
-                    medicamentId: medicament.id
-                  }
-                },
-                to: '/medicaments',
-                replace: true
-              })
-            }}
-            size="sm"
-          >
-            <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
-          </ActionIcon>{' '}
-          <ActionIcon
-            variant="outline"
-            size="sm"
             component={Link}
+            variant="outline"
+            size="sm"
             to="/medicaments/$medicamentId"
+            preload="intent"
             params={{
               medicamentId: medicament.id
             }}
-            preload="intent"
           >
             <IconEye style={{ width: '70%', height: '70%' }} stroke={1.5} />
           </ActionIcon>

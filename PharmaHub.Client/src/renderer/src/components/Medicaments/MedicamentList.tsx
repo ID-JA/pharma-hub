@@ -3,9 +3,16 @@ import { useSearch } from '@tanstack/react-router'
 import { useMedicaments } from '@renderer/services/medicaments.service'
 import MedicamentCard from './MedicamentCard'
 import MedicamentsFilter from './MedicamentsFilter'
+import { Box } from '@mantine/core'
 
-function MedicamentList() {
-  const search = useSearch({ from: '/_portal/medicaments' })
+function MedicamentList({
+  search,
+  handleAddItem
+}: {
+  search: { name?: string | undefined }
+  handleAddItem?: (medicament: any) => void
+}) {
+  // const search = useSearch({ from: '/_portal/medicaments' })
   const observer = useRef<IntersectionObserver>()
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isLoading } =
@@ -37,17 +44,22 @@ function MedicamentList() {
   )
 
   return (
-    <div>
-      <MedicamentsFilter />
+    <Box p="md">
+      <MedicamentsFilter search={search} />
       {medicaments &&
         medicaments.map((medicament) => (
-          <MedicamentCard key={medicament.id} medicament={medicament} ref={lastElementRef} />
+          <MedicamentCard
+            handleAddItem={handleAddItem}
+            key={medicament.id}
+            medicament={medicament}
+            ref={lastElementRef}
+          />
         ))}
       {isFetchingNextPage && <div style={{ textAlign: 'center' }}>Fetching more data...</div>}
       <div style={{ textAlign: 'center' }}>
         {isFetching && !isFetchingNextPage ? 'Fetching...' : null}
       </div>
-    </div>
+    </Box>
   )
 }
 
