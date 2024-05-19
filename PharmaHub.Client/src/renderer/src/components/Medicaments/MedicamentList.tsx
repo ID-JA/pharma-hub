@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { useMedicaments } from '@renderer/services/medicaments.service'
 import MedicamentCard from './MedicamentCard'
+import MedicamentsFilter from './MedicamentsFilter'
 
 function MedicamentList() {
   const search = useSearch({ from: '/_portal/medicaments' })
@@ -36,7 +37,8 @@ function MedicamentList() {
   )
 
   return (
-    <>
+    <div>
+      <MedicamentsFilter />
       {medicaments &&
         medicaments.map((medicament) => (
           <MedicamentCard key={medicament.id} medicament={medicament} ref={lastElementRef} />
@@ -45,7 +47,7 @@ function MedicamentList() {
       <div style={{ textAlign: 'center' }}>
         {isFetching && !isFetchingNextPage ? 'Fetching...' : null}
       </div>
-    </>
+    </div>
   )
 }
 

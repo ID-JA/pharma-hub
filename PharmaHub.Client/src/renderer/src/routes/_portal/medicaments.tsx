@@ -22,23 +22,7 @@ export const Route = createFileRoute('/_portal/medicaments')({
   component: MedicamentsPage
 })
 function MedicamentsPage() {
-  const navigate = useNavigate()
   const { ref, height } = useElementSize()
-  const { name } = Route.useSearch()
-
-  const [filterQuery, setFilterQuery] = useDebouncedState(name ?? '', 300)
-
-  useEffect(() => {
-    navigate({
-      search: (old) => {
-        return {
-          ...old,
-          name: filterQuery || undefined
-        }
-      },
-      replace: true
-    })
-  }, [filterQuery])
 
   return (
     <div ref={ref} style={{ height: 'inherit' }}>
@@ -47,33 +31,11 @@ function MedicamentsPage() {
         spacing={{ base: 10, sm: 'md' }}
         verticalSpacing={{ base: 'md', sm: 'xl' }}
       >
-        <div>
-          <Group p="md">
-            <TextInput
-              flex="1"
-              label="Search for medicaments"
-              placeholder="Name, Code bar, DCI..."
-              defaultValue={filterQuery}
-              onChange={(e) => setFilterQuery(e.currentTarget.value)}
-              rightSection={
-                <ActionIcon variant="default" onClick={() => setFilterQuery('')}>
-                  <IconX size={14} />
-                </ActionIcon>
-              }
-            />
-            <Select
-              defaultChecked
-              defaultValue="All"
-              label="Status"
-              data={['All', 'In Stock', 'Out of Stock']}
-            />
-          </Group>
-          <ScrollArea h={height - 120}>
-            <Box p="md">
-              <MedicamentList />
-            </Box>
-          </ScrollArea>
-        </div>
+        <ScrollArea h={height}>
+          <Box p="md">
+            <MedicamentList />
+          </Box>
+        </ScrollArea>
         <ScrollArea h={height}>
           <Outlet />
         </ScrollArea>
