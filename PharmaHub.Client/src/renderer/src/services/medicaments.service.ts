@@ -1,6 +1,7 @@
 import {
   infiniteQueryOptions,
   queryOptions,
+  useInfiniteQuery,
   useMutation,
   useQueryClient
 } from '@tanstack/react-query'
@@ -20,15 +21,18 @@ const fetchMedicaments = async ({ pageParam, queryKey }) => {
     })
   ).data
 }
-export const medicamentsInfiniteQueryOptions = (opts: { name?: string }) =>
-  infiniteQueryOptions({
-    queryKey: ['medicaments', opts],
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.hasNextPage ? allPages.length + 1 : undefined
-    },
-    queryFn: fetchMedicaments
-  })
+
+export const useMedicaments = (opts: { name?: string }) =>
+  useInfiniteQuery(
+    infiniteQueryOptions({
+      queryKey: ['medicaments', opts],
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.hasNextPage ? allPages.length + 1 : undefined
+      },
+      queryFn: fetchMedicaments
+    })
+  )
 
 export const medicamentQueryOptions = (medicamentId: number | undefined) =>
   queryOptions({
