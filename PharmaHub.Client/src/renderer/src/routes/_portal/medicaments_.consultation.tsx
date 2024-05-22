@@ -5,28 +5,27 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { IconBarcode, IconCategory } from '@tabler/icons-react'
 import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
-// todo:
-// create Medicament Search input component
-// Create UI with Sections (Basic information,Pricing, DCI)
+
 export const Route = createFileRoute('/_portal/medicaments/consultation')({
   component: StockDetail
 })
 
 function StockDetail() {
-  const [medicamentId, setMedicamentId] = useState<string | null>(null)
+  const [medicament, setMedicament] = useState<any>(null)
   const query = useQuery({
-    queryKey: ['medicamentDetail', medicamentId],
+    queryKey: ['medicamentDetail', medicament?.id],
     queryFn: async () => {
-      return (await http.get(`/api/medicaments/?Query=${medicamentId}`)).data.data
+      return (await http.get(`/api/medicaments/${medicament?.id}`)).data
     },
-    enabled: medicamentId ? true : false
+    enabled: medicament ? true : false
   })
 
   return (
     <Container>
       {JSON.stringify(query.data)}
+      {JSON.stringify(medicament)}
       <Group grow mb="xl">
-        <SearchMedicament value={medicamentId} setValue={setMedicamentId} />
+        <SearchMedicament setValue={setMedicament} />
         <TextInput label="Code Bar" leftSection={<IconBarcode />} readOnly />
         <TextInput label="Type" leftSection={<IconCategory />} readOnly />
       </Group>

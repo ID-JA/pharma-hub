@@ -4,13 +4,7 @@ import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
-const SearchMedicament = ({
-  value,
-  setValue
-}: {
-  value: string | null
-  setValue: (value: string) => void
-}) => {
+const SearchMedicament = ({ setValue }: { setValue: (value: string) => void }) => {
   const [search, setSearch] = useDebouncedState('', 500)
 
   const query = useQuery({
@@ -41,9 +35,10 @@ const SearchMedicament = ({
       store={combobox}
       withinPortal={false}
       onOptionSubmit={(val, o) => {
-        console.log(o)
-        setValue(val)
-        setSearch(o.children?.toString() || '')
+        const selectedItem = query.data?.find((item) => item.id?.toString() === val?.toString())
+        console.log(selectedItem)
+        setValue(selectedItem)
+        setSearch(selectedItem.name)
         combobox.closeDropdown()
       }}
     >
@@ -57,10 +52,6 @@ const SearchMedicament = ({
           }}
           defaultValue={search}
           onClick={() => combobox.openDropdown()}
-          onBlur={() => {
-            combobox.closeDropdown()
-            setSearch(search || '')
-          }}
           label="Medicament Name"
           rightSectionPointerEvents="none"
         />
