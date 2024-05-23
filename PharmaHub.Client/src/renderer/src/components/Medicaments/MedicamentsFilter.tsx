@@ -22,15 +22,7 @@ function MedicamentsFilter({ search }: { search: { name?: string | undefined } }
   }, [filterQuery])
 
   return (
-    <Group
-      py="md"
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
-        backgroundColor: 'white'
-      }}
-    >
+    <Group py="md">
       <div>
         <SegmentedControl data={['Bar Code', 'Name & Form', 'Name & PPV']} />
         <TextInput

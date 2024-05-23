@@ -174,47 +174,61 @@ function NewSalePage() {
               <Text>AC</Text>
               <Text>{element.name}</Text>
             </Group>
-            <Group justify="end">
-              <Text>{element.ppv}</Text>
+            <Group justify="end" align="end" flex="1">
+              <NumberInput
+                w="8%"
+                size="xs"
+                radius="xs"
+                label="PPV"
+                readOnly
+                {...form.getInputProps(`saleMedicaments.${index}.ppv`)}
+              />
+              <NumberInput
+                w="8%"
+                size="xs"
+                radius="xs"
+                label="PPH"
+                readOnly
+                {...form.getInputProps(`saleMedicaments.${index}.pph`)}
+              />
               <NumberInput
                 min={0}
-                w="10%"
+                w="8%"
                 size="xs"
+                label="Quantity"
                 radius="xs"
                 {...form.getInputProps(`saleMedicaments.${index}.quantity`)}
                 onChange={(value) => onChangeSaleItem(index, 'quantity', value)}
               />
               <NumberInput
-                min={0}
-                max={100}
-                w="10%"
+                w="8%"
                 size="xs"
                 radius="xs"
+                label="TVA"
+                readOnly
                 {...form.getInputProps(`saleMedicaments.${index}.tva`)}
-                onChange={(value) => onChangeSaleItem(index, 'tva', value)}
               />
               <NumberInput
                 min={0}
                 max={100}
-                w="10%"
+                label="Discount"
+                w="8%"
                 size="xs"
                 radius="xs"
                 {...form.getInputProps(`saleMedicaments.${index}.discount`)}
                 onChange={(value) => onChangeSaleItem(index, 'discount', value)}
               />
               <NumberInput
-                min={0}
-                w="10%"
+                readOnly
+                label="Price NET"
+                w="8%"
                 size="xs"
-                decimalScale={2}
                 radius="xs"
                 {...form.getInputProps(`saleMedicaments.${index}.totalPrice`)}
               />
-              <div>
-                <ActionIcon variant="light" color="red" onClick={() => handleRemoveItem(index)}>
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </div>
+              <ActionIcon variant="light" color="red" onClick={() => handleRemoveItem(index)}>
+                <IconTrash size={16} />
+              </ActionIcon>
             </Group>
           </Group>
         </Paper>
@@ -225,9 +239,9 @@ function NewSalePage() {
   const { mutate: createSale } = useCreateSale()
 
   return (
-    <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl' }}>
+    <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl)' }}>
       <AddEditMedicamentDrawer />
-      <ScrollArea h={(height - 100) / 2}>
+      <ScrollArea h={(height - 130) / 2}>
         <Group justify="space-between">
           <MedicamentsFilter search={search} />
           <Group>
@@ -243,7 +257,7 @@ function NewSalePage() {
       </ScrollArea>
       <Divider my="md" />
       <Group gap="xl">
-        <ScrollArea h={(height - 100) / 2} flex="1">
+        <ScrollArea h={(height - 130) / 2} flex="1">
           {saleItems.length === 0 && (
             <Text ta="center" fz="lg" td="underline">
               Select Medicaments to create a new sale
@@ -254,18 +268,19 @@ function NewSalePage() {
         <Stack mt="lg">
           <AddEditMedicamentButton />
           <Button variant="light">Validate SALE </Button>
+          <Button variant="light">Validate For Client </Button>
           <Button variant="light">Suspend SALE</Button>
           <Button variant="light">Resume Sale</Button>
           <Button variant="light" title="delete" onClick={handleConfirmCancel}>
             Return SALE
           </Button>
-          <Button variant="outline" color="red" title="delete" onClick={handleConfirmCancel}>
-            Cancel SALE
-          </Button>
         </Stack>
       </Group>
-      <Group>
-        <NumberInput label="Manual Discount" />
+      <Group pb="xl" justify="space-between">
+        <NumberInput label="Manual Discount" defaultValue={0} />
+        <Button variant="light" color="red" title="delete" onClick={handleConfirmCancel}>
+          Cancel SALE
+        </Button>
       </Group>
     </div>
   )

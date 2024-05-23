@@ -45,6 +45,7 @@ function MedicamentList({
 
   const rows = medicaments?.map((element) => (
     <Table.Tr
+      style={{ cursor: 'pointer' }}
       key={element.id}
       ref={lastElementRef}
       onClick={() => {
