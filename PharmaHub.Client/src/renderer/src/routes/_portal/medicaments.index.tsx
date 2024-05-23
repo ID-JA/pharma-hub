@@ -21,7 +21,6 @@ import {
   useCreateMedicament,
   useUpdateMedicament
 } from '@renderer/services/medicaments.service'
-import { useAddEditMedicamentDrawer } from '@renderer/components/Medicaments/AddEditMedicamentDrawer'
 
 const productSearchSchema = z.object({
   medicamentId: z.number().optional()
@@ -71,7 +70,6 @@ const DEFAULT_VALUE = {
 function CreateEditMedicamentPage() {
   const navigate = useNavigate()
   const searchParams = Route.useSearch()
-  const { AddEditMedicamentButton, AddEditMedicamentDrawer } = useAddEditMedicamentDrawer()
   const { data: medicamentDetail } = useQuery(medicamentQueryOptions(searchParams.medicamentId))
   const { mutate: createMedicament } = useCreateMedicament()
   const { mutate: updateMedicament } = useUpdateMedicament()
@@ -100,8 +98,6 @@ function CreateEditMedicamentPage() {
 
   return (
     <Box p="md">
-      <AddEditMedicamentButton />
-      <AddEditMedicamentDrawer />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Title order={3} ta="center">
           {searchParams.medicamentId ? 'Edit' : 'Create New'} Medicament

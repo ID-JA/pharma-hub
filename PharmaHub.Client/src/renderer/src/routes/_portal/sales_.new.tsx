@@ -1,35 +1,27 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import {
   ActionIcon,
-  Alert,
-  Box,
   Button,
   Divider,
   Group,
   NumberInput,
   Paper,
   ScrollArea,
-  SegmentedControl,
-  SimpleGrid,
   Stack,
   Text,
-  TextInput,
   Title
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { useForm } from '@mantine/form'
 import { createFileRoute } from '@tanstack/react-router'
-import { IconInfoCircle, IconTrash } from '@tabler/icons-react'
+import { IconTrash } from '@tabler/icons-react'
 import MedicamentList from '@renderer/components/Medicaments/MedicamentList'
 import { Sale } from '@renderer/utils/types'
 import { useCreateSale } from '@renderer/services/sales.service'
-import { toast } from 'sonner'
-import { useQuery } from '@tanstack/react-query'
-import { http } from '@renderer/utils/http'
 import MedicamentsFilter from '@renderer/components/Medicaments/MedicamentsFilter'
-import { useAddEditMedicamentDrawer } from '@renderer/components/Medicaments/AddEditMedicamentDrawer'
+import { useAddMedicamentModal } from '@renderer/components/Modals/AddMedicamentModal'
 
 export const Route = createFileRoute('/_portal/sales/new')({
   validateSearch: z.object({
@@ -152,9 +144,8 @@ function useSaleForm() {
 function NewSalePage() {
   const { ref, height } = useElementSize()
   const search = Route.useSearch()
-  const { form, onChangeSaleItem, handleAddItem, handleRemoveItem, showWarning } = useSaleForm()
-  const [saleStatus, setSaleStatus] = useState('Pending')
-  const { AddEditMedicamentButton, AddEditMedicamentDrawer } = useAddEditMedicamentDrawer()
+  const { form, onChangeSaleItem, handleAddItem, handleRemoveItem } = useSaleForm()
+  const { AddMedicamentModal, AddMedicamentButton } = useAddMedicamentModal()
 
   const handleConfirmCancel = () => {
     modals.openConfirmModal({
@@ -240,7 +231,7 @@ function NewSalePage() {
 
   return (
     <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl)' }}>
-      <AddEditMedicamentDrawer />
+      <AddMedicamentModal />
       <ScrollArea h={(height - 130) / 2}>
         <Group justify="space-between">
           <MedicamentsFilter search={search} />
@@ -266,7 +257,7 @@ function NewSalePage() {
           {saleItems}
         </ScrollArea>
         <Stack mt="lg">
-          <AddEditMedicamentButton />
+          <AddMedicamentButton />
           <Button variant="light">Validate SALE </Button>
           <Button variant="light">Validate For Client </Button>
           <Button variant="light">Suspend SALE</Button>
@@ -277,7 +268,7 @@ function NewSalePage() {
         </Stack>
       </Group>
       <Group pb="xl" justify="space-between">
-        <NumberInput label="Manual Discount" defaultValue={0} />
+        <NumberInput label="Manual Discount" defaultValue={0} min={0} max={100} />
         <Button variant="light" color="red" title="delete" onClick={handleConfirmCancel}>
           Cancel SALE
         </Button>

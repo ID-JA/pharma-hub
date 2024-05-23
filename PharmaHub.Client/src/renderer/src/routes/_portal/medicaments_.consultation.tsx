@@ -41,20 +41,20 @@ const DEFAULT_VALUE = {
 }
 type TMedicament = typeof DEFAULT_VALUE
 function StockDetail() {
-  const [medicament, setMedicament] = useState<typeof DEFAULT_VALUE>(DEFAULT_VALUE)
+  const [medicamentId, setMedicamentId] = useState(null)
   const { data } = useQuery<TMedicament>({
-    queryKey: ['medicamentDetail', medicament?.id],
+    queryKey: ['medicamentDetail', medicamentId],
     queryFn: async () => {
-      return (await http.get(`/api/medicaments/${medicament.id}`)).data
+      return (await http.get(`/api/medicaments/${medicamentId}`)).data
     },
     initialData: DEFAULT_VALUE,
-    enabled: medicament ? true : false
+    enabled: medicamentId ? true : false
   })
 
   return (
     <Container>
       <Group grow mb="xl">
-        <SearchMedicament setValue={setMedicament} />
+        <SearchMedicament setValue={setMedicamentId} />
         <TextInput
           label="Code Bar"
           leftSection={<IconBarcode />}
@@ -69,7 +69,6 @@ function StockDetail() {
           defaultValue={data.section}
         />
       </Group>
-
       <Group grow align="start">
         <Fieldset legend="Basic information" mb="lg">
           <Group grow mb="lg">
