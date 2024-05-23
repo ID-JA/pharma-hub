@@ -4,7 +4,7 @@ import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
-const SearchMedicament = ({ setValue }: { setValue: (value: string) => void }) => {
+const SearchMedicament = ({ setValue }: { setValue: (value: any) => void }) => {
   const [search, setSearch] = useDebouncedState('', 500)
 
   const query = useQuery({

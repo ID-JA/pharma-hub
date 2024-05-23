@@ -8,11 +8,19 @@ const MedicamentCard = forwardRef<HTMLDivElement, any>(({ medicament, handleAddI
   const navigate = useNavigate()
 
   return (
-    <Paper key={medicament.id} ref={ref} px="md" py="xl" withBorder mb="md">
+    <Paper key={medicament.id} ref={ref} px="xs" py="xs" withBorder mb="sm">
       <Group justify="space-between" align="center">
         <Group grow flex={1} align="center">
-          <Text fw="bold">{medicament.name}</Text>
+          <Group>
+            <Text fw="bold" size="sm">
+              CC
+            </Text>
+            <Text fw="bold" size="sm">
+              {medicament.name}
+            </Text>
+          </Group>
           <Text fw="bold">$ {medicament.ppv}</Text>
+          <Text fw="bold">{medicament.quantity}</Text>
           <div>
             <Badge
               variant="outline"

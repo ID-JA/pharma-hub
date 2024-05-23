@@ -34,6 +34,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<User> Users { get; set; }
     public DbSet<Form> Forms { get; set; }
+    public DbSet<Section> Sections { get; set; }
+    public DbSet<Family> Families { get; set; }
     public DbSet<DCI> DCIs { get; set; }
     public DbSet<Medicament> Medicaments { get; set; }
     public DbSet<Bill> Bills { get; set; }

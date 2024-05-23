@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 import {
   ActionIcon,
@@ -10,8 +10,11 @@ import {
   NumberInput,
   Paper,
   ScrollArea,
+  SegmentedControl,
   SimpleGrid,
+  Stack,
   Text,
+  TextInput,
   Title
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
@@ -23,6 +26,10 @@ import MedicamentList from '@renderer/components/Medicaments/MedicamentList'
 import { Sale } from '@renderer/utils/types'
 import { useCreateSale } from '@renderer/services/sales.service'
 import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
+import { http } from '@renderer/utils/http'
+import MedicamentsFilter from '@renderer/components/Medicaments/MedicamentsFilter'
+import { useAddEditMedicamentDrawer } from '@renderer/components/Medicaments/AddEditMedicamentDrawer'
 
 export const Route = createFileRoute('/_portal/sales/new')({
   validateSearch: z.object({
@@ -89,19 +96,36 @@ function useSaleForm() {
 
   const handleAddItem = useCallback(
     (item: any) => {
-      const { name, ppv, quantity, tva, id, discount } = item
+      const { name, ppv, quantity, tva, id, discountRate } = item
       if (quantity <= 0) {
         setShowWarning(true)
       }
-      form.insertListItem('saleMedicaments', {
-        medicamentId: id,
-        discount,
-        name,
-        ppv,
-        quantity,
-        tva,
-        totalPrice: calculateTotalPrice(ppv, quantity, tva, discount)
-      })
+      // before inserting new item I need to check if is exist already in the cart (saleMedicament)
+      // if yes increment by one the quantity of the existing item otherwise add it to the cart
+      if (
+        form
+          .getValues()
+          .saleMedicaments.some((m) => m.medicamentId.toString() === item.id.toString())
+      ) {
+        const existingItemIndex = form
+          .getValues()
+          .saleMedicaments.findIndex((m) => m.medicamentId.toString() === item.id.toString())
+        const existingItem = form.getValues().saleMedicaments[existingItemIndex]
+        const updatedQuantity = existingItem.quantity + 1
+        form.setFieldValue(`saleMedicaments.${existingItemIndex}.quantity`, updatedQuantity)
+        onChangeSaleItem(existingItemIndex, 'quantity', updatedQuantity)
+      } else {
+        // Add the new item to the cart
+        form.insertListItem('saleMedicaments', {
+          medicamentId: id,
+          discount: discountRate,
+          name,
+          ppv,
+          quantity: 1,
+          tva
+        })
+        onChangeSaleItem(form.getValues().saleMedicaments.length - 1, 'quantity', 1)
+      }
       updateTotals()
     },
     [form, updateTotals]
@@ -130,6 +154,7 @@ function NewSalePage() {
   const search = Route.useSearch()
   const { form, onChangeSaleItem, handleAddItem, handleRemoveItem, showWarning } = useSaleForm()
   const [saleStatus, setSaleStatus] = useState('Pending')
+  const { AddEditMedicamentButton, AddEditMedicamentDrawer } = useAddEditMedicamentDrawer()
 
   const handleConfirmCancel = () => {
     modals.openConfirmModal({
@@ -142,71 +167,55 @@ function NewSalePage() {
 
   const saleItems = useMemo(
     () =>
-      form.values.saleMedicaments.map((element, index) => (
-        <Paper withBorder mb="md" key={index} p="md">
-          <Group mb="sm" justify="space-between">
+      form.getValues().saleMedicaments.map((element, index) => (
+        <Paper withBorder mb="sm" key={index} py="xs" px="md">
+          <Group justify="space-between">
             <Group>
-              <Text>
-                <Text component="span" fw="500" fz="xs">
-                  Name
-                </Text>
-                <br />
-                {element.name}
-              </Text>
-              <Text>
-                <Text component="span" fw="500" fz="xs">
-                  PPV($)
-                </Text>
-                <br />
-                {element.ppv}
-              </Text>
+              <Text>AC</Text>
+              <Text>{element.name}</Text>
             </Group>
-            <div>
-              <ActionIcon
-                mt="lg"
-                variant="light"
-                color="red"
-                onClick={() => handleRemoveItem(index)}
-              >
-                <IconTrash size={16} />
-              </ActionIcon>
-            </div>
-          </Group>
-          <Group grow justify="space-between" align="center">
-            <NumberInput
-              min={0}
-              label="Quantity"
-              size="xs"
-              radius="xs"
-              {...form.getInputProps(`saleMedicaments.${index}.quantity`)}
-              onChange={(value) => onChangeSaleItem(index, 'quantity', value)}
-            />
-            <NumberInput
-              min={0}
-              max={100}
-              label="TVA(%)"
-              size="xs"
-              radius="xs"
-              {...form.getInputProps(`saleMedicaments.${index}.tva`)}
-              onChange={(value) => onChangeSaleItem(index, 'tva', value)}
-            />
-            <NumberInput
-              min={0}
-              max={100}
-              label="Discount(%)"
-              size="xs"
-              radius="xs"
-              {...form.getInputProps(`saleMedicaments.${index}.discount`)}
-              onChange={(value) => onChangeSaleItem(index, 'discount', value)}
-            />
-            <NumberInput
-              min={0}
-              label="Total Price($)"
-              size="xs"
-              decimalScale={2}
-              radius="xs"
-              {...form.getInputProps(`saleMedicaments.${index}.totalPrice`)}
-            />
+            <Group justify="end">
+              <Text>{element.ppv}</Text>
+              <NumberInput
+                min={0}
+                w="10%"
+                size="xs"
+                radius="xs"
+                {...form.getInputProps(`saleMedicaments.${index}.quantity`)}
+                onChange={(value) => onChangeSaleItem(index, 'quantity', value)}
+              />
+              <NumberInput
+                min={0}
+                max={100}
+                w="10%"
+                size="xs"
+                radius="xs"
+                {...form.getInputProps(`saleMedicaments.${index}.tva`)}
+                onChange={(value) => onChangeSaleItem(index, 'tva', value)}
+              />
+              <NumberInput
+                min={0}
+                max={100}
+                w="10%"
+                size="xs"
+                radius="xs"
+                {...form.getInputProps(`saleMedicaments.${index}.discount`)}
+                onChange={(value) => onChangeSaleItem(index, 'discount', value)}
+              />
+              <NumberInput
+                min={0}
+                w="10%"
+                size="xs"
+                decimalScale={2}
+                radius="xs"
+                {...form.getInputProps(`saleMedicaments.${index}.totalPrice`)}
+              />
+              <div>
+                <ActionIcon variant="light" color="red" onClick={() => handleRemoveItem(index)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </div>
+            </Group>
           </Group>
         </Paper>
       )),
@@ -216,99 +225,48 @@ function NewSalePage() {
   const { mutate: createSale } = useCreateSale()
 
   return (
-    <div ref={ref} style={{ height: 'inherit' }}>
-      <SimpleGrid
-        cols={{ base: 1, md: 2 }}
-        spacing={{ base: 10, sm: 'xl' }}
-        verticalSpacing={{ base: 'md', sm: 'xl' }}
-      >
-        <ScrollArea h={height}>
-          <MedicamentList handleAddItem={handleAddItem} search={search} />
-        </ScrollArea>
-        <ScrollArea h={height}>
-          <Box p="md">
-            <Title my="md" ta="center" order={3}>
-              Create New Sale
+    <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl' }}>
+      <AddEditMedicamentDrawer />
+      <ScrollArea h={(height - 100) / 2}>
+        <Group justify="space-between">
+          <MedicamentsFilter search={search} />
+          <Group>
+            <Title my="md" ta="left" order={3}>
+              Total Price: ${form.getValues().totalPrice.toFixed(2)}
             </Title>
-            {showWarning && (
-              <Alert
-                variant="light"
-                color="yellow"
-                title="Attention"
-                icon={<IconInfoCircle />}
-                mb="md"
-              >
-                Quantity should be greater than 0. You won't be proceed this sale
-              </Alert>
-            )}
-            <form
-              onSubmit={form.onSubmit((values) => {
-                createSale(
-                  { ...values, status: saleStatus },
-                  {
-                    onSuccess: () => {
-                      form.reset()
-                      toast.success('created successfully !!!')
-                    },
-                    onError: () => toast.error('something went wrong !!!')
-                  }
-                )
-              })}
-            >
-              <ScrollArea h={height - 300}>
-                {saleItems.length === 0 && (
-                  <Text ta="center" fz="lg" td="underline">
-                    Select Medicaments to create a new sale by clicking on (+) button
-                  </Text>
-                )}
-                {saleItems}
-              </ScrollArea>
-              <Divider />
-              <SimpleGrid
-                cols={{ base: 1, sm: 2 }}
-                spacing={{ base: 10, sm: 'xl' }}
-                verticalSpacing={{ base: 'md', sm: 'xl' }}
-              >
-                <div />
-                <div>
-                  <Title my="md" ta="left" order={3}>
-                    Total: ${form.values.totalPrice.toFixed(2)}
-                  </Title>
-                </div>
-              </SimpleGrid>
-              <Group justify="space-between">
-                <Group>
-                  <Button
-                    type="submit"
-                    disabled={form.values.saleMedicaments.length === 0}
-                    onClick={() => setSaleStatus('Paid')}
-                  >
-                    Proceed
-                  </Button>
-                  <Button
-                    disabled={form.values.saleMedicaments.length === 0}
-                    variant="outline"
-                    type="submit"
-                    onClick={() => setSaleStatus('Pending')}
-                  >
-                    Suspend
-                  </Button>
-                </Group>
-                <Group>
-                  <Button
-                    disabled={form.values.saleMedicaments.length === 0}
-                    variant="outline"
-                    color="red"
-                    onClick={handleConfirmCancel}
-                  >
-                    Cancel
-                  </Button>
-                </Group>
-              </Group>
-            </form>
-          </Box>
+            <Title my="md" ta="left" order={3}>
+              Total Product: {form.getValues().saleMedicaments.length}
+            </Title>
+          </Group>
+        </Group>
+        <MedicamentList search={search} handleAddItem={handleAddItem} />
+      </ScrollArea>
+      <Divider my="md" />
+      <Group gap="xl">
+        <ScrollArea h={(height - 100) / 2} flex="1">
+          {saleItems.length === 0 && (
+            <Text ta="center" fz="lg" td="underline">
+              Select Medicaments to create a new sale
+            </Text>
+          )}
+          {saleItems}
         </ScrollArea>
-      </SimpleGrid>
+        <Stack mt="lg">
+          <AddEditMedicamentButton />
+          <Button variant="light">Validate SALE </Button>
+          <Button variant="light">Suspend SALE</Button>
+          <Button variant="light">Resume Sale</Button>
+          <Button variant="light" title="delete" onClick={handleConfirmCancel}>
+            Return SALE
+          </Button>
+          <Button variant="outline" color="red" title="delete" onClick={handleConfirmCancel}>
+            Cancel SALE
+          </Button>
+        </Stack>
+      </Group>
+      <Group>
+        <NumberInput label="Manual Discount" />
+      </Group>
     </div>
   )
 }
