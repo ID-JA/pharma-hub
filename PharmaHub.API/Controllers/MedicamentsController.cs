@@ -17,7 +17,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
             PPV = request.PPV,
             PPH = request.PPH,
             TVA = request.TVA,
-            Discount = request.Discount,
+            DiscountRate = request.Discount,
             PBR = request.PBR,
             Type = request.Type,
             Marge = request.Marge,
@@ -59,7 +59,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         medicament.PPV = request.PPV;
         medicament.PPH = request.PPH;
         medicament.TVA = request.TVA;
-        medicament.Discount = request.Discount;
+        medicament.DiscountRate = request.Discount;
         medicament.PBR = request.PBR;
         medicament.Type = request.Type;
         medicament.Marge = request.Marge;

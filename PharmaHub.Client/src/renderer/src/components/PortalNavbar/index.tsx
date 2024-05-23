@@ -4,6 +4,7 @@ import {
   IconPill,
   IconBox,
   IconTruckDelivery,
+  IconBuildingWarehouse,
   IconSettings
 } from '@tabler/icons-react'
 import classes from './PortalNavbar.module.css'
@@ -15,10 +16,10 @@ const data = [
   { to: '/dashboard', label: 'Dashboard', icon: IconDashboard },
   { to: '/sales', label: 'Sales', icon: IconBox },
   {
-    label: 'Medicaments',
-    icon: IconPill,
+    label: 'Stock',
+    icon: IconBuildingWarehouse,
     links: [
-      { label: 'Inventory', to: '/medicaments', exact: true },
+      { label: 'Consultation', to: '/medicaments/consultation', exact: true },
       { label: 'Inventory History', to: '/medicaments/forms' },
       { label: 'DCIs', to: '/medicaments/dci' },
       { label: 'Forms', to: '/medicaments/forms' }

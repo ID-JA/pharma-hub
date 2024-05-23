@@ -1,36 +1,35 @@
-import { useCallback, useEffect } from 'react'
-import { zodResolver } from 'mantine-form-zod-resolver'
-import { z } from 'zod'
 import {
-  Box,
   Button,
   Checkbox,
+  Drawer,
   Fieldset,
   Group,
   NumberInput,
+  ScrollArea,
   Select,
   Stack,
   TextInput,
   Title
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   medicamentQueryOptions,
   useCreateMedicament,
   useUpdateMedicament
 } from '@renderer/services/medicaments.service'
-import { useAddEditMedicamentDrawer } from '@renderer/components/Medicaments/AddEditMedicamentDrawer'
-
-const productSearchSchema = z.object({
-  medicamentId: z.number().optional()
-})
-
-export const Route = createFileRoute('/_portal/medicaments/')({
-  validateSearch: productSearchSchema,
-  component: CreateEditMedicamentPage
-})
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate, Route } from '@tanstack/react-router'
+import { zodResolver } from 'mantine-form-zod-resolver'
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
+import { z } from 'zod'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -67,45 +66,46 @@ const DEFAULT_VALUE = {
   usedBy: 1,
   withPrescription: false
 }
-
-function CreateEditMedicamentPage() {
-  const navigate = useNavigate()
-  const searchParams = Route.useSearch()
-  const { AddEditMedicamentButton, AddEditMedicamentDrawer } = useAddEditMedicamentDrawer()
-  const { data: medicamentDetail } = useQuery(medicamentQueryOptions(searchParams.medicamentId))
+function AddEditMedicamentDrawer({
+  opened,
+  setOpened,
+  props
+}: {
+  opened: boolean
+  setOpened: Dispatch<SetStateAction<boolean>>
+  props?: any
+}) {
+  // const navigate = useNavigate()
+  // const searchParams = Route.useSearch()
+  // const { data: medicamentDetail } = useQuery(medicamentQueryOptions(searchParams.medicamentId))
   const { mutate: createMedicament } = useCreateMedicament()
-  const { mutate: updateMedicament } = useUpdateMedicament()
-
+  // const { mutate: updateMedicament } = useUpdateMedicament()
   const form = useForm({
     initialValues: DEFAULT_VALUE,
     validate: zodResolver(schema)
   })
 
-  useEffect(() => {
-    if (medicamentDetail) {
-      form.setValues(medicamentDetail)
-    }
-  }, [medicamentDetail])
+  // useEffect(() => {
+  //   if (medicamentDetail) {
+  //     form.setValues(medicamentDetail)
+  //   }
+  // }, [medicamentDetail])
 
   const handleSubmit = useCallback(
     (values: any) => {
-      if (searchParams.medicamentId) {
-        updateMedicament(values)
-      } else {
-        createMedicament(values)
-      }
+      // if (searchParams.medicamentId) {
+      //   updateMedicament(values)
+      // } else {
+      createMedicament(values)
+      // }
     },
-    [medicamentDetail, searchParams.medicamentId]
+    []
+    // [medicamentDetail, searchParams.medicamentId]
   )
 
   return (
-    <Box p="md">
-      <AddEditMedicamentButton />
-      <AddEditMedicamentDrawer />
+    <Drawer onClose={() => setOpened(false)} opened={opened} title="Add New Medicament">
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Title order={3} ta="center">
-          {searchParams.medicamentId ? 'Edit' : 'Create New'} Medicament
-        </Title>
         <Stack gap="md">
           <Fieldset legend="Basic information">
             <Group grow align="start">
@@ -159,15 +159,8 @@ function CreateEditMedicamentPage() {
               size="sm"
               variant="outline"
               color="red"
-              style={{
-                display: searchParams.medicamentId ? 'inline' : 'none'
-              }}
               onClick={() => {
-                form.reset()
-                navigate({
-                  to: '/medicaments',
-                  search: {}
-                })
+                setOpened(false)
               }}
             >
               Cancel Editing
@@ -176,6 +169,38 @@ function CreateEditMedicamentPage() {
           </Group>
         </Stack>
       </form>
-    </Box>
+    </Drawer>
   )
 }
+
+export const useAddEditMedicamentDrawer = ({ props }: { props?: any } = {}) => {
+  const [opened, setOpened] = useState(false)
+  const AddEditMedicamentDrawerCallback = useCallback(() => {
+    return <AddEditMedicamentDrawer opened={opened} setOpened={setOpened} props={props} />
+  }, [opened, setOpened])
+
+  const AddEditMedicamentButtonCallback = useCallback(() => {
+    return (
+      <Button
+        onClick={() => {
+          setOpened(true)
+        }}
+        variant="light"
+      >
+        New Medicament
+      </Button>
+    )
+  }, [setOpened])
+
+  return useMemo(
+    () => ({
+      opened,
+      setOpened,
+      AddEditMedicamentDrawer: AddEditMedicamentDrawerCallback,
+      AddEditMedicamentButton: AddEditMedicamentButtonCallback
+    }),
+    [opened, setOpened, AddEditMedicamentDrawerCallback, AddEditMedicamentButtonCallback]
+  )
+}
+
+export default AddEditMedicamentDrawer
