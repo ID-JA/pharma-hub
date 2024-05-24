@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-
-namespace PharmaHub.API;
+﻿namespace PharmaHub.API;
 
 public class PermissionAuthorizationHandler(IUserService userService) : AuthorizationHandler<PermissionRequirement>
 {

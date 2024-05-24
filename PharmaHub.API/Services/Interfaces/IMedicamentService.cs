@@ -4,16 +4,22 @@ using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
+public class MedicamentNameDto : BaseDto<MedicamentNameDto, Medicament>
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
 public interface IMedicamentService : IService<Medicament>
 {
     Task CreateMedicament(CreateMedicamentDto request);
+    Task<List<MedicamentNameDto>> GetMedicamentsNames(string name, CancellationToken cancellationToken);
     Task<bool> UpdateMedicament(int id, CreateMedicamentDto request, CancellationToken cancellationToken = default);
     Task<PaginatedResponse<MedicamentDto>> SearchMedicamentsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default);
     Task<MedicamentDto?> GetMedicamentAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteMedicament(int id, CancellationToken cancellationToken = default);
     Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
     Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
-    // Task SearchMedicamentsAsync();
 
 }
 
@@ -93,7 +99,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
     public async Task<PaginatedResponse<MedicamentDto>> SearchMedicamentsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Medicaments.AsNoTracking().AsQueryable();
+        var query = dbContext.Medicaments.AsNoTracking();
 
         if (string.IsNullOrWhiteSpace(searchQuery.Query) || string.IsNullOrWhiteSpace(searchQuery.Field))
         {
@@ -124,5 +130,18 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
     {
         var medicamentQte = await dbContext.Medicaments.Where(m => m.Id == medicamentId).FirstOrDefaultAsync(cancellationToken);
         return true; //medicamentQte > orderedQuantity;
+    }
+
+    public async Task<List<MedicamentNameDto>> GetMedicamentsNames(string? name, CancellationToken cancellationToken)
+    {
+        var query = dbContext.Medicaments.AsNoTracking();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return await query.ProjectToType<MedicamentNameDto>().ToListAsync(cancellationToken);
+        }
+
+        return await query.Where(x => x.Name.Contains(name)).ProjectToType<MedicamentNameDto>().ToListAsync(cancellationToken);
+
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PharmaHub.API.Services.Interfaces;
 
 namespace PharmaHub.API;
 
@@ -58,5 +57,5 @@ public class Service<T>(ApplicationDbContext dbContext) : IService<T> where T : 
         dbContext.Set<T>().Update(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-    
+
 }

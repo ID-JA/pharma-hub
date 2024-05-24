@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PharmaHub.API.Shared;
 
 namespace PharmaHub.API;
 

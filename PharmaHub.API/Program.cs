@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API;
 
@@ -6,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 {
     // Add services to the container.
+    builder.Services.AddMapster();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
@@ -30,7 +30,6 @@ var builder = WebApplication.CreateBuilder(args);
         });
     });
 
-    builder.Services.AddMapster();
 
     // register custom services
     builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));

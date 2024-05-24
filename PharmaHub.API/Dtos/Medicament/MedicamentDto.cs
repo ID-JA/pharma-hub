@@ -1,4 +1,6 @@
-﻿namespace PharmaHub.API.Dtos;
+﻿using Mapster;
+
+namespace PharmaHub.API.Dtos;
 
 public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
 {
@@ -28,4 +30,12 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public bool WithPrescription { get; set; }
     public string Section { get; set; }
     public List<Inventory> Inventories { get; set; }
+
+    public static TypeAdapterConfig GetMapsterConfig()
+    {
+        return new TypeAdapterConfig()
+            .NewConfig<Medicament, MedicamentDto>()
+                .IgnoreNullValues(true)
+                .Config;
+    }
 }

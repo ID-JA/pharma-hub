@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace PharmaHub.API.Controllers;
+﻿namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
@@ -21,10 +19,16 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
             PageNumber = 1,
             PageSize = 1000,
             Query = query,
-            Field = field
+            Field = field,
         };
 
         return Ok(await medicamentService.SearchMedicamentsAsync(searchQuery, cancellationToken));
+    }
+
+    [HttpGet("search/names")]
+    public async Task<ActionResult> GetAllMedicamentsNames(CancellationToken cancellationToken, [FromQuery] string query = "")
+    {
+        return Ok(await medicamentService.GetMedicamentsNames(query, cancellationToken));
     }
 
     [HttpGet("{id:int}")]

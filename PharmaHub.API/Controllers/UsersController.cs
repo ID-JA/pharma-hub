@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace PharmaHub.API.Controllers;
+﻿namespace PharmaHub.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

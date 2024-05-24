@@ -1,7 +1,4 @@
-﻿
-using PharmaHub.API.Dtos;
-
-namespace PharmaHub.API.Controllers;
+﻿namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
