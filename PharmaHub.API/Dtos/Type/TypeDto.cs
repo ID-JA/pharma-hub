@@ -1,5 +1,6 @@
-namespace PharmaHub.API.Models;
-public class Type : BaseModel
+﻿namespace PharmaHub.API.Dtos;
+
+public class TypeDto : BaseDto<TypeDto, Models.Type>
 {
   public string Name { get; set; }
   public string Code { get; set; }

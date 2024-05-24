@@ -46,4 +46,5 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OrderMedicament> OrderMedicaments { get; set; }
     public DbSet<StockHistory> StockHistories { get; set; }
     public DbSet<DeliveryNote> DeliveryNotes { get; set; }
+    public DbSet<Models.Type> Types { get; set; }
 }
