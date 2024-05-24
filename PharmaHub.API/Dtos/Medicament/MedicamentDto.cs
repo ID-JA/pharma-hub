@@ -14,8 +14,6 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public double PFHTNotActive { get; set; }
     public double PFHTActive { get; set; }
     public double PAMP { get; set; }
-    public double PPV { get; set; }
-    public double PPH { get; set; }
     public double PBR { get; set; }
     public float TVA { get; set; }
     public double Marge { get; set; }
@@ -29,4 +27,5 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public UsedBy UsedBy { get; set; }
     public bool WithPrescription { get; set; }
     public string Section { get; set; }
+    public List<Inventory> Inventories { get; set; }
 }

@@ -20,6 +20,7 @@ public interface IMedicamentService : IService<Medicament>
 public class SearchQuery
 {
     public string? Query { get; set; }
+    public string? Field { get; set; }
     public int PageSize { get; set; } = 10;
     public int PageNumber { get; set; } = 1;
 }
@@ -94,30 +95,21 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
     {
         var query = dbContext.Medicaments.AsNoTracking().AsQueryable();
 
-        if (string.IsNullOrWhiteSpace(searchQuery.Query))
+        if (string.IsNullOrWhiteSpace(searchQuery.Query) || string.IsNullOrWhiteSpace(searchQuery.Field))
         {
             return await query
+            .Include(m => m.Inventories)
             .ProjectToType<MedicamentDto>()
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
         }
 
-        bool isPrice = decimal.TryParse(searchQuery.Query, out decimal priceValue);
-
-        bool isBarcode = long.TryParse(searchQuery.Query, out long barcodeValue);
-
-
-        if (isPrice)
+        query = searchQuery.Field switch
         {
-            // query = query.Where(p => p.PPV == priceValue);
-        }
-        else if (isBarcode)
-        {
-            query = query.Where(p => p.Barcode == searchQuery.Query);
-        }
-        else
-        {
-            query = query.Where(p => p.Name.Contains(searchQuery.Query));
-        }
+            "barcode" => query.Where(m => m.Barcode == searchQuery.Query).Include(m => m.Inventories),
+            "name" => query.Where(m => m.Name.Contains(searchQuery.Query)).Include(m => m.Inventories),
+            "ppv" => query.Include(m => m.Inventories).Where(m => m.Inventories.Any(i => i.PPV == decimal.Parse(searchQuery.Query))),
+            _ => throw new NotImplementedException(),
+        };
 
         return await query.ProjectToType<MedicamentDto>()
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);

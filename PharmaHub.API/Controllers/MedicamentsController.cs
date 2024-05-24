@@ -14,13 +14,14 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult> GetAllMedicaments([FromQuery] string query, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetAllMedicaments(CancellationToken cancellationToken, [FromQuery] string? query = "", [FromQuery] string? field = "")
     {
         var searchQuery = new SearchQuery()
         {
             PageNumber = 1,
             PageSize = 1000,
-            Query = query
+            Query = query,
+            Field = field
         };
 
         return Ok(await medicamentService.SearchMedicamentsAsync(searchQuery, cancellationToken));
