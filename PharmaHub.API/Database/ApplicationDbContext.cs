@@ -8,6 +8,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<Medicament>()
+                .Property(c => c.UsedBy)
+                .HasConversion<int>();
+
         builder.HasSequence<int>("SaleNumbers")
             .StartsAt(100)
             .IncrementsBy(1);
@@ -34,6 +38,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<User> Users { get; set; }
     public DbSet<Form> Forms { get; set; }
+    public DbSet<Inventory> Inventories { get; set; }
     public DbSet<Section> Sections { get; set; }
     public DbSet<Family> Families { get; set; }
     public DbSet<DCI> DCIs { get; set; }

@@ -7,35 +7,23 @@ namespace PharmaHub.API.Controllers;
 public class MedicamentsController(IMedicamentService medicamentService, IService<DCI> dciService, IService<Form> formService) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult> CreateDrug([FromBody] CreateMedicamentRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateDrug([FromBody] CreateMedicamentDto request, CancellationToken cancellationToken)
     {
-        Medicament enity = new()
-        {
-            Name = request.Name,
-            DCI = request.DCI,
-            Form = request.Form,
-            PPV = request.PPV,
-            PPH = request.PPH,
-            TVA = request.TVA,
-            DiscountRate = request.Discount,
-            PBR = request.PBR,
-            Type = request.Type,
-            Marge = request.Marge,
-            Codebar = request.Codebar,
-            Family = request.Family,
-            UsedBy = request.UsedBy,
-            WithPrescription = request.WithPrescription,
-            Status = "Out of stock"
-        };
-
-        await medicamentService.AddAsync(enity, cancellationToken);
+        await medicamentService.CreateMedicament(request);
         return Created();
     }
 
-    [HttpGet]
-    public async Task<ActionResult> GetAllMedicaments([FromQuery] SearchQuery query, CancellationToken cancellationToken)
+    [HttpGet("search")]
+    public async Task<ActionResult> GetAllMedicaments([FromQuery] string query, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.SearchMedicamentsAsync(query, cancellationToken));
+        var searchQuery = new SearchQuery()
+        {
+            PageNumber = 1,
+            PageSize = 1000,
+            Query = query
+        };
+
+        return Ok(await medicamentService.SearchMedicamentsAsync(searchQuery, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
@@ -56,14 +44,12 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         medicament.Name = request.Name;
         medicament.DCI = request.DCI;
         medicament.Form = request.Form;
-        medicament.PPV = request.PPV;
-        medicament.PPH = request.PPH;
         medicament.TVA = request.TVA;
         medicament.DiscountRate = request.Discount;
         medicament.PBR = request.PBR;
         medicament.Type = request.Type;
         medicament.Marge = request.Marge;
-        medicament.Codebar = request.Codebar;
+        medicament.Barcode = request.Barcode;
         medicament.Family = request.Family;
         medicament.UsedBy = request.UsedBy;
         medicament.WithPrescription = request.WithPrescription;

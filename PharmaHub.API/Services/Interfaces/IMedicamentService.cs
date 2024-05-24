@@ -21,14 +21,55 @@ public class SearchQuery
 {
     public string? Query { get; set; }
     public int PageSize { get; set; } = 10;
-    public int pageNumber { get; set; } = 1;
+    public int PageNumber { get; set; } = 1;
 }
 
 public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicament>(dbContext), IMedicamentService
 {
-    public Task CreateMedicament(CreateMedicamentDto request)
+    public async Task CreateMedicament(CreateMedicamentDto request)
     {
-        throw new NotImplementedException();
+        // create medicament basic info
+        var medicament = new Medicament()
+        {
+            Name = request.Name,
+            Barcode = request.Barcode,
+            DCI = request.DCI,
+            Form = request.Form,
+            Type = request.Type,
+            Family = request.Family,
+            Section = request.Section,
+            Dosage = request.Dosage,
+            Laboratory = request.Laboratory,
+            UsedBy = request.UsedBy,
+            TVA = request.TVA,
+            Marge = request.Marge,
+            PAMP = request.PAMP,
+            PBR = request.PBR,
+            Status = request.Quantity < 0 ? "out of stock" : "in stock",
+            DiscountRate = request.Discount,
+            ReimbursementRate = request.ReimbursementRate,
+            OrderSystem = request.OrderSystem,
+            WithPrescription = request.WithPrescription,
+        };
+
+        dbContext.Medicaments.Add(medicament);
+        var result = await dbContext.SaveChangesAsync();
+
+        if (result > 0)
+        {
+            // create an inventroy for the medicament
+            var inventroy = new Inventory()
+            {
+                MedicamentId = medicament.Id,
+                ExperationDate = request.ExperationDate,
+                Quantity = request.Quantity,
+                PPH = request.PPH,
+                PPV = request.PPV,
+            };
+
+            dbContext.Inventories.Add(inventroy);
+            await dbContext.SaveChangesAsync();
+        }
     }
 
     public async Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request)
@@ -51,13 +92,35 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
     public async Task<PaginatedResponse<MedicamentDto>> SearchMedicamentsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
     {
-        var medicamentsQuery = string.IsNullOrEmpty(searchQuery.Query)
-            ? dbContext.Medicaments
-            : dbContext.Medicaments.Where(m => m.Name.Contains(searchQuery.Query) || m.Codebar.Contains(searchQuery.Query));
+        var query = dbContext.Medicaments.AsNoTracking().AsQueryable();
 
-        return await medicamentsQuery
+        if (string.IsNullOrWhiteSpace(searchQuery.Query))
+        {
+            return await query
             .ProjectToType<MedicamentDto>()
-            .PaginatedListAsync(searchQuery.pageNumber, searchQuery.PageSize);
+            .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
+        }
+
+        bool isPrice = decimal.TryParse(searchQuery.Query, out decimal priceValue);
+
+        bool isBarcode = long.TryParse(searchQuery.Query, out long barcodeValue);
+
+
+        if (isPrice)
+        {
+            // query = query.Where(p => p.PPV == priceValue);
+        }
+        else if (isBarcode)
+        {
+            query = query.Where(p => p.Barcode == searchQuery.Query);
+        }
+        else
+        {
+            query = query.Where(p => p.Name.Contains(searchQuery.Query));
+        }
+
+        return await query.ProjectToType<MedicamentDto>()
+            .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
     }
 
     public Task<bool> UpdateMedicament(int id, CreateMedicamentDto request, CancellationToken cancellationToken = default)
@@ -67,7 +130,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
     public async Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default)
     {
-        var medicamentQte = await dbContext.Medicaments.Where(m => m.Id == medicamentId).Select(m => m.Quantity).FirstOrDefaultAsync(cancellationToken);
-        return medicamentQte > orderedQuantity;
+        var medicamentQte = await dbContext.Medicaments.Where(m => m.Id == medicamentId).FirstOrDefaultAsync(cancellationToken);
+        return true; //medicamentQte > orderedQuantity;
     }
 }

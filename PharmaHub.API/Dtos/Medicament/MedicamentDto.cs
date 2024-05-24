@@ -5,7 +5,7 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public int Id { get; set; }
     public string Name { get; set; }
     public string Dosage { get; set; }
-    public string Codebar { get; set; }
+    public string Barcode { get; set; }
     public string DCI { get; set; }
     public string Form { get; set; }
     public string Family { get; set; }
