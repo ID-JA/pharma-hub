@@ -8,6 +8,7 @@ public interface ITypeService
   Task<bool> DeleteType(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateType(int id, TypeDto request, CancellationToken cancellationToken = default);
   Task<List<TypeNameDto>> GetTypesNames(string name, CancellationToken cancellationToken);
+
 }
 public class TypeService(ApplicationDbContext dbContext, ICurrentUser currentUser) : ITypeService
 {
