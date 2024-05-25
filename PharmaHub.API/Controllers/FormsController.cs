@@ -33,5 +33,9 @@ public class FormsController(IFormService formService) : ControllerBase
     var result = await formService.DeleteForm(id, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
-
+  [HttpGet("search/names")]
+  public async Task<ActionResult> GetAllFormsNames(CancellationToken cancellationToken, [FromQuery] string query = "")
+  {
+    return Ok(await formService.GetFormsNames(query, cancellationToken));
+  }
 }

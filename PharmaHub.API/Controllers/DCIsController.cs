@@ -34,5 +34,9 @@ public class DCIsController(IDCIService dCIService) : ControllerBase
     var result = await dCIService.DeleteDCI(id, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
-
+  [HttpGet("search/names")]
+  public async Task<ActionResult> GetAllDCIsNames(CancellationToken cancellationToken, [FromQuery] string query = "")
+  {
+    return Ok(await dCIService.GetDCIsNames(query, cancellationToken));
+  }
 }

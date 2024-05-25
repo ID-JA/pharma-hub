@@ -33,4 +33,11 @@ public class TypesController(ITypeService typeService) : ControllerBase
     var result = await typeService.DeleteType(id, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
+  [HttpGet("search/names")]
+  public async Task<ActionResult> GetAllTypesNames(CancellationToken cancellationToken, [FromQuery] string query = "")
+  {
+    return Ok(await typeService.GetTypesNames(query, cancellationToken));
+  }
+
+
 }

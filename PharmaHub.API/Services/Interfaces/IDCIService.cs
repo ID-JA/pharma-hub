@@ -8,6 +8,7 @@ public interface IDCIService
   Task<DCIDto?> GetDCIAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteDCI(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateDCI(int id, DCIDto request, CancellationToken cancellationToken = default);
+  Task<List<DCINameDto>> GetDCIsNames(string name, CancellationToken cancellationToken);
 
 }
 public class DCIService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IDCIService
@@ -54,6 +55,19 @@ public class DCIService(ApplicationDbContext dbContext, ICurrentUser currentUser
       return true;
     }
     return false;
+  }
+
+  public async Task<List<DCINameDto>> GetDCIsNames(string? name, CancellationToken cancellationToken)
+  {
+    var query = dbContext.Forms.AsNoTracking();
+
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      return await query.ProjectToType<DCINameDto>().ToListAsync(cancellationToken);
+    }
+
+    return await query.Where(x => x.Name.Contains(name)).ProjectToType<DCINameDto>().ToListAsync(cancellationToken);
+
   }
 }
 

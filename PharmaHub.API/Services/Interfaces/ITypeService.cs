@@ -7,7 +7,7 @@ public interface ITypeService
   Task<TypeDto?> GetTypeByIdAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteType(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateType(int id, TypeDto request, CancellationToken cancellationToken = default);
-
+  Task<List<TypeNameDto>> GetTypesNames(string name, CancellationToken cancellationToken);
 }
 public class TypeService(ApplicationDbContext dbContext, ICurrentUser currentUser) : ITypeService
 {
@@ -56,5 +56,17 @@ public class TypeService(ApplicationDbContext dbContext, ICurrentUser currentUse
       return true;
     }
     return false;
+  }
+  public async Task<List<TypeNameDto>> GetTypesNames(string? name, CancellationToken cancellationToken)
+  {
+    var query = dbContext.Types.AsNoTracking();
+
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      return await query.ProjectToType<TypeNameDto>().ToListAsync(cancellationToken);
+    }
+
+    return await query.Where(x => x.Name.Contains(name)).ProjectToType<TypeNameDto>().ToListAsync(cancellationToken);
+
   }
 }
