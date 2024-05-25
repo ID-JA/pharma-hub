@@ -38,6 +38,10 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<ISaleService, SaleService>();
     builder.Services.AddScoped<IOrderService, OrderSerivce>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.AddScoped<IFormService, FormService>();
+    builder.Services.AddScoped<IFamilyService, FamilyService>();
+    builder.Services.AddScoped<IDCIService, DCIService>();
+    builder.Services.AddScoped<ITypeService, TypeService>();
 
     builder.Services.AddAuth();
 
