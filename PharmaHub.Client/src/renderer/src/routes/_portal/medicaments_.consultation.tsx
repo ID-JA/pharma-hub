@@ -1,4 +1,14 @@
-import { Container, Fieldset, Text, Group, TextInput, Textarea, Radio } from '@mantine/core'
+import {
+  Container,
+  Fieldset,
+  Group,
+  TextInput,
+  Textarea,
+  Radio,
+  InputBase,
+  Stack,
+  Checkbox
+} from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
@@ -14,7 +24,7 @@ const DEFAULT_VALUE = {
   id: 0,
   name: '',
   dosage: '',
-  codebar: '',
+  barcode: '',
   dci: '',
   form: '',
   family: '',
@@ -52,171 +62,79 @@ function StockDetail() {
   })
 
   return (
-    <Container>
+    <Container size="xl">
       <Group grow mb="xl">
         <SearchMedicament setValue={setMedicamentId} />
         <TextInput
           label="Code Bar"
           leftSection={<IconBarcode />}
           readOnly
-          defaultValue={data.codebar}
+          defaultValue={data.barcode}
         />
-        <TextInput label="Type" leftSection={<IconCategory />} readOnly defaultValue={data.type} />
-        <TextInput
-          label="Section"
-          leftSection={<IconCategory />}
-          readOnly
-          defaultValue={data.section}
-        />
+        <TextInput label="Form" leftSection={<IconCategory />} readOnly defaultValue={data.form} />
       </Group>
       <Group grow align="start">
-        <Fieldset legend="Basic information" mb="lg">
-          <Group grow mb="lg">
-            <div>
-              <Text size="sm" c="dimmed">
-                Medicament Name:
-              </Text>
-              <Text>{data.name}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                Form:
-              </Text>
-              <Text>{data.name}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                DCI:
-              </Text>
-              <Text>{data.name}</Text>
-            </div>
-          </Group>
-          <Group grow mb="lg">
-            <div>
-              <Text size="sm" c="dimmed">
-                Type:
-              </Text>
-              <Text>{data.type}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                TVA:
-              </Text>
-              <Text>{data.tva}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                Marge:
-              </Text>
-              <Text>{data.marge}</Text>
-            </div>
-          </Group>
-          <Group grow mb="lg">
-            <div>
-              <Text size="sm" c="dimmed">
-                PPV:
-              </Text>
-              <Text>{data.ppv}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                PBR:
-              </Text>
-              <Text>{data.pbr}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed">
-                Discount Rate (%):
-              </Text>
-              <Text>{data.discountRate}</Text>
-            </div>
-          </Group>
-        </Fieldset>
-        <Textarea label="Dosage" readOnly defaultValue={data.dosage} />
+        <Stack>
+          <Fieldset legend="Basic information">
+            <Group grow mb="lg">
+              <InputBase label="Medicament Name" readOnly defaultValue={data.name} />
+              <InputBase label="Section" readOnly defaultValue={data.section} />
+            </Group>
+            <Group>
+              <InputBase flex="1" label="Tax Nature" readOnly defaultValue={data.type} />
+              <InputBase w="100px" label="TVA" readOnly defaultValue={data.tva} />
+              <InputBase w="100px" label="Marge" readOnly defaultValue={data.marge} />
+            </Group>
+          </Fieldset>
+          <Fieldset legend="Supplier Purchases and Labor Cost plus Third-Party Payments">
+            <Group mb="lg">
+              <InputBase w="150px" label="Laboratory" readOnly defaultValue={data.laboratory} />
+              <InputBase w="150px" label="Supplier" readOnly defaultValue={data.laboratory} />
+              <InputBase flex="1" label="Order System:" readOnly defaultValue={data.orderSystem} />
+            </Group>
+            <Group grow>
+              <InputBase
+                label="Reimbursement Rate (%)"
+                readOnly
+                defaultValue={data.reimbursementRate}
+              />
+              <InputBase label="PFHT Active:" readOnly defaultValue={data.pfhtActive} />
+              <InputBase label="PFHT Not Active:" readOnly defaultValue={data.pfhtNotActive} />
+            </Group>
+          </Fieldset>
+          <Fieldset legend="DCI or Care Components and Miscellaneous (Retail Product)">
+            <Group grow mb="lg">
+              <Checkbox.Group readOnly label="Used by" value={['Child', 'Adult']}>
+                <Group mt="xs">
+                  <Checkbox value="Infant" label="Infant" />
+                  <Checkbox value="Child" label="Child" />
+                  <Checkbox value="Adult" label="Adult" />
+                </Group>
+              </Checkbox.Group>
+              <Radio.Group
+                name="WithPrescription"
+                readOnly
+                label="With Prescription"
+                value={data.withPrescription.toString()}
+              >
+                <Group mt="xs">
+                  <Radio value="true" label="Yes" />
+                  <Radio value="false" label="No" />
+                </Group>
+              </Radio.Group>
+            </Group>
+            <Group grow mb="lg">
+              <InputBase label="DCI" readOnly defaultValue={data.dci} />
+              <InputBase label="Family" readOnly defaultValue={data.family} />
+            </Group>
+          </Fieldset>
+        </Stack>
+        <Stack>
+          <h4>Render Total Quantity & Total Quantity Last month</h4>
+          <h4>Render Medicament Inventories</h4>
+          <Textarea label="Dosage" readOnly defaultValue={data.dosage} />
+        </Stack>
       </Group>
-      <Fieldset mb="lg" legend="Supplier Purchases and Labor Cost plus Third-Party Payments">
-        <Group grow mb="lg">
-          <div>
-            <Text size="sm" c="dimmed">
-              Laboratory:
-            </Text>
-            <Text>{data.laboratory}</Text>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              Supplier:
-            </Text>
-            <Text>{data.laboratory}</Text>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              Order System:
-            </Text>
-            <Text>{data.orderSystem}</Text>
-          </div>
-        </Group>
-        <Group grow mb="lg">
-          <div>
-            <Text size="sm" c="dimmed">
-              Reimbursement Rate (%):
-            </Text>
-            <Text>{data.reimbursementRate}</Text>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              PFHT Active:
-            </Text>
-            <Text>{data.pfhtActive}</Text>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              PFHT Not Active (%):
-            </Text>
-            <Text>{data.pfhtNotActive}</Text>
-          </div>
-        </Group>
-      </Fieldset>
-      <Fieldset legend="DCI or Care Components and Miscellaneous (Retail Product)">
-        <Group grow mb="lg">
-          <div>
-            <Text size="sm" c="dimmed">
-              Used by:
-            </Text>
-            <Radio.Group name="usedBy" readOnly>
-              <Group mt="xs">
-                <Radio value={1} label="Infant" />
-                <Radio value={2} label="Child" />
-                <Radio value={3} label="Adult" />
-              </Group>
-            </Radio.Group>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              With Prescription:
-            </Text>
-            <Radio.Group name="usedBy" readOnly>
-              <Group mt="xs">
-                <Radio value={2} label="Yes" />
-                <Radio value={3} label="No" />
-              </Group>
-            </Radio.Group>
-          </div>
-        </Group>
-        <Group grow mb="lg">
-          <div>
-            <Text size="sm" c="dimmed">
-              DCI:
-            </Text>
-            <Text>{data.dci}</Text>
-          </div>
-          <div>
-            <Text size="sm" c="dimmed">
-              Family:
-            </Text>
-            <Text>{data.family}</Text>
-          </div>
-        </Group>
-      </Fieldset>
     </Container>
   )
 }

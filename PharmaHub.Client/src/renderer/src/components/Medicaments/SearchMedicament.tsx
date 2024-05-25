@@ -9,12 +9,12 @@ const SearchMedicament = ({ setValue }) => {
   const { data: medicaments = [] } = useQuery({
     queryKey: ['searchedMedicament', search],
     queryFn: async () => {
-      const response = await http.get('/api/medicaments', {
+      const response = await http.get('/api/medicaments/search/names', {
         params: {
-          'query.Query': search
+          query: search
         }
       })
-      return response.data.data.map((item) => ({
+      return response.data.map((item) => ({
         value: item.id.toString(),
         label: item.name
       }))

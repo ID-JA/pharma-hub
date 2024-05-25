@@ -232,7 +232,7 @@ function NewSalePage() {
   return (
     <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl)' }}>
       <AddMedicamentModal />
-      <ScrollArea h={(height - 130) / 2}>
+      <ScrollArea h={(height - 100) / 2}>
         <Group justify="space-between">
           <MedicamentsFilter search={search} />
           <Group>
@@ -248,7 +248,7 @@ function NewSalePage() {
       </ScrollArea>
       <Divider my="md" />
       <Group gap="xl">
-        <ScrollArea h={(height - 130) / 2} flex="1">
+        <ScrollArea h={(height - 260) / 2} flex="1">
           {saleItems.length === 0 && (
             <Text ta="center" fz="lg" td="underline">
               Select Medicaments to create a new sale

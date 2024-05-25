@@ -5,7 +5,6 @@ import {
   Group,
   Modal,
   NumberInput,
-  Select,
   Stack,
   TextInput
 } from '@mantine/core'
@@ -47,7 +46,7 @@ const DEFAULT_VALUE = {
   marge: 0,
   barCode: '',
   family: '',
-  usedBy: 1,
+  usedBy: [],
   withPrescription: false
 }
 
@@ -72,7 +71,7 @@ function AddMedicamentModal({
           <Fieldset legend="Basic information">
             <Group grow align="start">
               <TextInput label="Name" {...form.getInputProps('name')} />
-              <TextInput label="Bar Coder" {...form.getInputProps('barCode')} />
+              <TextInput label="Bar Code" {...form.getInputProps('barCode')} />
             </Group>
             <Group grow align="start">
               <TextInput label="DCI" {...form.getInputProps('dci')} />
@@ -87,20 +86,13 @@ function AddMedicamentModal({
           <Fieldset legend="Categorization">
             <TextInput label="Family" {...form.getInputProps('family')} />
             <TextInput label="Type" {...form.getInputProps('type')} />
-            <Select
-              label="Used By"
-              data={[
-                {
-                  label: 'Adult',
-                  value: '1'
-                },
-                {
-                  label: 'Children',
-                  value: '2'
-                }
-              ]}
-              {...form.getInputProps('usedBy')}
-            />
+            <Checkbox.Group label="Used by" {...form.getInputProps('usedBy', { type: 'checkbox' })}>
+              <Group>
+                <Checkbox mt="md" label="Adult" value="adult" />
+                <Checkbox mt="md" label="Child" value="child" />
+                <Checkbox mt="md" label="Infant" value="infant" />
+              </Group>
+            </Checkbox.Group>
           </Fieldset>
           <Fieldset legend="Pricing">
             <Group grow align="start" mb="sm">
@@ -118,7 +110,7 @@ function AddMedicamentModal({
           <Group justify="end" mt="md">
             <Button type="submit">Validate</Button>
             <Button size="sm" variant="outline" color="red" onClick={() => setOpened(false)}>
-              Cancel Editing
+              Close
             </Button>
           </Group>
         </Stack>
