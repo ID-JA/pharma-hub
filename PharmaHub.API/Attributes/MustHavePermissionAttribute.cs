@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-
-namespace PharmaHub.API.Attributes;
+﻿namespace PharmaHub.API.Attributes;
 
 public class MustHavePermissionAttribute : AuthorizeAttribute
 {

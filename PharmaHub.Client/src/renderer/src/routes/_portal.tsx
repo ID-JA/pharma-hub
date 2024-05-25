@@ -1,50 +1,64 @@
-import { ActionIcon, AppShell } from '@mantine/core'
-import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { useDisclosure } from '@mantine/hooks'
-import { PortalNavbar } from '@renderer/components/PortalNavbar'
-import { IconMenu } from '@tabler/icons-react'
+import { ActionIcon, AppShell, Group, ScrollArea } from '@mantine/core'
+import { Link, Outlet, createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { useElementSize } from '@mantine/hooks'
+import { IconArrowLeft, IconArrowRight, IconX } from '@tabler/icons-react'
+import AppNavbar from '@renderer/components/PortalNavbar/AppNavbar'
 
 export const Route = createFileRoute('/_portal')({
   component: PortalLayout
 })
 
 function PortalLayout() {
-  const [opened, { toggle }] = useDisclosure(true)
+  const { ref, height } = useElementSize()
+  const router = useRouter()
+  const navigate = useNavigate()
+
+  const goBack = () => {
+    router.history.back()
+  }
+
+  const goForward = () => {
+    router.history.forward()
+  }
+
+  const goHome = () => {
+    router.navigate({ to: '/dashboard' })
+  }
+
   return (
-    <div>
-      <AppShell
-        navbar={{ width: 300, breakpoint: 'xs', collapsed: { mobile: !opened, desktop: !opened } }}
-      >
-        <AppShell.Navbar p="md">
-          <div
-            style={{
-              position: 'relative',
-              height: 'inherit',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
+    <AppShell header={{ height: 60 }}>
+      <AppShell.Header>
+        <AppNavbar />
+      </AppShell.Header>
+      <AppShell.Main ref={ref} style={{ height: '100vh' }}>
+        <Group style={{ position: 'fixed', zIndex: 100, right: 10, top: 10 }}>
+          <ActionIcon component={Link} to="/dashboard" size="sm" variant="default" onClick={goBack}>
+            <IconArrowLeft style={{ width: '70%', height: '70%' }} stroke={1.5} />
+          </ActionIcon>
+          <ActionIcon
+            component={Link}
+            to="/dashboard"
+            size="sm"
+            variant="default"
+            onClick={goForward}
           >
-            <ActionIcon
-              style={{
-                position: 'absolute',
-                right: '-11%',
-                top: '50%'
-              }}
-              radius="xl"
-              variant="default"
-              onClick={toggle}
-            >
-              <IconMenu style={{ width: '70%', height: '70%' }} stroke={1.5} />
-            </ActionIcon>
+            <IconArrowRight style={{ width: '70%', height: '70%' }} stroke={1.5} />
+          </ActionIcon>
 
-            <PortalNavbar />
-          </div>
-        </AppShell.Navbar>
-
-        <AppShell.Main style={{ height: '100vh' }}>
+          <ActionIcon
+            disabled={router.state.location.pathname === '/dashboard'}
+            component={Link}
+            to="/dashboard"
+            size="sm"
+            color="red"
+          >
+            <IconX style={{ width: '70%', height: '70%' }} stroke={1.5} />
+          </ActionIcon>
+        </Group>
+        <ScrollArea h={height}>
           <Outlet />
-        </AppShell.Main>
-      </AppShell>
-    </div>
+        </ScrollArea>
+      </AppShell.Main>
+    </AppShell>
   )
 }

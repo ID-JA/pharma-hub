@@ -1,8 +1,6 @@
 ﻿using System.Reflection;
 using Mapster;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using PharmaHub.API.Dtos;
 
 namespace PharmaHub.API;
 

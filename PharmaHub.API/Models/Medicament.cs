@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
+
 namespace PharmaHub.API.Models;
 
 /// <summary>
@@ -17,7 +20,8 @@ public class Medicament : BaseModel
     /// the size or frequency of a dose of a medicine or drug.
     /// </summary>
     public string Dosage { get; set; }
-    public string Codebar { get; set; }
+
+    public string Barcode { get; set; }
 
     /// <summary>
     ///  Dénomination commune internationale
@@ -26,40 +30,57 @@ public class Medicament : BaseModel
     public string Form { get; set; }
     public string Family { get; set; }
     public string Type { get; set; }
-    public string? laboratory { get; set; }
-    public double PFHTNotActive { get; set; }
-    public double PFHTActive { get; set; }
-    /// <summary>
-    /// It is the Weighted Average Purchase Price. It is used to calculate the value of an item in stock, based on its current quantity in stock, as well as the history of its entries into stock.
-    /// </summary>
-    /// <see href="https://melkal.supporthero.io/article/show/20813-qu-est-ce-que-le-pamp-comment-est-il-calcule-quelle-influence-sur-mon-stock-comment-le-modifier">more details</see> 
-    public double PAMP { get; set; }
-    public double PPV { get; set; } //maybe we will need to move prices propreties to new table (StockMedicament)
-    public double PPH { get; set; }
-    public double PBR { get; set; }
-    public float TVA { get; set; }
+    public string? Laboratory { get; set; }
+
+    [Precision(10, 2)]
+    public decimal PFHTNotActive { get; set; }
+
+    [Precision(10, 2)]
+    public decimal PFHTActive { get; set; }
+
+    [Precision(10, 2)]
+    public decimal PAMP { get; set; }
+
+    [Precision(10, 2)]
+    public decimal PBR { get; set; }
+
+    public double TVA { get; set; }
+
     public double Marge { get; set; }
-    public float DiscountRate { get; set; }
-    public float ReimbursementRate { get; set; }
+    public double DiscountRate { get; set; }
+
+    public double ReimbursementRate { get; set; }
+
     /// <summary>
     /// The status of the medicament (in stock or out of stock)
     /// </summary>
     public string Status { get; set; }
+
     public string OrderSystem { get; set; }
-    public int Quantity { get; set; }
+
     public int MinQuantity { get; set; }
+
     public int MaxQuantity { get; set; }
 
     public UsedBy UsedBy { get; set; }
+
     public bool WithPrescription { get; set; }
+
     public string? Section { get; set; }
+
+    public List<Inventory> Inventories { get; set; }
     public List<StockHistory> StockHistories { get; set; }
     public List<SaleMedicament> SaleMedicaments { get; set; }
     public List<OrderMedicament> OrderMedicaments { get; set; } = [];
 }
 public enum UsedBy
 {
+    [Description("Infant")]
     Infant,
+
+    [Description("Child")]
     Child,
+
+    [Description("Adult")]
     Adult
 }
