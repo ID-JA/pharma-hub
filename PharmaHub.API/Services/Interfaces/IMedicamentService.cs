@@ -110,6 +110,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             "barcode" => query.Where(m => m.Barcode == searchQuery.Query).Include(m => m.Inventories),
             "name" => query.Where(m => m.Name.Contains(searchQuery.Query)).Include(m => m.Inventories),
             "ppv" => query.Include(m => m.Inventories).Where(m => m.Inventories.Any(i => i.PPV == decimal.Parse(searchQuery.Query))),
+            "type" => query.Where(m => m.Type.Contains(searchQuery.Query)).Include(m => m.Inventories),
             _ => throw new NotImplementedException(),
         };
 
