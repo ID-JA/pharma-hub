@@ -7,9 +7,9 @@ public interface ITypeService
   Task<TypeDto?> GetTypeByIdAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteType(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateType(int id, TypeDto request, CancellationToken cancellationToken = default);
-  Task<List<TypeNameDto>> GetTypesNames(string name, CancellationToken cancellationToken);
-
+  public Task<List<TDto>> GetTaxes<TDto>(string? name, CancellationToken cancellationToken) where TDto : class;
 }
+
 public class TypeService(ApplicationDbContext dbContext, ICurrentUser currentUser) : ITypeService
 {
   public async Task<TypeDto?> GetTypeByIdAsync(int id, CancellationToken cancellationToken = default) => await dbContext.Types.Where(o => o.Id == id).ProjectToType<TypeDto>().FirstOrDefaultAsync(cancellationToken);
@@ -58,16 +58,16 @@ public class TypeService(ApplicationDbContext dbContext, ICurrentUser currentUse
     }
     return false;
   }
-  public async Task<List<TypeNameDto>> GetTypesNames(string? name, CancellationToken cancellationToken)
+
+  public async Task<List<TDto>> GetTaxes<TDto>(string? name, CancellationToken cancellationToken) where TDto : class
   {
     var query = dbContext.Types.AsNoTracking();
 
     if (string.IsNullOrWhiteSpace(name))
     {
-      return await query.ProjectToType<TypeNameDto>().ToListAsync(cancellationToken);
+      return await query.ProjectToType<TDto>().ToListAsync(cancellationToken);
     }
 
-    return await query.Where(x => x.Name.Contains(name)).ProjectToType<TypeNameDto>().ToListAsync(cancellationToken);
-
+    return await query.Where(x => x.Name.Contains(name)).ProjectToType<TDto>().ToListAsync(cancellationToken);
   }
 }

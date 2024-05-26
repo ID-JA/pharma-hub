@@ -7,9 +7,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.Entity<Medicament>()
-                .Property(c => c.UsedBy)
-                .HasConversion<int>();
 
         builder.HasSequence<int>("SaleNumbers")
             .StartsAt(100)

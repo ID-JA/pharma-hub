@@ -11,7 +11,22 @@ import { ModalsProvider } from '@mantine/modals'
 import { Toaster } from 'sonner'
 
 const theme = createTheme({
-  primaryColor: 'green'
+  primaryColor: 'green',
+  colors: {
+    // override dark colors to change them for all components
+    dark: [
+      '#d5d7e0',
+      '#acaebf',
+      '#8c8fa3',
+      '#666980',
+      '#4d4f66',
+      '#34354a',
+      '#2b2c3d',
+      '#1d1e30',
+      '#0c0d21',
+      '#01010a'
+    ]
+  }
 })
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +42,7 @@ export const Route = createRootRouteWithContext<{
   component: () => (
     <>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme}>
+        <MantineProvider theme={theme} forceColorScheme="dark">
           <ModalsProvider>
             <Toaster position="top-right" />
             <Outlet />

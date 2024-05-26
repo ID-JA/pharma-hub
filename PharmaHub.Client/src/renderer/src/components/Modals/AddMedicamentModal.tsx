@@ -1,22 +1,27 @@
 import {
   Button,
   Checkbox,
-  Fieldset,
   Group,
   Modal,
   NumberInput,
+  Select,
   Stack,
-  TextInput
+  TextInput,
+  Textarea
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useCreateMedicament } from '@renderer/services/medicaments.service'
+import { DatePickerInput } from '@mantine/dates'
+
+import { useCreateMedicament, useTaxesQuery } from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
-import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
+import SearchField from '../SearchField'
+import { calculatePPH } from '@renderer/utils/functions'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
-  dci: z.string().min(1, 'DCI is required'),
+  dci: z.array(z.string()).nonempty(),
   form: z.string().min(1, 'Form is required'),
   ppv: z.number().min(0, 'PPV must be non-negative'),
   pph: z.number().min(0, 'PPH must be non-negative'), // dynamic
@@ -27,102 +32,159 @@ const schema = z.object({
   marge: z.number().min(0, 'Marge must be non-negative'), // dynamic
   barCode: z.string().min(1, 'Bar Code is required'),
   family: z.string().min(1, 'Family is required'),
-  usedBy: z.enum(['1', '2'], {
-    required_error: 'UsedBy is required'
-  }),
-  withPrescription: z.boolean()
+  dosage: z.string(),
+  expirationDate: z.date(),
+  laboratory: z.string(),
+  section: z.string(),
+  orderSystem: z.string(),
+  usedBy: z
+    .array(z.string(), {
+      required_error: 'UsedBy is required'
+    })
+    .nonempty(),
+  withPrescription: z.boolean().default(false)
 })
 
-const DEFAULT_VALUE = {
-  name: '',
-  dci: '',
-  form: '',
-  ppv: 0,
-  pph: 0,
-  tva: 0,
-  discount: 0,
-  pbr: 0,
-  type: '',
-  marge: 0,
-  barCode: '',
-  family: '',
-  usedBy: [],
-  withPrescription: false
-}
+type Medicament = z.infer<typeof schema>
 
-function AddMedicamentModal({
-  opened,
-  setOpened
-}: {
-  opened: boolean
-  setOpened: Dispatch<SetStateAction<boolean>>
-}) {
-  const { mutate: createMedicament } = useCreateMedicament()
-
-  const form = useForm({
-    initialValues: DEFAULT_VALUE,
+function AddMedicamentForm({ setOpened }) {
+  const form = useForm<Medicament>({
     validate: zodResolver(schema)
   })
+  const { mutate } = useCreateMedicament()
+  const { data: taxes } = useTaxesQuery()
+
+  const taxTypesData = useMemo(() => {
+    return taxes?.map((tax) => ({
+      label: tax.name,
+      value: tax.name,
+      ...tax
+    }))
+  }, [taxes])
+
+  const handleTaxTypeChange = useCallback(
+    (item) => {
+      form.setFieldValue('type', item.name)
+      form.setFieldValue('tva', item.tva)
+      form.setFieldValue('marge', item.marge)
+      form.setFieldValue('discount', item.salesDiscountRate)
+      form.setFieldValue('pph', calculatePPH(form.getValues().ppv, item.marge))
+    },
+    [form.getValues().type]
+  )
 
   return (
-    <Modal size="xl" onClose={() => setOpened(false)} opened={opened} title="Add New Medicament">
-      <form onSubmit={form.onSubmit((values) => createMedicament(values))}>
-        <Stack gap="md">
-          <Fieldset legend="Basic information">
-            <Group grow align="start">
-              <TextInput label="Name" {...form.getInputProps('name')} />
-              <TextInput label="Bar Code" {...form.getInputProps('barCode')} />
-            </Group>
-            <Group grow align="start">
-              <TextInput label="DCI" {...form.getInputProps('dci')} />
-              <TextInput label="Form" {...form.getInputProps('form')} />
-            </Group>
-            <Checkbox
-              mt="md"
-              label="With Prescription"
-              {...form.getInputProps('withPrescription', { type: 'checkbox' })}
+    <form
+      onSubmit={form.onSubmit((values) => {
+        mutate(values)
+        setOpened(false)
+      })}
+    >
+      <Stack>
+        <Group grow align="start">
+          <Stack>
+            <SearchField
+              setValue={(item) => form.setFieldValue('form', item.label)}
+              label="From"
+              searchUrl="/api/forms"
+              queryKey="fromSearch"
+              queryParamName="query"
+              dataMapper={(item) => ({ value: item.id.toString(), label: item.name })}
+              error={form.getInputProps('form').error}
             />
-          </Fieldset>
-          <Fieldset legend="Categorization">
-            <TextInput label="Family" {...form.getInputProps('family')} />
-            <TextInput label="Type" {...form.getInputProps('type')} />
-            <Checkbox.Group label="Used by" {...form.getInputProps('usedBy', { type: 'checkbox' })}>
-              <Group>
-                <Checkbox mt="md" label="Adult" value="adult" />
-                <Checkbox mt="md" label="Child" value="child" />
-                <Checkbox mt="md" label="Infant" value="infant" />
-              </Group>
-            </Checkbox.Group>
-          </Fieldset>
-          <Fieldset legend="Pricing">
-            <Group grow align="start" mb="sm">
-              <NumberInput label="PPV" {...form.getInputProps('ppv')} />
-              <NumberInput label="PPH" readOnly {...form.getInputProps('pph')} />
-              <NumberInput label="PBR" {...form.getInputProps('pbr')} />
-            </Group>
-            <Group grow align="start">
-              <NumberInput label="TVA" readOnly {...form.getInputProps('tva')} />
-              <NumberInput label="Marge" readOnly {...form.getInputProps('marge')} />
-              <NumberInput label="Discount" {...form.getInputProps('discount')} />
-            </Group>
-          </Fieldset>
-
-          <Group justify="end" mt="md">
-            <Button type="submit">Validate</Button>
-            <Button size="sm" variant="outline" color="red" onClick={() => setOpened(false)}>
-              Close
-            </Button>
+            <TextInput label="Name" {...form.getInputProps('name')} />
+            <DatePickerInput label="Expiration Date" {...form.getInputProps('expirationDate')} />
+          </Stack>
+          <Stack>
+            <Textarea label="Dosage" rows={8} {...form.getInputProps('dosage')} />
+          </Stack>
+        </Group>
+        <Group grow>
+          <Select
+            label="Type"
+            data={taxTypesData}
+            {...form.getInputProps('type')}
+            onChange={(_, item) => handleTaxTypeChange(item)}
+          />
+          <SearchField
+            setValue={(item) => form.setFieldValue('family', item.label)}
+            label="Family"
+            searchUrl="/api/families"
+            queryKey="familySearch"
+            queryParamName="query"
+            dataMapper={(item) => ({ value: item.id.toString(), label: item.name })}
+            error={form.getInputProps('family').error}
+          />
+        </Group>
+        <Checkbox.Group label="Used by" {...form.getInputProps('usedBy', { type: 'checkbox' })}>
+          <Group grow>
+            <Checkbox mt="md" label="Adult" value="adult" />
+            <Checkbox mt="md" label="Child" value="child" />
+            <Checkbox mt="md" label="Infant" value="infant" />
           </Group>
-        </Stack>
-      </form>
-    </Modal>
+        </Checkbox.Group>
+        <Group grow>
+          <Select label="Order System" data={['Manual']} {...form.getInputProps('orderSystem')} />
+          <Select
+            label="Laboratory"
+            data={['ABC Laboratory']}
+            {...form.getInputProps('laboratory')}
+          />
+          <Select label="Section" data={['Fridge']} {...form.getInputProps('section')} />
+        </Group>
+        <Group grow>
+          <NumberInput label="TVA(%)" readOnly value={form.getValues().tva} />
+          <NumberInput label="Marge(%)" readOnly value={form.getValues().marge} />
+          <NumberInput label="Discount(%)" readOnly value={form.getValues().discount} />
+        </Group>
+        <Group grow align="start" mb="sm">
+          <NumberInput
+            label="PPV"
+            {...form.getInputProps('ppv')}
+            min={0}
+            onChange={(value) => {
+              form.setFieldValue('ppv', value as number)
+              form.setFieldValue('pph', calculatePPH(value as number, form.getValues().marge))
+            }}
+          />
+          <NumberInput label="PBR" {...form.getInputProps('pbr')} min={0} />
+          <NumberInput label="PPH" readOnly {...form.getInputProps('pph')} />
+        </Group>
+        <Group grow>
+          <SearchField
+            setValue={(items) => form.setFieldValue('dci', items as any)}
+            label="DCI"
+            searchUrl="/api/dcis"
+            queryKey="dciSearch"
+            isMultiSelect
+            queryParamName="query"
+            dataMapper={(item) => ({ value: item.name, label: item.name })}
+            error={form.getInputProps('dci').error}
+          />
+          <Checkbox
+            label="with prescription"
+            {...form.getInputProps('withPrescription', { type: 'checkbox' })}
+          />
+        </Group>
+        <Group justify="space-between">
+          <TextInput label="Bar Code" {...form.getInputProps('barCode')} />
+          <Group mt="lg">
+            <Button type="submit">Validate</Button>
+          </Group>
+        </Group>
+      </Stack>
+    </form>
   )
 }
 
 export const useAddMedicamentModal = () => {
   const [opened, setOpened] = useState(false)
   const AddMedicamentModalCallback = useCallback(() => {
-    return <AddMedicamentModal opened={opened} setOpened={setOpened} />
+    return (
+      <Modal size="xl" onClose={() => setOpened(false)} opened={opened} title="Add New Medicament">
+        <AddMedicamentForm setOpened={setOpened} />
+      </Modal>
+    )
   }, [opened, setOpened])
 
   const AddMedicamentButtonCallback = useCallback(() => {

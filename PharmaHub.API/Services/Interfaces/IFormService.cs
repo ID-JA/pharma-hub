@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
@@ -9,7 +10,7 @@ public interface IFormService
   Task<FormDto?> GetFormAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteForm(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateForm(int id, FormDto request, CancellationToken cancellationToken = default);
-  Task<List<FormNameDto>> GetFormsNames(string name, CancellationToken cancellationToken);
+  Task<PaginatedResponse<Form>> GetForms(string name, CancellationToken cancellationToken);
 }
 public class FormService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IFormService
 {
@@ -56,17 +57,17 @@ public class FormService(ApplicationDbContext dbContext, ICurrentUser currentUse
     }
     return false;
   }
-  public async Task<List<FormNameDto>> GetFormsNames(string? name, CancellationToken cancellationToken)
+
+  public async Task<PaginatedResponse<Form>> GetForms(string? name, CancellationToken cancellationToken)
   {
     var query = dbContext.Forms.AsNoTracking();
 
     if (string.IsNullOrWhiteSpace(name))
     {
-      return await query.ProjectToType<FormNameDto>().ToListAsync(cancellationToken);
+      return await query.PaginatedListAsync(1, 100);
     }
 
-    return await query.Where(x => x.Name.Contains(name)).ProjectToType<FormNameDto>().ToListAsync(cancellationToken);
-
+    return await query.Where(x => x.Name.Contains(name)).PaginatedListAsync(1, 100);
   }
 }
 

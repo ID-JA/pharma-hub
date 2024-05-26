@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
@@ -8,7 +9,7 @@ public interface IDCIService
   Task<DCIDto?> GetDCIAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteDCI(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateDCI(int id, DCIDto request, CancellationToken cancellationToken = default);
-  Task<List<DCINameDto>> GetDCIsNames(string name, CancellationToken cancellationToken);
+  Task<PaginatedResponse<DCI>> GetDCIs(string name, CancellationToken cancellationToken);
 
 }
 public class DCIService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IDCIService
@@ -57,16 +58,16 @@ public class DCIService(ApplicationDbContext dbContext, ICurrentUser currentUser
     return false;
   }
 
-  public async Task<List<DCINameDto>> GetDCIsNames(string? name, CancellationToken cancellationToken)
+  public async Task<PaginatedResponse<DCI>> GetDCIs(string? name, CancellationToken cancellationToken)
   {
-    var query = dbContext.Forms.AsNoTracking();
+    var query = dbContext.DCIs.AsNoTracking();
 
     if (string.IsNullOrWhiteSpace(name))
     {
-      return await query.ProjectToType<DCINameDto>().ToListAsync(cancellationToken);
+      return await query.PaginatedListAsync(1, 100);
     }
 
-    return await query.Where(x => x.Name.Contains(name)).ProjectToType<DCINameDto>().ToListAsync(cancellationToken);
+    return await query.Where(x => x.Name.Contains(name)).PaginatedListAsync(1, 100);
 
   }
 }

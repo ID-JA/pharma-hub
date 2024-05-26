@@ -11,7 +11,6 @@ export const Route = createFileRoute('/_portal')({
 function PortalLayout() {
   const { ref, height } = useElementSize()
   const router = useRouter()
-  const navigate = useNavigate()
 
   const goBack = () => {
     router.history.back()
@@ -19,10 +18,6 @@ function PortalLayout() {
 
   const goForward = () => {
     router.history.forward()
-  }
-
-  const goHome = () => {
-    router.navigate({ to: '/dashboard' })
   }
 
   return (
