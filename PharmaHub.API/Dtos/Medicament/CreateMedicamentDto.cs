@@ -23,6 +23,6 @@ public class CreateMedicamentDto : BaseDto<CreateMedicamentDto, Medicament>
     public string Family { get; set; }
     public string Status { get; set; }
     public string Laboratory { get; set; }
-    public UsedBy UsedBy { get; set; }
+    public string UsedBy { get; set; }
     public bool WithPrescription { get; set; }
 }

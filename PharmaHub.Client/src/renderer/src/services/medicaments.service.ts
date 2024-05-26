@@ -3,6 +3,7 @@ import {
   queryOptions,
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient
 } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
@@ -96,5 +97,19 @@ export const useDeleteMedicament = () => {
       })
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicaments'] })
+  })
+}
+
+export const useTaxesQuery = () => {
+  return useQuery({
+    queryKey: ['taxes'],
+    queryFn: async () => (await http.get('/api/types')).data
+  })
+}
+
+export const useDCIsQuery = (query = '') => {
+  return useQuery({
+    queryKey: ['dcis', name],
+    queryFn: async () => (await http.get('/api/dcis', { params: { query } })).data.data
   })
 }

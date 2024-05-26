@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API;
 
@@ -8,7 +9,7 @@ public interface IFamilyService
   Task<FamilyDto?> GetFamilyAsync(int id, CancellationToken cancellationToken = default);
   Task<bool> DeleteFamily(int id, CancellationToken cancellationToken = default);
   Task<bool> UpdateFamily(int id, FamilyDto request, CancellationToken cancellationToken = default);
-  Task<List<FamilyNameDto>> GetFamiliesNames(string name, CancellationToken cancellationToken);
+  Task<PaginatedResponse<Family>> GetFamilies(string name, CancellationToken cancellationToken);
 
 }
 public class FamilyService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IFamilyService
@@ -57,16 +58,16 @@ public class FamilyService(ApplicationDbContext dbContext, ICurrentUser currentU
     return false;
   }
 
-  public async Task<List<FamilyNameDto>> GetFamiliesNames(string? name, CancellationToken cancellationToken)
+  public async Task<PaginatedResponse<Family>> GetFamilies(string? name, CancellationToken cancellationToken)
   {
-    var query = dbContext.Forms.AsNoTracking();
+    var query = dbContext.Families.AsNoTracking();
 
     if (string.IsNullOrWhiteSpace(name))
     {
-      return await query.ProjectToType<FamilyNameDto>().ToListAsync(cancellationToken);
+      return await query.PaginatedListAsync(1,50);
     }
 
-    return await query.Where(x => x.Name.Contains(name)).ProjectToType<FamilyNameDto>().ToListAsync(cancellationToken);
+    return await query.Where(x => x.Name.Contains(name)).PaginatedListAsync(1,50);
 
   }
 }

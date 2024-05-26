@@ -33,9 +33,9 @@ public class FamiliesController(IFamilyService familyService) : ControllerBase
     var result = await familyService.DeleteFamily(id, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
-  [HttpGet("search/names")]
+  [HttpGet]
   public async Task<ActionResult> GetAllFamiliesNames(CancellationToken cancellationToken, [FromQuery] string query = "")
   {
-    return Ok(await familyService.GetFamiliesNames(query, cancellationToken));
+    return Ok(await familyService.GetFamilies(query, cancellationToken));
   }
 }

@@ -22,11 +22,6 @@ const SearchMedicament = ({ setValue }) => {
     enabled: !!search
   })
 
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-    onDropdownOpen: () => {}
-  })
-
   return (
     <Select
       label="Search Medicament"

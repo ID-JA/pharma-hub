@@ -15,7 +15,7 @@ function AppNavbar() {
 export default AppNavbar
 
 function StockMenu() {
-  const { setOpened, AddMedicamentModal } = useAddMedicamentModal()
+  const { AddMedicamentModal, setOpened } = useAddMedicamentModal()
   return (
     <>
       <AddMedicamentModal />

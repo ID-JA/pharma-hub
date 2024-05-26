@@ -33,11 +33,14 @@ public class TypesController(ITypeService typeService) : ControllerBase
     var result = await typeService.DeleteType(id, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
-  [HttpGet("search/names")]
-  public async Task<ActionResult> GetAllTypesNames(CancellationToken cancellationToken, [FromQuery] string query = "")
+
+  [HttpGet]
+  public async Task<ActionResult> GetTaxes(CancellationToken cancellationToken, [FromQuery] string query = "", string field = "all")
   {
-    return Ok(await typeService.GetTypesNames(query, cancellationToken));
+    if (field.Equals("name"))
+    {
+      return Ok(await typeService.GetTaxes<TypeNameDto>(query, cancellationToken));
+    }
+    return Ok(await typeService.GetTaxes<TypeDto>(query, cancellationToken));
   }
-
-
 }

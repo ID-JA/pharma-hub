@@ -62,7 +62,7 @@ public class Medicament : BaseModel
 
     public int MaxQuantity { get; set; }
 
-    public UsedBy UsedBy { get; set; }
+    public string UsedBy { get; set; }
 
     public bool WithPrescription { get; set; }
 
