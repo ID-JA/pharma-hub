@@ -26,9 +26,13 @@ public class Medicament : BaseModel
     /// <summary>
     ///  Dénomination commune internationale
     /// </summary>
-    public string DCI { get; set; }
+    public List<string> DCI { get; set; }
     public string Form { get; set; }
     public string Family { get; set; }
+
+    /// <summary>
+    /// Tax Nature / Tax Type
+    /// </summary>
     public string Type { get; set; }
     public string? Laboratory { get; set; }
 
@@ -62,7 +66,7 @@ public class Medicament : BaseModel
 
     public int MaxQuantity { get; set; }
 
-    public string UsedBy { get; set; }
+    public List<string> UsedBy { get; set; }
 
     public bool WithPrescription { get; set; }
 

@@ -17,6 +17,7 @@ import { zodResolver } from 'mantine-form-zod-resolver'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import SearchField from '../SearchField'
+import { calculatePPH } from '@renderer/utils/functions'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -41,22 +42,23 @@ const schema = z.object({
       required_error: 'UsedBy is required'
     })
     .nonempty(),
-  withPrescription: z.boolean()
+  withPrescription: z.boolean().default(false)
 })
 
 type Medicament = z.infer<typeof schema>
 
-function AddMedicamentForm() {
+function AddMedicamentForm({ setOpened }) {
   const form = useForm<Medicament>({
     validate: zodResolver(schema)
   })
-  const { mutate: createMedicament } = useCreateMedicament()
+  const { mutate } = useCreateMedicament()
   const { data: taxes } = useTaxesQuery()
 
   const taxTypesData = useMemo(() => {
     return taxes?.map((tax) => ({
       label: tax.name,
-      value: tax.name
+      value: tax.name,
+      ...tax
     }))
   }, [taxes])
 
@@ -66,12 +68,18 @@ function AddMedicamentForm() {
       form.setFieldValue('tva', item.tva)
       form.setFieldValue('marge', item.marge)
       form.setFieldValue('discount', item.salesDiscountRate)
+      form.setFieldValue('pph', calculatePPH(form.getValues().ppv, item.marge))
     },
-    [form]
+    [form.getValues().type]
   )
 
   return (
-    <form onSubmit={form.onSubmit((values) => console.log(values))}>
+    <form
+      onSubmit={form.onSubmit((values) => {
+        mutate(values)
+        setOpened(false)
+      })}
+    >
       <Stack>
         <Group grow align="start">
           <Stack>
@@ -130,7 +138,15 @@ function AddMedicamentForm() {
           <NumberInput label="Discount(%)" readOnly value={form.getValues().discount} />
         </Group>
         <Group grow align="start" mb="sm">
-          <NumberInput label="PPV" {...form.getInputProps('ppv')} min={0} />
+          <NumberInput
+            label="PPV"
+            {...form.getInputProps('ppv')}
+            min={0}
+            onChange={(value) => {
+              form.setFieldValue('ppv', value as number)
+              form.setFieldValue('pph', calculatePPH(value as number, form.getValues().marge))
+            }}
+          />
           <NumberInput label="PBR" {...form.getInputProps('pbr')} min={0} />
           <NumberInput label="PPH" readOnly {...form.getInputProps('pph')} />
         </Group>
@@ -144,6 +160,10 @@ function AddMedicamentForm() {
             queryParamName="query"
             dataMapper={(item) => ({ value: item.name, label: item.name })}
             error={form.getInputProps('dci').error}
+          />
+          <Checkbox
+            label="with prescription"
+            {...form.getInputProps('withPrescription', { type: 'checkbox' })}
           />
         </Group>
         <Group justify="space-between">
@@ -162,7 +182,7 @@ export const useAddMedicamentModal = () => {
   const AddMedicamentModalCallback = useCallback(() => {
     return (
       <Modal size="xl" onClose={() => setOpened(false)} opened={opened} title="Add New Medicament">
-        <AddMedicamentForm />
+        <AddMedicamentForm setOpened={setOpened} />
       </Modal>
     )
   }, [opened, setOpened])

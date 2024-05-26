@@ -66,11 +66,9 @@ export const formsQueryOptions = (opts) => {
 }
 
 export const useCreateMedicament = () => {
-  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: any) => (await http.post('/api/medicaments', data)).data,
-    onSuccess: () => toast.success('created successfully !!!'),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicaments'] })
+    onSuccess: () => toast.success('created successfully !!!')
   })
 }
 

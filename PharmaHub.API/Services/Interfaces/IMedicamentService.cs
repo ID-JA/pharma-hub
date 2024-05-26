@@ -1,5 +1,4 @@
-﻿using Mapster;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
@@ -50,11 +49,9 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             UsedBy = request.UsedBy,
             TVA = request.TVA,
             Marge = request.Marge,
-            PAMP = request.PAMP,
             PBR = request.PBR,
-            Status = request.Quantity < 0 ? "out of stock" : "in stock",
+            Status = "Out of stock",
             DiscountRate = request.Discount,
-            ReimbursementRate = request.ReimbursementRate,
             OrderSystem = request.OrderSystem,
             WithPrescription = request.WithPrescription,
         };
@@ -64,17 +61,16 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
         if (result > 0)
         {
-            // create an inventroy for the medicament
-            var inventroy = new Inventory()
+            var inventory = new Inventory()
             {
                 MedicamentId = medicament.Id,
-                ExperationDate = request.ExperationDate,
-                Quantity = request.Quantity,
+                ExpirationDate = request.ExpirationDate,
+                Quantity = 0,
                 PPH = request.PPH,
                 PPV = request.PPV,
             };
 
-            dbContext.Inventories.Add(inventroy);
+            dbContext.Inventories.Add(inventory);
             await dbContext.SaveChangesAsync();
         }
     }

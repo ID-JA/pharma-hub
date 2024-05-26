@@ -47,7 +47,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         }
 
         medicament.Name = request.Name;
-        medicament.DCI = request.DCI;
+        // medicament.DCI = request.DCI;
         medicament.Form = request.Form;
         medicament.TVA = request.TVA;
         medicament.DiscountRate = request.Discount;
@@ -56,7 +56,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         medicament.Marge = request.Marge;
         medicament.Barcode = request.Barcode;
         medicament.Family = request.Family;
-        medicament.UsedBy = request.UsedBy;
+        // medicament.UsedBy = request.UsedBy;
         medicament.WithPrescription = request.WithPrescription;
 
         await medicamentService.UpdateAsync(medicament, cancellationToken);
