@@ -2,6 +2,7 @@ import { Menu, rem, Group, ActionIcon } from '@mantine/core'
 import { IconSettings, IconMessageCircle } from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { useAddMedicamentModal } from '../Modals/AddMedicamentModal'
+import { useAddInventoryModal } from '../Modals/AddInventoryModal'
 
 function AppNavbar() {
   return (
@@ -16,9 +17,11 @@ export default AppNavbar
 
 function StockMenu() {
   const { AddMedicamentModal, setOpened } = useAddMedicamentModal()
+  const { AddInventoryModal, setOpened: setOpenedInventoryModal } = useAddInventoryModal()
   return (
     <>
       <AddMedicamentModal />
+      <AddInventoryModal />
       <Menu shadow="md" width={200}>
         <Menu.Target>
           <ActionIcon size="50px" radius="100%" variant="default">
@@ -43,6 +46,12 @@ function StockMenu() {
             leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
           >
             Add New Product
+          </Menu.Item>
+          <Menu.Item
+            onClick={() => setOpenedInventoryModal(true)}
+            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+          >
+            Add New Inventory
           </Menu.Item>
           <Menu.Item
             leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}

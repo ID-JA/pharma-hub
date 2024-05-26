@@ -74,4 +74,10 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         await medicamentService.DeleteAsync(medicament, cancellationToken);
         return NoContent();
     }
+
+    [HttpGet("{id:int}/inventories")]
+    public async Task<ActionResult> GetMedicamentInventories([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.GetMedicamentInventories(id, cancellationToken));
+    }
 }

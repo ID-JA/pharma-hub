@@ -45,6 +45,18 @@ export const medicamentQueryOptions = (medicamentId: number | undefined) =>
     enabled: medicamentId ? true : false
   })
 
+export const useMedicament = (medicamentId) => useQuery(medicamentQueryOptions(medicamentId))
+
+export const useMedicamentInventories = (medicamentId = null) => {
+  return useQuery({
+    queryKey: ['medicamentInventories', medicamentId],
+    queryFn: async () => {
+      return (await http.get(`/api/medicaments/${medicamentId}/inventories`)).data
+    },
+    enabled: Boolean(medicamentId)
+  })
+}
+
 export const dcisQueryOptions = (opts) => {
   return queryOptions({
     queryKey: ['dcis', opts],

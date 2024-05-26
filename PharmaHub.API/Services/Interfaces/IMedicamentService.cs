@@ -19,6 +19,7 @@ public interface IMedicamentService : IService<Medicament>
     Task DeleteMedicament(int id, CancellationToken cancellationToken = default);
     Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
     Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
+    Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
 
 }
 
@@ -140,4 +141,43 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         return await query.Where(x => x.Name.Contains(name)).ProjectToType<MedicamentNameDto>().ToListAsync(cancellationToken);
 
     }
+
+    public async Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Medicaments.AsNoTracking()
+            .Where(i => i.Id == id)
+            .Include(i => i.Inventories)
+            .ProjectToType<MedicamentInventoriesDto>()
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+}
+
+
+public class MedicamentInventoriesDto : BaseDto<MedicamentInventoriesDto, Medicament>
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string Barcode { get; set; } = null!;
+    public string Section { get; set; } = null!;
+    public string Form { get; set; } = null!;
+    public int TotalQuantity { get; set; }
+    public List<InventoryDto> Inventories { get; set; } = null!;
+
+    public override void AddCustomMappings()
+    {
+        SetCustomMappingsInverse().Map(dest => dest.TotalQuantity, src => src.Inventories.Sum(i => i.Quantity));
+    }
+
+
+}
+
+public class InventoryDto : BaseDto<InventoryDto, Inventory>
+{
+    public int Id { get; set; }
+    public int Quantity { get; set; }
+    public DateTime ExpirationDate { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public decimal PPV { get; set; }
+    public decimal PPH { get; set; }
 }

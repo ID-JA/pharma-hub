@@ -1,9 +1,9 @@
-import { Select, useCombobox } from '@mantine/core'
+import { Select } from '@mantine/core'
 import { useDebouncedState } from '@mantine/hooks'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
 
-const SearchMedicament = ({ setValue }) => {
+const SearchMedicament = ({ setValue, label }) => {
   const [search, setSearch] = useDebouncedState('', 500)
 
   const { data: medicaments = [] } = useQuery({
@@ -24,7 +24,8 @@ const SearchMedicament = ({ setValue }) => {
 
   return (
     <Select
-      label="Search Medicament"
+      clearable
+      label={label}
       searchable
       data={medicaments}
       defaultValue={search}
