@@ -3,7 +3,6 @@ import {
   Checkbox,
   Group,
   Modal,
-  MultiSelect,
   NumberInput,
   Select,
   Stack,
@@ -11,15 +10,13 @@ import {
   Textarea
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useDebouncedState } from '@mantine/hooks'
 import { DatePickerInput } from '@mantine/dates'
 
 import { useCreateMedicament, useTaxesQuery } from '@renderer/services/medicaments.service'
-import { http } from '@renderer/utils/http'
-import { useQuery } from '@tanstack/react-query'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
+import SearchField from '../SearchField'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -47,91 +44,7 @@ const schema = z.object({
   withPrescription: z.boolean()
 })
 
-const DEFAULT_VALUE = {
-  name: '',
-  dci: null,
-  form: '',
-  ppv: 0,
-  pph: 0,
-  tva: 0,
-  discount: 0,
-  pbr: 0,
-  type: '',
-  marge: 0,
-  barCode: '',
-  family: '',
-  usedBy: [],
-  withPrescription: false,
-  expirationDate: null,
-  dosage: '',
-  laboratory: '',
-  section: '',
-  orderSystem: ''
-}
-
-type SearchFieldPropsBase = {
-  label: string
-  searchUrl: string
-  queryKey: string
-  queryParamName: string
-  dataMapper: (item: any) => { value: string; label: string }
-  error?: any
-}
-
-type SingleSelectProps = {
-  isMultiSelect?: false
-  setValue: (item: { value: string; label: string }) => void
-}
-
-type MultiSelectProps = {
-  isMultiSelect: true
-  setValue: (items: string[]) => void
-  // setValue: (item: { value: string; label: string }[]) => void
-}
-type SearchFieldProps = SearchFieldPropsBase & (MultiSelectProps | SingleSelectProps)
-
 type Medicament = z.infer<typeof schema>
-
-const SearchField = (props: SearchFieldProps) => {
-  const { dataMapper, queryKey, queryParamName, searchUrl, isMultiSelect } = props
-  const [search, setSearch] = useDebouncedState('', 500)
-
-  const { data: options = [] } = useQuery({
-    queryKey: [queryKey, search],
-    queryFn: async () => {
-      const response = await http.get(searchUrl, {
-        params: {
-          [queryParamName]: search
-        }
-      })
-      return response.data.data?.map(dataMapper)
-    },
-    enabled: !!search
-  })
-
-  const commonProps = {
-    searchable: true,
-    data: options,
-    onSearchChange: setSearch,
-    ...props
-  }
-
-  if (isMultiSelect) {
-    const handleMultiSelectChange = (selectedValues: string[]) => {
-      // const selectedItems = selectedValues.map((value) => ({ value: value, label: value })) as {
-      //   value: string
-      //   label: string
-      // }[]
-      props.setValue(selectedValues)
-    }
-
-    return <MultiSelect {...commonProps} defaultValue={[]} onChange={handleMultiSelectChange} />
-  } else {
-    return (
-      <Select {...commonProps} defaultValue={search} onChange={(_, item) => props.setValue(item)} />
-    )
-  }
-}
 
 function AddMedicamentForm() {
   const form = useForm<Medicament>({
@@ -143,26 +56,19 @@ function AddMedicamentForm() {
   const taxTypesData = useMemo(() => {
     return taxes?.map((tax) => ({
       label: tax.name,
-      value: tax.name,
-      ...tax
+      value: tax.name
     }))
   }, [taxes])
 
-  const handleTaxTypeChange = (item) => {
-    form.setFieldValue('type', item.name)
-    form.setFieldValue('tva', item.tva)
-    form.setFieldValue('marge', item.marge)
-    form.setFieldValue('discount', item.salesDiscountRate)
-  }
-
-  const handleChangeDCI = (item) => {
-    console.log(item)
-    form.setFieldValue('dci', item)
-  }
-
-  const handleChangeUsedBy = (value) => {
-    form.insertListItem('usedBy', value)
-  }
+  const handleTaxTypeChange = useCallback(
+    (item) => {
+      form.setFieldValue('type', item.name)
+      form.setFieldValue('tva', item.tva)
+      form.setFieldValue('marge', item.marge)
+      form.setFieldValue('discount', item.salesDiscountRate)
+    },
+    [form]
+  )
 
   return (
     <form onSubmit={form.onSubmit((values) => console.log(values))}>
@@ -242,7 +148,6 @@ function AddMedicamentForm() {
         </Group>
         <Group justify="space-between">
           <TextInput label="Bar Code" {...form.getInputProps('barCode')} />
-
           <Group mt="lg">
             <Button type="submit">Validate</Button>
           </Group>
