@@ -21,6 +21,8 @@ public interface IMedicamentService : IService<Medicament>
     Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
     Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
     Task<bool> CreateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken);
+    Task<bool> UpdateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken);
+    Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
 
 }
 
@@ -165,8 +167,36 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         };
         dbContext.Inventories.Add(inventory);
         var result = await dbContext.SaveChangesAsync(cancellationToken);
+        return result > 0;
+    }
+
+    public async Task<bool> UpdateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken)
+    {
+        var inventory = await dbContext.Inventories.FindAsync([id], cancellationToken);
+
+        if (inventory is not null)
+        {
+            inventory.ExpirationDate = request.ExpirationDate;
+            inventory.Quantity = request.Quantity;
+            inventory.PPH = request.PPH;
+            inventory.PPV = request.PPV;
+            dbContext.Inventories.Update(inventory);
+            var result = await dbContext.SaveChangesAsync(cancellationToken);
+            return result > 0;
+
+        }
+
+        return false;
+    }
+
+    public async Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken)
+    {
+        var inventory = await dbContext.Inventories.FindAsync([id]);
+        dbContext.Inventories.Remove(inventory!);
+        var result = await dbContext.SaveChangesAsync(cancellationToken);
         return result > 0 ? true : false;
     }
+
 }
 
 

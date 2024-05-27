@@ -16,7 +16,9 @@ import { useCallback, useMemo, useState } from 'react'
 import SearchMedicament from '../Medicaments/SearchMedicament'
 import {
   useCreateInventory,
-  useMedicamentInventories
+  useDeleteInventory,
+  useMedicamentInventories,
+  useUpdateInventory
 } from '@renderer/services/medicaments.service'
 import { IconEdit, IconTrash, IconX } from '@tabler/icons-react'
 import {
@@ -42,6 +44,8 @@ export function AddInventoryModal({ setOpened }) {
   const [medicamentId, setMedicamentId] = useState()
   const { data } = useMedicamentInventories(medicamentId)
   const { mutate: createInventory } = useCreateInventory(medicamentId)
+  const { mutate: updateInventory } = useUpdateInventory(medicamentId)
+  const { mutate: deleteInventory } = useDeleteInventory(medicamentId)
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({})
   const [pph, setPph] = useState(0)
@@ -58,6 +62,7 @@ export function AddInventoryModal({ setOpened }) {
         header: 'PPV',
         mantineEditTextInputProps: {
           type: 'number',
+          min: 0,
           required: true,
           error: validationErrors?.ppv,
           onChange: (e) => {
@@ -88,6 +93,7 @@ export function AddInventoryModal({ setOpened }) {
           type: 'number',
           required: true,
           error: validationErrors?.quantity,
+          min: 0,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
@@ -145,7 +151,7 @@ export function AddInventoryModal({ setOpened }) {
     //   return;
     // }
     setValidationErrors({})
-    // await updateUser(values);
+    updateInventory(values)
     table.setEditingRow(null) //exit editing mode
   }
 
@@ -156,7 +162,9 @@ export function AddInventoryModal({ setOpened }) {
       children: <Text>Are you sure you want to delete this inventory? </Text>,
       labels: { confirm: 'Delete', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
-      onConfirm: () => console.log(row.original.id)
+      onConfirm: () => {
+        deleteInventory(row.original.id)
+      }
     })
 
   const table = useMantineReactTable({

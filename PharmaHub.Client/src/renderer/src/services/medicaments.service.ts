@@ -131,3 +131,24 @@ export const useCreateInventory = (medicamentId) => {
     onSuccess: () => console.log('created successfully !!!')
   })
 }
+
+export const useDeleteInventory = (medicamentId) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (inventoryId: any) =>
+      (await http.delete(`/api/medicaments/${medicamentId}/inventories/${inventoryId}`)).data,
+    onSuccess: () => console.log('deleted successfully !!!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicamentInventories'] })
+  })
+}
+
+export const useUpdateInventory = (medicamentId) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: any) =>
+      (await http.put(`/api/medicaments/${medicamentId}/inventories/${data.id}`, data)).data,
+    onSuccess: () => console.log('updated successfully !!!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicamentInventories'] })
+  })
+}
