@@ -45,6 +45,18 @@ export const medicamentQueryOptions = (medicamentId: number | undefined) =>
     enabled: medicamentId ? true : false
   })
 
+export const useMedicament = (medicamentId) => useQuery(medicamentQueryOptions(medicamentId))
+
+export const useMedicamentInventories = (medicamentId = null) => {
+  return useQuery({
+    queryKey: ['medicamentInventories', medicamentId],
+    queryFn: async () => {
+      return (await http.get(`/api/medicaments/${medicamentId}/inventories`)).data
+    },
+    enabled: Boolean(medicamentId)
+  })
+}
+
 export const dcisQueryOptions = (opts) => {
   return queryOptions({
     queryKey: ['dcis', opts],
@@ -109,5 +121,34 @@ export const useDCIsQuery = (query = '') => {
   return useQuery({
     queryKey: ['dcis', name],
     queryFn: async () => (await http.get('/api/dcis', { params: { query } })).data.data
+  })
+}
+
+export const useCreateInventory = (medicamentId) => {
+  return useMutation({
+    mutationFn: async (data: any) =>
+      (await http.post(`/api/medicaments/${medicamentId}/inventories`, data)).data,
+    onSuccess: () => console.log('created successfully !!!')
+  })
+}
+
+export const useDeleteInventory = (medicamentId) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (inventoryId: any) =>
+      (await http.delete(`/api/medicaments/${medicamentId}/inventories/${inventoryId}`)).data,
+    onSuccess: () => console.log('deleted successfully !!!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicamentInventories'] })
+  })
+}
+
+export const useUpdateInventory = (medicamentId) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: any) =>
+      (await http.put(`/api/medicaments/${medicamentId}/inventories/${data.id}`, data)).data,
+    onSuccess: () => console.log('updated successfully !!!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['medicamentInventories'] })
   })
 }

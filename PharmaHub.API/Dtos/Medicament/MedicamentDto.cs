@@ -8,7 +8,7 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public string Name { get; set; }
     public string Dosage { get; set; }
     public string Barcode { get; set; }
-    public string DCI { get; set; }
+    public List<string> DCI { get; set; }
     public string Form { get; set; }
     public string Family { get; set; }
     public string Type { get; set; }
@@ -26,7 +26,7 @@ public class MedicamentDto : BaseDto<MedicamentDto, Medicament>
     public int Quantity { get; set; }
     public int MinQuantity { get; set; }
     public int MaxQuantity { get; set; }
-    public UsedBy UsedBy { get; set; }
+    public List<string> UsedBy { get; set; }
     public bool WithPrescription { get; set; }
     public string Section { get; set; }
     public List<Inventory> Inventories { get; set; }
