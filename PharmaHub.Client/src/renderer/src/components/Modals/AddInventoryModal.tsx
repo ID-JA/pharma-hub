@@ -14,7 +14,10 @@ import {
 import dayjs from 'dayjs'
 import { useCallback, useMemo, useState } from 'react'
 import SearchMedicament from '../Medicaments/SearchMedicament'
-import { useMedicamentInventories } from '@renderer/services/medicaments.service'
+import {
+  useCreateInventory,
+  useMedicamentInventories
+} from '@renderer/services/medicaments.service'
 import { IconEdit, IconTrash, IconX } from '@tabler/icons-react'
 import {
   MRT_ColumnDef,
@@ -24,25 +27,7 @@ import {
   useMantineReactTable
 } from 'mantine-react-table'
 import { modals } from '@mantine/modals'
-
-function Row({ item, editingRow }) {
-  return (
-    <Table.Tr key={item.id} mah={50}>
-      <Table.Td>{item.ppv}</Table.Td>
-      <Table.Td> {item.pph}</Table.Td>
-      <Table.Td> {item.quantity}</Table.Td>
-      <Table.Td>{dayjs(item.expirationDate).format('DD-MM-YYYY')}</Table.Td>
-      <Table.Td>
-        <ActionIcon color="green" variant="subtle" mr="md">
-          <IconEdit style={{ width: '70%', height: '70%' }} stroke={1.2} />
-        </ActionIcon>
-        <ActionIcon color="red" variant="subtle">
-          <IconX style={{ width: '70%', height: '70%' }} stroke={1.2} />
-        </ActionIcon>
-      </Table.Td>
-    </Table.Tr>
-  )
-}
+import { calculatePPH } from '@renderer/utils/functions'
 
 type Inventory = {
   id: number
@@ -56,9 +41,10 @@ type Inventory = {
 export function AddInventoryModal({ setOpened }) {
   const [medicamentId, setMedicamentId] = useState()
   const { data } = useMedicamentInventories(medicamentId)
+  const { mutate: createInventory } = useCreateInventory(medicamentId)
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({})
-
+  const [pph, setPph] = useState(0)
   const columns = useMemo<MRT_ColumnDef<Inventory>[]>(
     () => [
       {
@@ -74,6 +60,9 @@ export function AddInventoryModal({ setOpened }) {
           type: 'number',
           required: true,
           error: validationErrors?.ppv,
+          onChange: (e) => {
+            setPph(calculatePPH(e.target.value, 12))
+          },
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
@@ -87,16 +76,9 @@ export function AddInventoryModal({ setOpened }) {
         accessorKey: 'pph',
         header: 'PPH',
         mantineEditTextInputProps: {
+          value: pph,
           readOnly: true,
-          type: 'number',
-          required: true,
-          error: validationErrors?.pph,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              pph: undefined
-            })
+          type: 'number'
         }
       },
       {
@@ -113,13 +95,29 @@ export function AddInventoryModal({ setOpened }) {
               quantity: undefined
             })
         }
+      },
+      {
+        accessorKey: 'expirationDate',
+        header: 'Expiration Date',
+        Cell: ({ cell }) => dayjs(cell.getValue<Date>()).format('DD/MM/YYYY'),
+        mantineEditTextInputProps: {
+          type: 'date',
+          required: true,
+          error: validationErrors?.expirationDate,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              expirationDate: undefined
+            })
+        }
       }
     ],
-    [validationErrors]
+    [validationErrors, pph]
   )
 
   //CREATE action
-  const handleCreateUser: MRT_TableOptions<Inventory>['onCreatingRowSave'] = async ({
+  const handleCreateInventory: MRT_TableOptions<Inventory>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode
   }) => {
@@ -129,12 +127,15 @@ export function AddInventoryModal({ setOpened }) {
     //   return;
     // }
     setValidationErrors({})
-    // await createUser(values);
+    await createInventory({
+      ...values,
+      pph
+    })
     exitCreatingMode()
   }
 
   //UPDATE action
-  const handleSaveUser: MRT_TableOptions<Inventory>['onEditingRowSave'] = async ({
+  const handleSaveInventory: MRT_TableOptions<Inventory>['onEditingRowSave'] = async ({
     values,
     table
   }) => {
@@ -184,9 +185,9 @@ export function AddInventoryModal({ setOpened }) {
       }
     },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateInventory,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveInventory,
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
         <ActionIcon onClick={() => table.setEditingRow(row)} size="md" variant="light">
@@ -206,6 +207,7 @@ export function AddInventoryModal({ setOpened }) {
       <Group justify="space-between" flex="1">
         <Text>Total Quantity: {data?.totalQuantity || 0}</Text>
         <Button
+          disabled={!medicamentId}
           onClick={() => {
             table.setCreatingRow(true) //simplest way to open the create row modal with no default values
             //or you can pass in a row object to set default values with the `createRow` helper function
@@ -221,24 +223,22 @@ export function AddInventoryModal({ setOpened }) {
       </Group>
     ),
     state: {
-      showColumnFilters: false,
-      showGlobalFilter: false
       // isLoading: isLoadingUsers,
       // isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
       // showAlertBanner: isLoadingUsersError,
       // showProgressBars: isFetchingUsers,
     }
   })
+
   return (
     <>
       <Group mb="lg">
         <SearchMedicament label="Medicament Name" setValue={setMedicamentId} />
       </Group>
       <Group grow mb="lg">
-        <InputBase label="From" value={data?.section} readOnly />
-        <InputBase label="Section" value={data?.form} readOnly />
+        <InputBase label="Section" value={data?.section} readOnly />
+        <InputBase label="Form" value={data?.form} readOnly />
       </Group>
-
       <MantineReactTable table={table} />
     </>
   )

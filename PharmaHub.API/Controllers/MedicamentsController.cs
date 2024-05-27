@@ -80,4 +80,10 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
     {
         return Ok(await medicamentService.GetMedicamentInventories(id, cancellationToken));
     }
+
+    [HttpPost("{id:int}/inventories")]
+    public async Task<ActionResult> CreateMedicamentInventory([FromRoute] int id, [FromBody] CreateInventoryDto request, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.CreateMedicamentInventory(id, request, cancellationToken));
+    }
 }

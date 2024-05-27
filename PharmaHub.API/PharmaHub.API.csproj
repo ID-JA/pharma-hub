@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Dtos\Order\" />
+    <Folder Include="HttpRequests\" />
   </ItemGroup>
 
 </Project>

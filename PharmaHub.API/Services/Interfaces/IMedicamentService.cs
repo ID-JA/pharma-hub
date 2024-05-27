@@ -20,6 +20,7 @@ public interface IMedicamentService : IService<Medicament>
     Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
     Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
     Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
+    Task<bool> CreateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken);
 
 }
 
@@ -151,6 +152,21 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             .ProjectToType<MedicamentInventoriesDto>()
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<bool> CreateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken)
+    {
+        Inventory inventory = new()
+        {
+            MedicamentId = id,
+            ExpirationDate = request.ExpirationDate,
+            Quantity = request.Quantity,
+            PPH = request.PPH,
+            PPV = request.PPV
+        };
+        dbContext.Inventories.Add(inventory);
+        var result = await dbContext.SaveChangesAsync(cancellationToken);
+        return result > 0 ? true : false;
+    }
 }
 
 
@@ -179,6 +195,14 @@ public class InventoryDto : BaseDto<InventoryDto, Inventory>
     public DateTime ExpirationDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public decimal PPV { get; set; }
+    public decimal PPH { get; set; }
+}
+
+public class CreateInventoryDto : BaseDto<CreateInventoryDto, Inventory>
+{
+    public int Quantity { get; set; }
+    public DateTime ExpirationDate { get; set; }
     public decimal PPV { get; set; }
     public decimal PPH { get; set; }
 }

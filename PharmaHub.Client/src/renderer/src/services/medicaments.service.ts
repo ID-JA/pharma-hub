@@ -123,3 +123,11 @@ export const useDCIsQuery = (query = '') => {
     queryFn: async () => (await http.get('/api/dcis', { params: { query } })).data.data
   })
 }
+
+export const useCreateInventory = (medicamentId) => {
+  return useMutation({
+    mutationFn: async (data: any) =>
+      (await http.post(`/api/medicaments/${medicamentId}/inventories`, data)).data,
+    onSuccess: () => console.log('created successfully !!!')
+  })
+}
