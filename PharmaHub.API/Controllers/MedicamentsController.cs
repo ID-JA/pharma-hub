@@ -74,4 +74,28 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
         await medicamentService.DeleteAsync(medicament, cancellationToken);
         return NoContent();
     }
+
+    [HttpGet("{id:int}/inventories")]
+    public async Task<ActionResult> GetMedicamentInventories([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.GetMedicamentInventories(id, cancellationToken));
+    }
+
+    [HttpPost("{id:int}/inventories")]
+    public async Task<ActionResult> CreateMedicamentInventory([FromRoute] int id, [FromBody] CreateInventoryDto request, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.CreateMedicamentInventory(id, request, cancellationToken));
+    }
+
+    [HttpDelete("{id:int}/inventories/{inventoryId:int}")]
+    public async Task<ActionResult> DeleteMedicamentInventory(int id, [FromRoute] int inventoryId, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.DeleteMedicamentInventory(inventoryId, cancellationToken));
+    }
+
+    [HttpPut("{id:int}/inventories/{inventoryId:int}")]
+    public async Task<ActionResult> UpdateMedicamentInventory(int id, [FromRoute] int inventoryId, [FromBody] CreateInventoryDto request, CancellationToken cancellationToken)
+    {
+        return Ok(await medicamentService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
+    }
 }
