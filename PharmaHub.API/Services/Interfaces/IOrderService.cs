@@ -21,8 +21,6 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
 
     public async Task<bool> CreateOrderAsync(CreateOrderDto request, CancellationToken cancellationToken = default)
     {
-
-
         var userId = currentUser.GetUserId();
         Order order = new()
         {
@@ -38,11 +36,20 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
         {
             foreach (var item in request.OrderMedicaments)
             {
+                var inventory = await dbContext.Inventories.FindAsync([item.InventoryId], cancellationToken);
+                if (inventory is not null)
+                {
+                    inventory.Quantity = item.Quantity;
+                    inventory.PPV = item.PPV;
+                    inventory.PPH = item.PPH;
+                    dbContext.Inventories.Update(inventory);
+                }
                 OrderMedicament orderMedicament = new()
                 {
                     OrderId = result.Entity.Id,
                     MedicamentId = item.MedicamentId,
                     Quantity = item.Quantity
+
                 };
 
                 order.OrderMedicaments.Add(orderMedicament);
