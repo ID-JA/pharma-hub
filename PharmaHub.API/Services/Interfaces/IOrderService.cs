@@ -21,18 +21,19 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
 
     public async Task<bool> CreateOrderAsync(CreateOrderDto request, CancellationToken cancellationToken = default)
     {
+
+
         var userId = currentUser.GetUserId();
         Order order = new()
         {
             UserId = userId,
-            Status = request.Status,
-            TotalQuantity = request.TotalQuantity, // Todo: this should be calulated based on order medicaments quantity
+            OrderDate = request.OrderDate,
+            OrderNumber = request.OrderNumber,
+            TotalQuantity = request.OrderMedicaments.Sum(item => item.Quantity),
             SupplierId = request.SupplierId
         };
-
         var result = dbContext.Orders.Add(order);
         await dbContext.SaveChangesAsync(cancellationToken);
-
         if (result is not null)
         {
             foreach (var item in request.OrderMedicaments)
@@ -63,7 +64,6 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
 
         if (order is not null)
         {
-            order.Status = request.Status;
             order.TotalQuantity = request.TotalQuantity;
             order.SupplierId = request.SupplierId;
             order.OrderMedicaments.Clear();
