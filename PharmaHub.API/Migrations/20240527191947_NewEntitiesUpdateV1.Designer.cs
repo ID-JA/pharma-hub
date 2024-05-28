@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PharmaHub.API.Database;
 
@@ -11,9 +12,11 @@ using PharmaHub.API.Database;
 namespace PharmaHub.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240527191947_NewEntitiesUpdateV1")]
+    partial class NewEntitiesUpdateV1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -777,9 +780,6 @@ namespace PharmaHub.API.Migrations
                     b.Property<int>("MedicamentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("InventoryId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("PPH")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
@@ -792,8 +792,6 @@ namespace PharmaHub.API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("OrderId", "MedicamentId");
-
-                    b.HasIndex("InventoryId");
 
                     b.HasIndex("MedicamentId");
 
@@ -951,10 +949,6 @@ namespace PharmaHub.API.Migrations
 
             modelBuilder.Entity("PharmaHub.API.OrderMedicament", b =>
                 {
-                    b.HasOne("PharmaHub.API.Models.Inventory", "Inventory")
-                        .WithMany("OrderMedicaments")
-                        .HasForeignKey("InventoryId");
-
                     b.HasOne("PharmaHub.API.Models.Medicament", "Medicament")
                         .WithMany("OrderMedicaments")
                         .HasForeignKey("MedicamentId")
@@ -967,8 +961,6 @@ namespace PharmaHub.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Inventory");
-
                     b.Navigation("Medicament");
 
                     b.Navigation("Order");
@@ -977,11 +969,6 @@ namespace PharmaHub.API.Migrations
             modelBuilder.Entity("PharmaHub.API.Models.Bill", b =>
                 {
                     b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("PharmaHub.API.Models.Inventory", b =>
-                {
-                    b.Navigation("OrderMedicaments");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Medicament", b =>

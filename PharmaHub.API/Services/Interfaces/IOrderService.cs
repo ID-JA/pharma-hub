@@ -39,20 +39,24 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
                 var inventory = await dbContext.Inventories.FindAsync([item.InventoryId], cancellationToken);
                 if (inventory is not null)
                 {
-                    inventory.Quantity = item.Quantity;
+                    inventory.Quantity += item.Quantity;
                     inventory.PPV = item.PPV;
                     inventory.PPH = item.PPH;
                     dbContext.Inventories.Update(inventory);
+
+                    OrderMedicament orderMedicament = new()
+                    {
+                        OrderId = result.Entity.Id,
+                        MedicamentId = item.MedicamentId,
+                        Quantity = item.Quantity,
+                        InventoryId = inventory.Id,
+                        PPV = item.PPV,
+                        PPH = item.PPH,
+                    };
+
+                    order.OrderMedicaments.Add(orderMedicament);
                 }
-                OrderMedicament orderMedicament = new()
-                {
-                    OrderId = result.Entity.Id,
-                    MedicamentId = item.MedicamentId,
-                    Quantity = item.Quantity
 
-                };
-
-                order.OrderMedicaments.Add(orderMedicament);
 
             }
 
@@ -93,16 +97,10 @@ public class OrderSerivce(ApplicationDbContext dbContext, ICurrentUser currentUs
         return false;
     }
 
-    public async Task<bool> DeleteOrder(int id, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteOrder(int id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetOrderAsync(id, cancellationToken);
-        if (entity is not null)
-        {
-            dbContext.Orders.Remove(entity.ToEntity());
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return true;
-        }
-        return false;
+        dbContext.Database.ExecuteSqlRaw("EXEC RollBackQuantity @p0", id);
+        return Task.FromResult(true);
     }
 
 }

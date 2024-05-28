@@ -16,4 +16,6 @@ public class Inventory : BaseModel
 
     [Precision(10, 2)]
     public decimal PPH { get; set; }
+
+    public List<OrderMedicament> OrderMedicaments { get; set; }
 }
