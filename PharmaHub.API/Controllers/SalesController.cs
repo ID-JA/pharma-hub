@@ -1,4 +1,6 @@
-﻿namespace PharmaHub.API.Controllers;
+﻿using PharmaHub.API.Dtos.Sale;
+
+namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
@@ -8,7 +10,7 @@ public class SalesController(ISaleService saleService) : ControllerBase
 
     [HttpPost]
     [MustHavePermission(AppAction.Create, AppResource.Sales)]
-    public async Task<ActionResult> CreateSale([FromBody] CreateSaleDto request)
+    public async Task<ActionResult> CreateSale([FromBody] SaleCreateDto request)
     {
         await saleService.CreateSale(request);
         return Ok();
@@ -39,7 +41,7 @@ public class SalesController(ISaleService saleService) : ControllerBase
 
     [HttpPut("{id:int}")]
     [MustHavePermission(AppAction.View, AppResource.Sales)]
-    public async Task<ActionResult> UpdateSale([FromRoute] int id, [FromBody] CreateSaleDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> UpdateSale([FromRoute] int id, [FromBody] SaleUpdateDto request, CancellationToken cancellationToken)
     {
         var result = await saleService.UpdateSale(id, request, cancellationToken);
         return !result ? NotFound() : NoContent();

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API;
+using PharmaHub.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,12 +37,13 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicamentService, MedicamentService>();
     builder.Services.AddScoped<ISaleService, SaleService>();
-    builder.Services.AddScoped<IOrderService, OrderSerivce>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
     builder.Services.AddScoped<IFormService, FormService>();
     builder.Services.AddScoped<IFamilyService, FamilyService>();
     builder.Services.AddScoped<IDCIService, DCIService>();
     builder.Services.AddScoped<ITypeService, TypeService>();
+    builder.Services.AddScoped<IInventoryService, InventoryService>();
 
     builder.Services.AddAuth();
 

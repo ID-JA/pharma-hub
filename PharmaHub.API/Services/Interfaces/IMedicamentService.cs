@@ -1,27 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Common.Models;
+using PharmaHub.API.Dtos.Inventory;
+using PharmaHub.API.Dtos.Medicament;
+using PharmaHub.API.Dtos.StockHistory;
 
 namespace PharmaHub.API.Services.Interfaces;
 
-public class MedicamentNameDto : BaseDto<MedicamentNameDto, Medicament>
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-}
-
 public interface IMedicamentService : IService<Medicament>
 {
-    Task CreateMedicament(CreateMedicamentDto request);
-    Task<List<MedicamentNameDto>> GetMedicamentsNames(string name, CancellationToken cancellationToken);
-    Task<bool> UpdateMedicament(int id, CreateMedicamentDto request, CancellationToken cancellationToken = default);
-    Task<PaginatedResponse<MedicamentDto>> SearchMedicamentsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default);
-    Task<MedicamentDto?> GetMedicamentAsync(int id, CancellationToken cancellationToken = default);
+    Task CreateMedicament(MedicationCreateDto request);
+    Task<List<MedicationBasicDto>> GetMedicationsBasicInfo(string name, CancellationToken cancellationToken);
+    Task<bool> UpdateMedicament(int id, MedicationUpdateDto request, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<MedicamentDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default);
     Task DeleteMedicament(int id, CancellationToken cancellationToken = default);
     Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
-    Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request);
-    Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
-    Task<bool> CreateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken);
-    Task<bool> UpdateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken);
+    Task<bool> CreateMedicamentHistoryAsync(StockHistoryCreateDto request);
+    Task<MedicationInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
+    Task<bool> CreateMedicamentInventory(int id, InventoryCreateDto request, CancellationToken cancellationToken);
+    Task<bool> UpdateMedicamentInventory(int id, InventoryUpdateDto request, CancellationToken cancellationToken);
     Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
 
 }
@@ -36,14 +32,14 @@ public class SearchQuery
 
 public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicament>(dbContext), IMedicamentService
 {
-    public async Task CreateMedicament(CreateMedicamentDto request)
+    public async Task CreateMedicament(MedicationCreateDto request)
     {
         // create medicament basic info
         var medicament = new Medicament()
         {
             Name = request.Name,
             Barcode = request.Barcode,
-            DCI = request.DCI,
+            DCI = request.Dci,
             Form = request.Form,
             Type = request.Type,
             Family = request.Family,
@@ -51,11 +47,11 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             Dosage = request.Dosage,
             Laboratory = request.Laboratory,
             UsedBy = request.UsedBy,
-            TVA = request.TVA,
+            TVA = request.Tva,
             Marge = request.Marge,
-            PBR = request.PBR,
+            PBR = request.Pbr,
             Status = "Out of stock",
-            DiscountRate = request.Discount,
+            DiscountRate = request.DiscountRate,
             OrderSystem = request.OrderSystem,
             WithPrescription = request.WithPrescription,
         };
@@ -68,10 +64,10 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             var inventory = new Inventory()
             {
                 MedicamentId = medicament.Id,
-                ExpirationDate = request.ExpirationDate,
-                Quantity = 0,
-                PPH = request.PPH,
-                PPV = request.PPV,
+                ExpirationDate = request.Inventory.ExpirationDate,
+                Quantity = request.Inventory.Quantity,
+                PPH = request.Inventory.Pph,
+                PPV = request.Inventory.Ppv,
             };
 
             dbContext.Inventories.Add(inventory);
@@ -79,10 +75,9 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         }
     }
 
-    public async Task<bool> CreateMedicamentHistoryAsync(CreateMedicamentHistoryDto request)
+    public async Task<bool> CreateMedicamentHistoryAsync(StockHistoryCreateDto request)
     {
-        var stockHistory = request.ToEntity();
-        dbContext.StockHistories.Add(stockHistory);
+        dbContext.StockHistories.Add(request.ToEntity());
         var result = await dbContext.SaveChangesAsync();
         return result > 0;
     }
@@ -92,12 +87,8 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         throw new NotImplementedException();
     }
 
-    public Task<MedicamentDto?> GetMedicamentAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
 
-    public async Task<PaginatedResponse<MedicamentDto>> SearchMedicamentsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<MedicamentDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
     {
         var query = dbContext.Medicaments.AsNoTracking();
 
@@ -122,7 +113,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
     }
 
-    public Task<bool> UpdateMedicament(int id, CreateMedicamentDto request, CancellationToken cancellationToken = default)
+    public Task<bool> UpdateMedicament(int id, MedicationUpdateDto request, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
@@ -133,60 +124,61 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         return true; //medicamentQte > orderedQuantity;
     }
 
-    public async Task<List<MedicamentNameDto>> GetMedicamentsNames(string? name, CancellationToken cancellationToken)
+    public async Task<List<MedicationBasicDto>> GetMedicationsBasicInfo(string? name, CancellationToken cancellationToken)
     {
         var query = dbContext.Medicaments.AsNoTracking();
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            return await query.ProjectToType<MedicamentNameDto>().ToListAsync(cancellationToken);
+            return await query.ProjectToType<MedicationBasicDto>()
+                .ToListAsync(cancellationToken);
         }
 
-        return await query.Where(x => x.Name.Contains(name)).ProjectToType<MedicamentNameDto>().ToListAsync(cancellationToken);
+        return await query.Where(x => x.Name.Contains(name))
+            .ProjectToType<MedicationBasicDto>()
+            .ToListAsync(cancellationToken);
 
     }
 
-    public async Task<MedicamentInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken)
+    public async Task<MedicationInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken)
     {
         return await dbContext.Medicaments.AsNoTracking()
             .Where(i => i.Id == id)
             .Include(i => i.Inventories)
-            .ProjectToType<MedicamentInventoriesDto>()
+            .ProjectToType<MedicationInventoriesDto>()
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> CreateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken)
+    public async Task<bool> CreateMedicamentInventory(int id, InventoryCreateDto request, CancellationToken cancellationToken)
     {
         Inventory inventory = new()
         {
             MedicamentId = id,
             ExpirationDate = request.ExpirationDate,
             Quantity = request.Quantity,
-            PPH = request.PPH,
-            PPV = request.PPV
+            PPH = request.Pph,
+            PPV = request.Ppv
         };
         dbContext.Inventories.Add(inventory);
         var result = await dbContext.SaveChangesAsync(cancellationToken);
         return result > 0;
     }
 
-    public async Task<bool> UpdateMedicamentInventory(int id, CreateInventoryDto request, CancellationToken cancellationToken)
+    public async Task<bool> UpdateMedicamentInventory(int id, InventoryUpdateDto request, CancellationToken cancellationToken)
     {
         var inventory = await dbContext.Inventories.FindAsync([id], cancellationToken);
 
-        if (inventory is not null)
-        {
-            inventory.ExpirationDate = request.ExpirationDate;
-            inventory.Quantity = request.Quantity;
-            inventory.PPH = request.PPH;
-            inventory.PPV = request.PPV;
-            dbContext.Inventories.Update(inventory);
-            var result = await dbContext.SaveChangesAsync(cancellationToken);
-            return result > 0;
+        if (inventory is null) return false;
 
-        }
+        inventory.ExpirationDate = request.ExpirationDate;
+        inventory.Quantity = request.Quantity;
+        inventory.PPH = request.Pph;
+        inventory.PPV = request.Ppv;
 
-        return false;
+        dbContext.Inventories.Update(inventory);
+        var result = await dbContext.SaveChangesAsync(cancellationToken);
+
+        return result > 0;
     }
 
     public async Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken)
@@ -196,43 +188,4 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         var result = await dbContext.SaveChangesAsync(cancellationToken);
         return result > 0 ? true : false;
     }
-
-}
-
-
-public class MedicamentInventoriesDto : BaseDto<MedicamentInventoriesDto, Medicament>
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
-    public string Barcode { get; set; } = null!;
-    public string Section { get; set; } = null!;
-    public string Form { get; set; } = null!;
-    public int TotalQuantity { get; set; }
-    public List<InventoryDto> Inventories { get; set; } = null!;
-
-    public override void AddCustomMappings()
-    {
-        SetCustomMappingsInverse().Map(dest => dest.TotalQuantity, src => src.Inventories.Sum(i => i.Quantity));
-    }
-
-
-}
-
-public class InventoryDto : BaseDto<InventoryDto, Inventory>
-{
-    public int Id { get; set; }
-    public int Quantity { get; set; }
-    public DateTime ExpirationDate { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public decimal PPV { get; set; }
-    public decimal PPH { get; set; }
-}
-
-public class CreateInventoryDto : BaseDto<CreateInventoryDto, Inventory>
-{
-    public int Quantity { get; set; }
-    public DateTime ExpirationDate { get; set; }
-    public decimal PPV { get; set; }
-    public decimal PPH { get; set; }
 }

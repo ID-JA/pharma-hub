@@ -1,21 +1,24 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Dtos.Medicament;
+using PharmaHub.API.Dtos.Sale;
+using PharmaHub.API.Dtos.StockHistory;
 
 namespace PharmaHub.API.Services.Interfaces;
 
 public interface ISaleService
 {
-    Task CreateSale(CreateSaleDto request);
-    Task<bool> UpdateSale(int id, CreateSaleDto request, CancellationToken cancellationToken = default);
-    Task<List<SaleDto>> GetSalesAsync(CancellationToken cancellationToken = default);
-    Task<SaleDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
+    Task CreateSale(SaleCreateDto request);
+    Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
+    Task<List<SaleBasicDto>> GetSalesAsync(CancellationToken cancellationToken = default);
+    Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
 }
 
 
 public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedicament> saleMedicamentRepository, ICurrentUser currentUserService, IMedicamentService medicamentService) : ISaleService
 {
-    public async Task CreateSale(CreateSaleDto request)
+    public async Task CreateSale(SaleCreateDto request)
     {
         var userId = currentUserService.GetUserId();
 
@@ -26,7 +29,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             Status = request.Status,
             Discount = request.Discount,
             UserId = userId,
-            SaleMedicaments = new List<SaleMedicament>()
+            SaleMedicaments = []
         };
 
         dbContext.Sales.Add(sale);
@@ -45,8 +48,8 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                     SaleId = sale.Id,
                     MedicamentId = item.MedicamentId,
                     Quantity = quantityToChange,
-                    PPV = item.PPV,
-                    TVA = item.TVA,
+                    PPV = item.Ppv,
+                    TVA = item.Tva,
                     Discount = item.Discount,
                 };
 
@@ -58,7 +61,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                 }
                 else if (request.Status == "Paid" && isSufficient)
                 {
-                    await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
+                    await medicamentService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
                     {
                         MedicamentId = item.MedicamentId,
                         QuantityChanged = item.Quantity,
@@ -76,60 +79,58 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         }
     }
 
-    public async Task<bool> UpdateSale(int id, CreateSaleDto request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default)
     {
         var sale = await dbContext.Sales
             .Include(s => s.SaleMedicaments)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
 
         // It could be better if we create an endpoint for updating only sales item (/sales/{id}/items)
-        if (sale is not null)
-        {
-            sale.TotalQuantity = request.TotalQuantity;
-            sale.TotalPrice = request.TotalPrice;
-            sale.Status = request.Status;
-            sale.Discount = request.Discount;
+        if (sale is null) return false;
 
-            dbContext.SaleMedicaments.RemoveRange(sale.SaleMedicaments);
-            foreach (var item in request.SaleMedicaments)
+        sale.TotalQuantity = request.SaleMedicaments.Sum(sm=>sm.Quantity);
+        sale.TotalPrice = request.TotalPrice;
+        sale.Status = request.Status;
+        sale.Discount = request.Discount;
+
+        dbContext.SaleMedicaments.RemoveRange(sale.SaleMedicaments);
+        foreach (var item in request.SaleMedicaments)
+        {
+            var saleItemDetail = new SaleMedicament
             {
-                var saleItemDetail = new SaleMedicament
+                MedicamentId = item.MedicamentId,
+                Quantity = item.Quantity,
+                PPV = item.PPV,
+                Discount = item.Discount,
+                TotalPrice = item.TotalPrice,
+                TVA = item.TVA,
+            };
+
+            sale.SaleMedicaments.Add(saleItemDetail);
+
+            if (request.Status == "Paid")
+            {
+                await medicamentService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
                 {
                     MedicamentId = item.MedicamentId,
-                    Quantity = item.Quantity,
-                    PPV = item.PPV,
-                    Discount = item.Discount,
-                    TotalPrice = item.TotalPrice,
-                    TVA = item.TVA,
-                };
-
-                sale.SaleMedicaments.Add(saleItemDetail);
-
-                if (request.Status == "Paid")
-                {
-                    await medicamentService.CreateMedicamentHistoryAsync(new CreateMedicamentHistoryDto
-                    {
-                        MedicamentId = item.MedicamentId,
-                        QuantityChanged = sale.TotalQuantity,
-                        SaleId = sale.Id
-                    });
-                }
+                    QuantityChanged = sale.TotalQuantity,
+                    SaleId = sale.Id
+                });
             }
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return true;
         }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
 
-        return false;
     }
 
-    public async Task<List<SaleDto>> GetSalesAsync(CancellationToken cancellationToken = default)
+    public async Task<List<SaleBasicDto>> GetSalesAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.Sales.ProjectToType<SaleDto>().ToListAsync(cancellationToken);
+        return await dbContext.Sales.ProjectToType<SaleBasicDto>().ToListAsync(cancellationToken);
     }
 
-    public async Task<SaleDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Sales.Where(s => s.Id == id).ProjectToType<SaleDto>().FirstOrDefaultAsync(cancellationToken);
+        return await dbContext.Sales.Where(s => s.Id == id).ProjectToType<SaleBasicDto>().FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task DeleteSale(int id, CancellationToken cancellationToken = default)

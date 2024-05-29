@@ -281,7 +281,7 @@ namespace PharmaHub.API.Migrations
                     b.ToTable("Inventories");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.Medicament", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Medication", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -864,13 +864,13 @@ namespace PharmaHub.API.Migrations
 
             modelBuilder.Entity("PharmaHub.API.Models.Inventory", b =>
                 {
-                    b.HasOne("PharmaHub.API.Models.Medicament", "Medicament")
+                    b.HasOne("PharmaHub.API.Models.Medication", "Medication")
                         .WithMany("Inventories")
                         .HasForeignKey("MedicamentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Medicament");
+                    b.Navigation("Medication");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Order", b =>
@@ -909,7 +909,7 @@ namespace PharmaHub.API.Migrations
 
             modelBuilder.Entity("PharmaHub.API.Models.SaleMedicament", b =>
                 {
-                    b.HasOne("PharmaHub.API.Models.Medicament", "Medicament")
+                    b.HasOne("PharmaHub.API.Models.Medication", "Medication")
                         .WithMany("SaleMedicaments")
                         .HasForeignKey("MedicamentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -921,14 +921,14 @@ namespace PharmaHub.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Medicament");
+                    b.Navigation("Medication");
 
                     b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.StockHistory", b =>
                 {
-                    b.HasOne("PharmaHub.API.Models.Medicament", "Medicament")
+                    b.HasOne("PharmaHub.API.Models.Medication", "Medication")
                         .WithMany("StockHistories")
                         .HasForeignKey("MedicamentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -942,7 +942,7 @@ namespace PharmaHub.API.Migrations
                         .WithMany("StockHistories")
                         .HasForeignKey("SaleId");
 
-                    b.Navigation("Medicament");
+                    b.Navigation("Medication");
 
                     b.Navigation("Order");
 
@@ -955,7 +955,7 @@ namespace PharmaHub.API.Migrations
                         .WithMany("OrderMedicaments")
                         .HasForeignKey("InventoryId");
 
-                    b.HasOne("PharmaHub.API.Models.Medicament", "Medicament")
+                    b.HasOne("PharmaHub.API.Models.Medication", "Medication")
                         .WithMany("OrderMedicaments")
                         .HasForeignKey("MedicamentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -969,7 +969,7 @@ namespace PharmaHub.API.Migrations
 
                     b.Navigation("Inventory");
 
-                    b.Navigation("Medicament");
+                    b.Navigation("Medication");
 
                     b.Navigation("Order");
                 });
@@ -984,7 +984,7 @@ namespace PharmaHub.API.Migrations
                     b.Navigation("OrderMedicaments");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.Medicament", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Medication", b =>
                 {
                     b.Navigation("Inventories");
 

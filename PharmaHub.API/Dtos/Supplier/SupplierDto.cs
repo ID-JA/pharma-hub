@@ -1,5 +1,6 @@
 ﻿namespace PharmaHub.API;
 
+[Obsolete]
 public class SupplierDto : BaseDto<SupplierDto, Supplier>
 {
     public int? Id { get; set; }

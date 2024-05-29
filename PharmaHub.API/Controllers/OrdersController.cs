@@ -1,4 +1,6 @@
-﻿namespace PharmaHub.API.Controllers;
+﻿using PharmaHub.API.Dtos.Order;
+
+namespace PharmaHub.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -6,7 +8,7 @@
 public class OrdersController(IOrderService orderService) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult> CreateOrder([FromBody] CreateOrderDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateOrder([FromBody] OrderCreateDto request, CancellationToken cancellationToken)
     {
         await orderService.CreateOrderAsync(request, cancellationToken);
 
@@ -28,7 +30,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> UpdateOrder([FromRoute] int id, [FromBody] CreateOrderDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> UpdateOrder([FromRoute] int id, [FromBody] OrderUpdateDto request, CancellationToken cancellationToken)
     {
         var result = await orderService.UpdateOrder(id, request, cancellationToken);
         return result ? Ok(result) : NotFound();

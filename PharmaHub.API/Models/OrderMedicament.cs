@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace PharmaHub.API;
+namespace PharmaHub.API.Models;
 
 public class OrderMedicament
 {

@@ -9,9 +9,6 @@ public abstract class BaseDto<TDto, TEntity> : IRegister
     public void Register(TypeAdapterConfig config)
     {
         Config = config;
-
-        config.NewConfig<Medicament, MedicamentDto>();
-
         AddCustomMappings();
         SetCustomMappings();
         SetCustomMappingsInverse();

@@ -1,11 +1,14 @@
-﻿namespace PharmaHub.API.Controllers;
+﻿using PharmaHub.API.Dtos.Inventory;
+using PharmaHub.API.Dtos.Medicament;
+
+namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
 public class MedicamentsController(IMedicamentService medicamentService, IService<DCI> dciService, IService<Form> formService) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult> CreateDrug([FromBody] CreateMedicamentDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateDrug([FromBody] MedicationCreateDto request, CancellationToken cancellationToken)
     {
         await medicamentService.CreateMedicament(request);
         return Created();
@@ -22,13 +25,13 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
             Field = field,
         };
 
-        return Ok(await medicamentService.SearchMedicamentsAsync(searchQuery, cancellationToken));
+        return Ok(await medicamentService.SearchMedicationsAsync(searchQuery, cancellationToken));
     }
 
     [HttpGet("search/names")]
     public async Task<ActionResult> GetAllMedicamentsNames(CancellationToken cancellationToken, [FromQuery] string query = "")
     {
-        return Ok(await medicamentService.GetMedicamentsNames(query, cancellationToken));
+        return Ok(await medicamentService.GetMedicationsBasicInfo(query, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
@@ -82,7 +85,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
     }
 
     [HttpPost("{id:int}/inventories")]
-    public async Task<ActionResult> CreateMedicamentInventory([FromRoute] int id, [FromBody] CreateInventoryDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateMedicamentInventory([FromRoute] int id, [FromBody] InventoryCreateDto request, CancellationToken cancellationToken)
     {
         return Ok(await medicamentService.CreateMedicamentInventory(id, request, cancellationToken));
     }
@@ -94,7 +97,7 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
     }
 
     [HttpPut("{id:int}/inventories/{inventoryId:int}")]
-    public async Task<ActionResult> UpdateMedicamentInventory(int id, [FromRoute] int inventoryId, [FromBody] CreateInventoryDto request, CancellationToken cancellationToken)
+    public async Task<ActionResult> UpdateMedicamentInventory(int id, [FromRoute] int inventoryId, [FromBody] InventoryUpdateDto request, CancellationToken cancellationToken)
     {
         return Ok(await medicamentService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
     }

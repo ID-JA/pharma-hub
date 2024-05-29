@@ -7,7 +7,7 @@ namespace PharmaHub.API.Models;
 /// this class is used to store the details of the medicament.
 /// </summary>
 /// <remarks>
-/// Also known as the Medicament's stock.
+/// Also known as the Medication's stock.
 /// </remarks>
 public class Medicament : BaseModel
 {
@@ -77,6 +77,8 @@ public class Medicament : BaseModel
     public List<SaleMedicament> SaleMedicaments { get; set; }
     public List<OrderMedicament> OrderMedicaments { get; set; } = [];
 }
+
+
 public enum UsedBy
 {
     [Description("Infant")]
