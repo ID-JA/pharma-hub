@@ -68,7 +68,7 @@ public class ApplicationDbSeeder(UserManager<User> userManager, RoleManager<Role
                 Email = "jake@admin.com",
                 UserName = "AdminJake91",
                 EmailConfirmed = true,
-                CNI = "AK47102F8",
+                Cni = "AK47102F8",
                 Address = "Main Street 123",
                 Gender = 'M',
                 Phone = "123456789",

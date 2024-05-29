@@ -1,6 +1,6 @@
 ﻿namespace PharmaHub.API.Dtos.Medicament;
 
-public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medicament>
+public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medication>
 {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -13,6 +13,6 @@ public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medicament>
     public override void AddCustomMappings()
     {
         SetCustomMappingsInverse()
-            .Map(src => src.Dci, dest=>dest.DCI);
+            .Map(src => src.Dci, dest=>dest.Dci);
     }
 }

@@ -18,7 +18,7 @@ public class OrderService(ApplicationDbContext dbContext, ICurrentUser currentUs
 {
     public async Task<OrderBasicDto?> GetOrderAsync(int id, CancellationToken cancellationToken = default) => await dbContext.Orders.Where(o => o.Id == id).ProjectToType<OrderBasicDto>().FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<List<OrderBasicDto>> GetOrdersAsync(CancellationToken cancellationToken = default) => await dbContext.Orders.Include(o => o.OrderMedicaments).ProjectToType<OrderBasicDto>().ToListAsync(cancellationToken);
+    public async Task<List<OrderBasicDto>> GetOrdersAsync(CancellationToken cancellationToken = default) => await dbContext.Orders.Include(o => o.OrderMedications).ProjectToType<OrderBasicDto>().ToListAsync(cancellationToken);
 
     public async Task<bool> CreateOrderAsync(OrderCreateDto request, CancellationToken cancellationToken = default)
     {
@@ -42,21 +42,20 @@ public class OrderService(ApplicationDbContext dbContext, ICurrentUser currentUs
             if (inventory is null) continue;
             
             inventory.Quantity += item.Quantity;
-            inventory.PPV = item.Ppv;
-            inventory.PPH = item.Pph;
+            inventory.Ppv = item.Ppv;
+            inventory.Pph = item.Pph;
             
             dbContext.Inventories.Update(inventory);
 
-            OrderMedicament orderMedicament = new()
+            OrderMedication orderMedication = new()
             {
                 OrderId = result.Entity.Id,
-                MedicamentId = item.MedicamentId,
                 Quantity = item.Quantity,
                 InventoryId = inventory.Id,
-                PPV = item.Ppv,
-                PPH = item.Pph,
+                Ppv = item.Ppv,
+                Pph = item.Pph,
             };
-            order.OrderMedicaments.Add(orderMedicament);
+            order.OrderMedications.Add(orderMedication);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -68,23 +67,25 @@ public class OrderService(ApplicationDbContext dbContext, ICurrentUser currentUs
     public async Task<bool> UpdateOrder(int id, OrderUpdateDto request, CancellationToken cancellationToken = default)
     {
         var order = await dbContext.Orders
-            .Include(o => o.OrderMedicaments)
+            .Include(o => o.OrderMedications)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
 
         if (order is null) return false;
        
         order.TotalQuantity = request.OrderMedicaments.Sum(or=>or.Quantity);
         order.SupplierId = request.SupplierId;
-        order.OrderMedicaments.Clear();
+        order.OrderMedications.Clear();
 
-        foreach (var orderMedicament in request.OrderMedicaments.Select(item => new OrderMedicament
+        foreach (var orderMedicament in request.OrderMedicaments.Select(item => new OrderMedication
                  {
                      OrderId = order.Id,
-                     MedicamentId = item.MedicamentId,
+                     InventoryId = item.InventoryId,
+                     Pph = item.Pph,
+                     Ppv = item.Ppv,
                      Quantity = item.Quantity
                  }))
         {
-            order.OrderMedicaments.Add(orderMedicament);
+            order.OrderMedications.Add(orderMedicament);
         }
 
         dbContext.Orders.Update(order);

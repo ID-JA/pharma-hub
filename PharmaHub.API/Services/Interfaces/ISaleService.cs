@@ -16,7 +16,7 @@ public interface ISaleService
 }
 
 
-public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedicament> saleMedicamentRepository, ICurrentUser currentUserService, IMedicamentService medicamentService) : ISaleService
+public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedications> saleMedicamentRepository, ICurrentUser currentUserService, IMedicationService medicationService) : ISaleService
 {
     public async Task CreateSale(SaleCreateDto request)
     {
@@ -29,7 +29,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             Status = request.Status,
             Discount = request.Discount,
             UserId = userId,
-            SaleMedicaments = []
+            SaleMedications = []
         };
 
         dbContext.Sales.Add(sale);
@@ -37,23 +37,23 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
 
         if (sale.Id != 0)
         {
-            foreach (var item in request.SaleMedicaments)
+            foreach (var item in request.SaleMedications)
             {
-                var isSufficient = await medicamentService.IsSufficientQuantity(item.MedicamentId, item.Quantity);
+                var isSufficient = await medicationService.IsSufficientQuantity(item.InventoryId, item.Quantity);
 
                 var quantityToChange = isSufficient ? item.Quantity : -item.Quantity;
 
-                var saleItem = new SaleMedicament
+                var saleItem = new SaleMedications
                 {
                     SaleId = sale.Id,
-                    MedicamentId = item.MedicamentId,
+                    InventoryId = item.InventoryId,
                     Quantity = quantityToChange,
-                    PPV = item.Ppv,
-                    TVA = item.Tva,
+                    Ppv = item.Ppv,
+                    Tva = item.Tva,
                     Discount = item.Discount,
                 };
 
-                sale.SaleMedicaments.Add(saleItem);
+                sale.SaleMedications.Add(saleItem);
 
                 if (quantityToChange < 0)
                 {
@@ -61,9 +61,9 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                 }
                 else if (request.Status == "Paid" && isSufficient)
                 {
-                    await medicamentService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
+                    await medicationService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
                     {
-                        MedicamentId = item.MedicamentId,
+                        InventoryId = item.InventoryId,
                         QuantityChanged = item.Quantity,
                         SaleId = sale.Id
                     });
@@ -82,37 +82,37 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
     public async Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default)
     {
         var sale = await dbContext.Sales
-            .Include(s => s.SaleMedicaments)
+            .Include(s => s.SaleMedications)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
 
         // It could be better if we create an endpoint for updating only sales item (/sales/{id}/items)
         if (sale is null) return false;
 
-        sale.TotalQuantity = request.SaleMedicaments.Sum(sm=>sm.Quantity);
+        sale.TotalQuantity = request.SaleMedications.Sum(sm=>sm.Quantity);
         sale.TotalPrice = request.TotalPrice;
         sale.Status = request.Status;
         sale.Discount = request.Discount;
 
-        dbContext.SaleMedicaments.RemoveRange(sale.SaleMedicaments);
-        foreach (var item in request.SaleMedicaments)
+        dbContext.SaleMedications.RemoveRange(sale.SaleMedications);
+        foreach (var item in request.SaleMedications)
         {
-            var saleItemDetail = new SaleMedicament
+            var saleItemDetail = new SaleMedications
             {
-                MedicamentId = item.MedicamentId,
+                InventoryId = item.InventoryId,
                 Quantity = item.Quantity,
-                PPV = item.PPV,
+                Ppv = item.Ppv,
                 Discount = item.Discount,
                 TotalPrice = item.TotalPrice,
-                TVA = item.TVA,
+                Tva = item.Tva,
             };
 
-            sale.SaleMedicaments.Add(saleItemDetail);
+            sale.SaleMedications.Add(saleItemDetail);
 
             if (request.Status == "Paid")
             {
-                await medicamentService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
+                await medicationService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
                 {
-                    MedicamentId = item.MedicamentId,
+                    InventoryId = item.InventoryId,
                     QuantityChanged = sale.TotalQuantity,
                     SaleId = sale.Id
                 });

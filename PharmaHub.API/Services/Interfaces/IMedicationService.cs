@@ -6,14 +6,14 @@ using PharmaHub.API.Dtos.StockHistory;
 
 namespace PharmaHub.API.Services.Interfaces;
 
-public interface IMedicamentService : IService<Medicament>
+public interface IMedicationService : IService<Medication>
 {
     Task CreateMedicament(MedicationCreateDto request);
     Task<List<MedicationBasicDto>> GetMedicationsBasicInfo(string name, CancellationToken cancellationToken);
     Task<bool> UpdateMedicament(int id, MedicationUpdateDto request, CancellationToken cancellationToken = default);
-    Task<PaginatedResponse<MedicamentDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<MedicationDetailedDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default);
     Task DeleteMedicament(int id, CancellationToken cancellationToken = default);
-    Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default);
+    Task<bool> IsSufficientQuantity(int InventoryId, int orderedQuantity, CancellationToken cancellationToken = default);
     Task<bool> CreateMedicamentHistoryAsync(StockHistoryCreateDto request);
     Task<MedicationInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken);
     Task<bool> CreateMedicamentInventory(int id, InventoryCreateDto request, CancellationToken cancellationToken);
@@ -30,16 +30,16 @@ public class SearchQuery
     public int PageNumber { get; set; } = 1;
 }
 
-public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicament>(dbContext), IMedicamentService
+public class MedicationService(ApplicationDbContext dbContext) : Service<Medication>(dbContext), IMedicationService
 {
     public async Task CreateMedicament(MedicationCreateDto request)
     {
         // create medicament basic info
-        var medicament = new Medicament()
+        var medicament = new Medication()
         {
             Name = request.Name,
             Barcode = request.Barcode,
-            DCI = request.Dci,
+            Dci = request.Dci,
             Form = request.Form,
             Type = request.Type,
             Family = request.Family,
@@ -47,27 +47,27 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
             Dosage = request.Dosage,
             Laboratory = request.Laboratory,
             UsedBy = request.UsedBy,
-            TVA = request.Tva,
+            Tva = request.Tva,
             Marge = request.Marge,
-            PBR = request.Pbr,
+            Pbr = request.Pbr,
             Status = "Out of stock",
             DiscountRate = request.DiscountRate,
             OrderSystem = request.OrderSystem,
             WithPrescription = request.WithPrescription,
         };
 
-        dbContext.Medicaments.Add(medicament);
+        dbContext.Medications.Add(medicament);
         var result = await dbContext.SaveChangesAsync();
 
         if (result > 0)
         {
             var inventory = new Inventory()
             {
-                MedicamentId = medicament.Id,
+                MedicationId = medicament.Id,
                 ExpirationDate = request.Inventory.ExpirationDate,
                 Quantity = request.Inventory.Quantity,
-                PPH = request.Inventory.Pph,
-                PPV = request.Inventory.Ppv,
+                Pph = request.Inventory.Pph,
+                Ppv = request.Inventory.Ppv,
             };
 
             dbContext.Inventories.Add(inventory);
@@ -77,7 +77,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
     public async Task<bool> CreateMedicamentHistoryAsync(StockHistoryCreateDto request)
     {
-        dbContext.StockHistories.Add(request.ToEntity());
+        dbContext.InventoryHistories.Add(request.ToEntity());
         var result = await dbContext.SaveChangesAsync();
         return result > 0;
     }
@@ -88,15 +88,15 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
     }
 
 
-    public async Task<PaginatedResponse<MedicamentDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<MedicationDetailedDto>> SearchMedicationsAsync(SearchQuery searchQuery, CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Medicaments.AsNoTracking();
+        var query = dbContext.Medications.AsNoTracking();
 
         if (string.IsNullOrWhiteSpace(searchQuery.Query) || string.IsNullOrWhiteSpace(searchQuery.Field))
         {
             return await query
             .Include(m => m.Inventories)
-            .ProjectToType<MedicamentDto>()
+            .ProjectToType<MedicationDetailedDto>()
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
         }
 
@@ -104,12 +104,12 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         {
             "barcode" => query.Where(m => m.Barcode == searchQuery.Query).Include(m => m.Inventories),
             "name" => query.Where(m => m.Name.Contains(searchQuery.Query)).Include(m => m.Inventories),
-            "ppv" => query.Include(m => m.Inventories).Where(m => m.Inventories.Any(i => i.PPV == decimal.Parse(searchQuery.Query))),
+            "ppv" => query.Include(m => m.Inventories).Where(m => m.Inventories.Any(i => i.Ppv == decimal.Parse(searchQuery.Query))),
             "type" => query.Where(m => m.Type.Contains(searchQuery.Query)).Include(m => m.Inventories),
             _ => throw new NotImplementedException(),
         };
 
-        return await query.ProjectToType<MedicamentDto>()
+        return await query.ProjectToType<MedicationDetailedDto>()
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
     }
 
@@ -118,15 +118,15 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
         throw new NotImplementedException();
     }
 
-    public async Task<bool> IsSufficientQuantity(int medicamentId, int orderedQuantity, CancellationToken cancellationToken = default)
+    public async Task<bool> IsSufficientQuantity(int InventoryId, int orderedQuantity, CancellationToken cancellationToken = default)
     {
-        var medicamentQte = await dbContext.Medicaments.Where(m => m.Id == medicamentId).FirstOrDefaultAsync(cancellationToken);
+        var medicamentQte = await dbContext.Inventories.Where(m => m.Id == InventoryId).FirstOrDefaultAsync(cancellationToken);
         return true; //medicamentQte > orderedQuantity;
     }
 
     public async Task<List<MedicationBasicDto>> GetMedicationsBasicInfo(string? name, CancellationToken cancellationToken)
     {
-        var query = dbContext.Medicaments.AsNoTracking();
+        var query = dbContext.Medications.AsNoTracking();
 
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -142,7 +142,7 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
     public async Task<MedicationInventoriesDto?> GetMedicamentInventories(int id, CancellationToken cancellationToken)
     {
-        return await dbContext.Medicaments.AsNoTracking()
+        return await dbContext.Medications.AsNoTracking()
             .Where(i => i.Id == id)
             .Include(i => i.Inventories)
             .ProjectToType<MedicationInventoriesDto>()
@@ -153,11 +153,11 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
     {
         Inventory inventory = new()
         {
-            MedicamentId = id,
+            MedicationId = id,
             ExpirationDate = request.ExpirationDate,
             Quantity = request.Quantity,
-            PPH = request.Pph,
-            PPV = request.Ppv
+            Pph = request.Pph,
+            Ppv = request.Ppv
         };
         dbContext.Inventories.Add(inventory);
         var result = await dbContext.SaveChangesAsync(cancellationToken);
@@ -172,8 +172,8 @@ public class MedicamentService(ApplicationDbContext dbContext) : Service<Medicam
 
         inventory.ExpirationDate = request.ExpirationDate;
         inventory.Quantity = request.Quantity;
-        inventory.PPH = request.Pph;
-        inventory.PPV = request.Ppv;
+        inventory.Pph = request.Pph;
+        inventory.Ppv = request.Ppv;
 
         dbContext.Inventories.Update(inventory);
         var result = await dbContext.SaveChangesAsync(cancellationToken);

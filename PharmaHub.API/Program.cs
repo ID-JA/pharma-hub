@@ -35,13 +35,13 @@ var builder = WebApplication.CreateBuilder(args);
     // register custom services
     builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
     builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IMedicamentService, MedicamentService>();
+    builder.Services.AddScoped<IMedicationService, MedicationService>();
     builder.Services.AddScoped<ISaleService, SaleService>();
     builder.Services.AddScoped<IOrderService, OrderService>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
     builder.Services.AddScoped<IFormService, FormService>();
     builder.Services.AddScoped<IFamilyService, FamilyService>();
-    builder.Services.AddScoped<IDCIService, DCIService>();
+    builder.Services.AddScoped<IDciService, DciService>();
     builder.Services.AddScoped<ITypeService, TypeService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
 

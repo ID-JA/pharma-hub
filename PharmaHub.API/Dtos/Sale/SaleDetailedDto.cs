@@ -12,6 +12,6 @@ public class SaleDetailedDto : BaseDto<SaleDetailedDto, Models.Sale>
     public float Discount { get; set; }
     public int SaleNumber { get; set; }
     public UserBasicDto User { get; set; }
-    public List<SaleMedicamentDto> SaleMedicaments { get; set; }
-    public List<StockHistoryBasicDto> StockHistories { get; set; }
+    public List<SaleMedicationDto> SaleMedications { get; set; }
+    public List<StockHistoryBasicDto> InventoryHistories { get; set; }
 }

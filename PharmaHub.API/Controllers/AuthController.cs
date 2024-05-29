@@ -22,7 +22,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             FirstName = registerRequest.FirstName,
             LastName = registerRequest.LastName,
             Gender = registerRequest.Gender,
-            CNI = registerRequest.CNI,
+            Cni = registerRequest.Cni,
             Address = registerRequest.Address,
             UserName = $"{registerRequest.FirstName}{registerRequest.LastName}",
             Phone = registerRequest.Phone,
@@ -72,7 +72,7 @@ public class RegisterRequest
     public string Address { get; set; }
     public char Gender { get; set; }
     public string Phone { get; set; }
-    public string CNI { get; set; }
+    public string Cni { get; set; }
     public string Role { get; set; }
 }
 

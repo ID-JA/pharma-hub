@@ -2,7 +2,7 @@
 
 namespace PharmaHub.API.Dtos.Medicament;
 
-public class MedicationCreateDto : BaseDto<MedicationCreateDto, Models.Medicament>
+public class MedicationCreateDto : BaseDto<MedicationCreateDto, Models.Medication>
 {
     public string Name { get; set; }
     public string Dosage { get; set; }

@@ -8,6 +8,6 @@
         public string? Status { get; set; }
         public float Discount { get; set; }
         public int SaleNumber { get; set; }
-        public List<SaleMedicamentUpdateDto> SaleMedicaments { get; set; }
+        public List<SaleMedicationUpdateDto> SaleMedications { get; set; }
     }
 }

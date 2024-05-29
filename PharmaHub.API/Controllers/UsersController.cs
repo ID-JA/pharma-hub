@@ -22,7 +22,7 @@ public class UsersController(IUserService userService) : ControllerBase
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.Address = request.Address;
-        user.CNI = request.CNI;
+        user.Cni = request.Cni;
         user.Phone = request.Phone;
         user.Gender = request.Gender;
 

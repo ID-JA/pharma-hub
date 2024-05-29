@@ -4,36 +4,36 @@ namespace PharmaHub.API;
 
 public class CurrentUser : ICurrentUser, ICurrentUserInitializer
 {
-    private ClaimsPrincipal? user;
-    private string userId = null;
+    private ClaimsPrincipal? _user;
+    private string _userId = null;
 
-    public string? Name => user?.Identity.Name;
+    public string? Name => _user?.Identity.Name;
 
     public IEnumerable<Claim>? GetUserClaims()
     {
-        return user?.Claims;
+        return _user?.Claims;
     }
 
     public string? GetUserEmail()
     {
-        return IsAuthenticated() ? user!.GetEmail() : string.Empty;
+        return IsAuthenticated() ? _user!.GetEmail() : string.Empty;
     }
 
     public int GetUserId()
     {
         return int.Parse(IsAuthenticated()
-            ? user!.GetUserId()
-            : userId);
+            ? _user!.GetUserId()
+            : _userId);
     }
 
     public bool IsAuthenticated()
     {
-        return user?.Identity?.IsAuthenticated is true;
+        return _user?.Identity?.IsAuthenticated is true;
     }
 
     public bool IsInRole(string role)
     {
-        return user?.IsInRole(role) is true;
+        return _user?.IsInRole(role) is true;
     }
 
     public void SetCurrentUser(ClaimsPrincipal currentUser)
@@ -43,19 +43,19 @@ public class CurrentUser : ICurrentUser, ICurrentUserInitializer
             throw new Exception("Method reserved for in-scope initialization");
         }
 
-        user = currentUser;
+        _user = currentUser;
     }
 
-    public void SetCurrentUserId(string CurrentUserId)
+    public void SetCurrentUserId(string currentUserId)
     {
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(_userId))
         {
             throw new Exception("Method reserved for in-scope initialization");
         }
 
-        if (!string.IsNullOrEmpty(userId))
+        if (!string.IsNullOrEmpty(_userId))
         {
-            userId = CurrentUserId;
+            _userId = currentUserId;
         }
     }
 }

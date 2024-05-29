@@ -8,6 +8,6 @@
         public float Discount { get; set; }
         public int SaleNumber { get; set; }
         public int UserId { get; set; }
-        public List<SaleMedicamentCreateDto> SaleMedicaments { get; set; }
+        public List<SaleMedicationCreateDto> SaleMedications { get; set; }
     }
 }

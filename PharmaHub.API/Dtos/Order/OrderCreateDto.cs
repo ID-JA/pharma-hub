@@ -8,5 +8,5 @@ public class OrderCreateDto : BaseDto<OrderCreateDto, Models.Order>
     public int UserId { get; set; }
     public int? SupplierId { get; set; }
     public int? BillId { get; set; }
-    public List<OrderMedicamentCreateDto> OrderMedicaments { get; set; }
+    public List<OrderMedicationCreateDto> OrderMedicaments { get; set; }
 }

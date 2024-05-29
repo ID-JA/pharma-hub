@@ -5,12 +5,12 @@ namespace PharmaHub.API.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
-public class MedicamentsController(IMedicamentService medicamentService, IService<DCI> dciService, IService<Form> formService) : ControllerBase
+public class MedicamentsController(IMedicationService medicationService, IService<Dci> dciService, IService<Form> formService) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult> CreateDrug([FromBody] MedicationCreateDto request, CancellationToken cancellationToken)
     {
-        await medicamentService.CreateMedicament(request);
+        await medicationService.CreateMedicament(request);
         return Created();
     }
 
@@ -25,80 +25,80 @@ public class MedicamentsController(IMedicamentService medicamentService, IServic
             Field = field,
         };
 
-        return Ok(await medicamentService.SearchMedicationsAsync(searchQuery, cancellationToken));
+        return Ok(await medicationService.SearchMedicationsAsync(searchQuery, cancellationToken));
     }
 
     [HttpGet("search/names")]
     public async Task<ActionResult> GetAllMedicamentsNames(CancellationToken cancellationToken, [FromQuery] string query = "")
     {
-        return Ok(await medicamentService.GetMedicationsBasicInfo(query, cancellationToken));
+        return Ok(await medicationService.GetMedicationsBasicInfo(query, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult> GetMedicament([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.GetByIdAsync(id, cancellationToken));
+        return Ok(await medicationService.GetByIdAsync(id, cancellationToken));
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> UpdateMedicament([FromBody] CreateMedicamentRequest request, [FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult> UpdateMedicament([FromBody] MedicationUpdateDto request, [FromRoute] int id, CancellationToken cancellationToken)
     {
-        var medicament = await medicamentService.GetByIdAsync(id, cancellationToken);
+        var medicament = await medicationService.GetByIdAsync(id, cancellationToken);
         if (medicament is null)
         {
             return NotFound();
         }
 
-        medicament.Name = request.Name;
+        medicament.Name = request.Detials.Name;
         // medicament.DCI = request.DCI;
-        medicament.Form = request.Form;
-        medicament.TVA = request.TVA;
-        medicament.DiscountRate = request.Discount;
-        medicament.PBR = request.PBR;
-        medicament.Type = request.Type;
-        medicament.Marge = request.Marge;
-        medicament.Barcode = request.Barcode;
-        medicament.Family = request.Family;
+        medicament.Form = request.Detials.Form;
+        medicament.Tva = request.Detials.Tva;
+        medicament.DiscountRate = request.Detials.DiscountRate;
+        medicament.Pbr = request.Detials.Pbr;
+        medicament.Type = request.Detials.Type;
+        medicament.Marge = request.Detials.Marge;
+        medicament.Barcode = request.Detials.Barcode;
+        medicament.Family = request.Detials.Family;
         // medicament.UsedBy = request.UsedBy;
-        medicament.WithPrescription = request.WithPrescription;
+        medicament.WithPrescription = request.Detials.WithPrescription;
 
-        await medicamentService.UpdateAsync(medicament, cancellationToken);
+        await medicationService.UpdateAsync(medicament, cancellationToken);
         return NoContent();
     }
 
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> DeleteMedicament([FromRoute] int id, CancellationToken cancellationToken)
     {
-        var medicament = await medicamentService.GetByIdAsync(id, cancellationToken);
+        var medicament = await medicationService.GetByIdAsync(id, cancellationToken);
         if (medicament is null)
         {
             return NotFound();
         }
-        await medicamentService.DeleteAsync(medicament, cancellationToken);
+        await medicationService.DeleteAsync(medicament, cancellationToken);
         return NoContent();
     }
 
     [HttpGet("{id:int}/inventories")]
     public async Task<ActionResult> GetMedicamentInventories([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.GetMedicamentInventories(id, cancellationToken));
+        return Ok(await medicationService.GetMedicamentInventories(id, cancellationToken));
     }
 
     [HttpPost("{id:int}/inventories")]
     public async Task<ActionResult> CreateMedicamentInventory([FromRoute] int id, [FromBody] InventoryCreateDto request, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.CreateMedicamentInventory(id, request, cancellationToken));
+        return Ok(await medicationService.CreateMedicamentInventory(id, request, cancellationToken));
     }
 
     [HttpDelete("{id:int}/inventories/{inventoryId:int}")]
     public async Task<ActionResult> DeleteMedicamentInventory(int id, [FromRoute] int inventoryId, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.DeleteMedicamentInventory(inventoryId, cancellationToken));
+        return Ok(await medicationService.DeleteMedicamentInventory(inventoryId, cancellationToken));
     }
 
     [HttpPut("{id:int}/inventories/{inventoryId:int}")]
     public async Task<ActionResult> UpdateMedicamentInventory(int id, [FromRoute] int inventoryId, [FromBody] InventoryUpdateDto request, CancellationToken cancellationToken)
     {
-        return Ok(await medicamentService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
+        return Ok(await medicationService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
     }
 }

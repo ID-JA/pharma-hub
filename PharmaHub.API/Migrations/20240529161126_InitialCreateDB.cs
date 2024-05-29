@@ -1,15 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace PharmaHub.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateSequence<int>(
+                name: "SaleNumbers",
+                startValue: 100L);
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -33,7 +38,7 @@ namespace PharmaHub.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CNI = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cni = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(1)", nullable: false),
                     Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -58,47 +63,19 @@ namespace PharmaHub.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DCIs",
+                name: "Families",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DCIs", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Drugs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DCI = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Form = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PPV = table.Column<double>(type: "float", nullable: false),
-                    PPH = table.Column<double>(type: "float", nullable: false),
-                    TVA = table.Column<double>(type: "float", nullable: false),
-                    Discount = table.Column<float>(type: "real", nullable: false),
-                    PBR = table.Column<double>(type: "float", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Marge = table.Column<int>(type: "int", nullable: false),
-                    Codebar = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Familly = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UsedBy = table.Column<int>(type: "int", nullable: false),
-                    WithPrescription = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Drugs", x => x.Id);
+                    table.PrimaryKey("PK_Families", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,13 +85,83 @@ namespace PharmaHub.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Forms", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MedicationNames",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MedicationNames", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Medications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Dosage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Barcode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Dci = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Form = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Family = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Laboratory = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PfhtNotActive = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    PfhtActive = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Pamp = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Pbr = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Tva = table.Column<double>(type: "float", nullable: false),
+                    Marge = table.Column<double>(type: "float", nullable: false),
+                    DiscountRate = table.Column<double>(type: "float", nullable: false),
+                    ReimbursementRate = table.Column<double>(type: "float", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OrderSystem = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MinQuantity = table.Column<int>(type: "int", nullable: false),
+                    MaxQuantity = table.Column<int>(type: "int", nullable: false),
+                    UsedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WithPrescription = table.Column<bool>(type: "bit", nullable: false),
+                    Section = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Medications", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Sections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sections", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,6 +179,26 @@ namespace PharmaHub.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Suppliers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Taxes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Marge = table.Column<float>(type: "real", nullable: false),
+                    Tva = table.Column<float>(type: "real", nullable: false),
+                    TaxNature = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SalesDiscountRate = table.Column<float>(type: "real", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Taxes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -270,10 +337,10 @@ namespace PharmaHub.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TotalQuantity = table.Column<int>(type: "int", nullable: false),
-                    TotalPrice = table.Column<int>(type: "int", nullable: false),
+                    TotalPrice = table.Column<double>(type: "float", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Discount = table.Column<float>(type: "real", nullable: false),
-                    SaleNumber = table.Column<int>(type: "int", nullable: false),
+                    SaleNumber = table.Column<int>(type: "int", nullable: false, defaultValueSql: "NEXT VALUE FOR SaleNumbers"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -290,54 +357,26 @@ namespace PharmaHub.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DeliveryNotes",
+                name: "Inventories",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TotalPrice = table.Column<float>(type: "real", nullable: false),
-                    BillId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DeliveryNotes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DeliveryNotes_Bills_BillId",
-                        column: x => x.BillId,
-                        principalTable: "Bills",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SaleDrugs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MedicationId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    PPV = table.Column<double>(type: "float", nullable: false),
-                    Discount = table.Column<float>(type: "real", nullable: false),
-                    SaleId = table.Column<int>(type: "int", nullable: false),
-                    DrugId = table.Column<int>(type: "int", nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Ppv = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Pph = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SaleDrugs", x => x.Id);
+                    table.PrimaryKey("PK_Inventories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SaleDrugs_Drugs_DrugId",
-                        column: x => x.DrugId,
-                        principalTable: "Drugs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SaleDrugs_Sales_SaleId",
-                        column: x => x.SaleId,
-                        principalTable: "Sales",
+                        name: "FK_Inventories_Medications_MedicationId",
+                        column: x => x.MedicationId,
+                        principalTable: "Medications",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -348,11 +387,12 @@ namespace PharmaHub.API.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalQuantity = table.Column<int>(type: "int", nullable: false),
+                    OrderNumber = table.Column<int>(type: "int", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     SupplierId = table.Column<int>(type: "int", nullable: true),
-                    DeliveryNoteId = table.Column<int>(type: "int", nullable: true),
+                    BillId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -366,9 +406,9 @@ namespace PharmaHub.API.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Orders_DeliveryNotes_DeliveryNoteId",
-                        column: x => x.DeliveryNoteId,
-                        principalTable: "DeliveryNotes",
+                        name: "FK_Orders_Bills_BillId",
+                        column: x => x.BillId,
+                        principalTable: "Bills",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Orders_Suppliers_SupplierId",
@@ -378,13 +418,46 @@ namespace PharmaHub.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StockHistories",
+                name: "SaleMedications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Ppv = table.Column<double>(type: "float", nullable: false),
+                    TotalPrice = table.Column<double>(type: "float", nullable: false),
+                    Tva = table.Column<float>(type: "real", nullable: false),
+                    Discount = table.Column<float>(type: "real", nullable: false),
+                    SaleId = table.Column<int>(type: "int", nullable: false),
+                    InventoryId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaleMedications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SaleMedications_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SaleMedications_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InventoryHistories",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QuantityChanged = table.Column<int>(type: "int", nullable: false),
-                    DrugId = table.Column<int>(type: "int", nullable: false),
+                    InventoryId = table.Column<int>(type: "int", nullable: false),
                     SaleId = table.Column<int>(type: "int", nullable: true),
                     OrderId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -392,23 +465,50 @@ namespace PharmaHub.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StockHistories", x => x.Id);
+                    table.PrimaryKey("PK_InventoryHistories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StockHistories_Drugs_DrugId",
-                        column: x => x.DrugId,
-                        principalTable: "Drugs",
+                        name: "FK_InventoryHistories_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_StockHistories_Orders_OrderId",
+                        name: "FK_InventoryHistories_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_StockHistories_Sales_SaleId",
+                        name: "FK_InventoryHistories_Sales_SaleId",
                         column: x => x.SaleId,
                         principalTable: "Sales",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderMedications",
+                columns: table => new
+                {
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    InventoryId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Ppv = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false),
+                    Pph = table.Column<decimal>(type: "decimal(10,2)", precision: 10, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderMedications", x => new { x.OrderId, x.InventoryId });
+                    table.ForeignKey(
+                        name: "FK_OrderMedications_Inventories_InventoryId",
+                        column: x => x.InventoryId,
+                        principalTable: "Inventories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrderMedications_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -456,14 +556,34 @@ namespace PharmaHub.API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeliveryNotes_BillId",
-                table: "DeliveryNotes",
-                column: "BillId");
+                name: "IX_Inventories_MedicationId",
+                table: "Inventories",
+                column: "MedicationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_DeliveryNoteId",
+                name: "IX_InventoryHistories_InventoryId",
+                table: "InventoryHistories",
+                column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryHistories_OrderId",
+                table: "InventoryHistories",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryHistories_SaleId",
+                table: "InventoryHistories",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderMedications_InventoryId",
+                table: "OrderMedications",
+                column: "InventoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_BillId",
                 table: "Orders",
-                column: "DeliveryNoteId");
+                column: "BillId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_SupplierId",
@@ -476,34 +596,19 @@ namespace PharmaHub.API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaleDrugs_DrugId",
-                table: "SaleDrugs",
-                column: "DrugId");
+                name: "IX_SaleMedications_InventoryId",
+                table: "SaleMedications",
+                column: "InventoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SaleDrugs_SaleId",
-                table: "SaleDrugs",
+                name: "IX_SaleMedications_SaleId",
+                table: "SaleMedications",
                 column: "SaleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sales_UserId",
                 table: "Sales",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StockHistories_DrugId",
-                table: "StockHistories",
-                column: "DrugId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StockHistories_OrderId",
-                table: "StockHistories",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StockHistories_SaleId",
-                table: "StockHistories",
-                column: "SaleId");
         }
 
         /// <inheritdoc />
@@ -525,40 +630,55 @@ namespace PharmaHub.API.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DCIs");
+                name: "Families");
 
             migrationBuilder.DropTable(
                 name: "Forms");
 
             migrationBuilder.DropTable(
-                name: "SaleDrugs");
+                name: "InventoryHistories");
 
             migrationBuilder.DropTable(
-                name: "StockHistories");
+                name: "MedicationNames");
+
+            migrationBuilder.DropTable(
+                name: "OrderMedications");
+
+            migrationBuilder.DropTable(
+                name: "SaleMedications");
+
+            migrationBuilder.DropTable(
+                name: "Sections");
+
+            migrationBuilder.DropTable(
+                name: "Taxes");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Drugs");
+                name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "Inventories");
 
             migrationBuilder.DropTable(
                 name: "Sales");
 
             migrationBuilder.DropTable(
-                name: "DeliveryNotes");
+                name: "Bills");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
 
             migrationBuilder.DropTable(
-                name: "Bills");
+                name: "Medications");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropSequence(
+                name: "SaleNumbers");
         }
     }
 }

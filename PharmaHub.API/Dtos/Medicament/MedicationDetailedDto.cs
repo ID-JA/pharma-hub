@@ -3,7 +3,7 @@ using PharmaHub.API.Dtos.StockHistory;
 
 namespace PharmaHub.API.Dtos.Medicament;
 
-public class MedicationDetailedDto : BaseDto<MedicationBasicDto, Models.Medicament>
+public class MedicationDetailedDto : BaseDto<MedicationBasicDto, Models.Medication>
 {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -30,5 +30,5 @@ public class MedicationDetailedDto : BaseDto<MedicationBasicDto, Models.Medicame
     public bool WithPrescription { get; set; }
     public string? Section { get; set; }
     public List<InventoryBasicDto> Inventories { get; set; }
-    public List<StockHistoryBasicDto> StockHistories { get; set; }
+    public List<StockHistoryBasicDto> InventoryHistories { get; set; }
 }

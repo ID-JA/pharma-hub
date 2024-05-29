@@ -3,64 +3,64 @@ using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
-public interface IDCIService
+public interface IDciService
 {
-  Task<bool> CreateDCIAsync(DCIDto request, CancellationToken cancellationToken = default);
-  Task<DCIDto?> GetDCIAsync(int id, CancellationToken cancellationToken = default);
-  Task<bool> DeleteDCI(int id, CancellationToken cancellationToken = default);
-  Task<bool> UpdateDCI(int id, DCIDto request, CancellationToken cancellationToken = default);
-  Task<PaginatedResponse<DCI>> GetDCIs(string name, CancellationToken cancellationToken);
+  Task<bool> CreateDciAsync(DciDto request, CancellationToken cancellationToken = default);
+  Task<DciDto?> GetDciAsync(int id, CancellationToken cancellationToken = default);
+  Task<bool> DeleteDci(int id, CancellationToken cancellationToken = default);
+  Task<bool> UpdateDci(int id, DciDto request, CancellationToken cancellationToken = default);
+  Task<PaginatedResponse<Dci>> GetDcIs(string name, CancellationToken cancellationToken);
 
 }
-public class DCIService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IDCIService
+public class DciService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IDciService
 {
-  public async Task<DCIDto?> GetDCIAsync(int id, CancellationToken cancellationToken = default) => await dbContext.DCIs.Where(o => o.Id == id).ProjectToType<DCIDto>().FirstOrDefaultAsync(cancellationToken);
-  public async Task<bool> CreateDCIAsync(DCIDto request, CancellationToken cancellationToken = default)
+  public async Task<DciDto?> GetDciAsync(int id, CancellationToken cancellationToken = default) => await dbContext.MedicationNames.Where(o => o.Id == id).ProjectToType<DciDto>().FirstOrDefaultAsync(cancellationToken);
+  public async Task<bool> CreateDciAsync(DciDto request, CancellationToken cancellationToken = default)
   {
-    DCI dCI = new()
+    Dci dCi = new()
     {
       Name = request.Name,
       Description = request.Description
     };
 
-    dbContext.DCIs.Add(dCI);
+    dbContext.MedicationNames.Add(dCi);
 
 
     await dbContext.SaveChangesAsync(cancellationToken);
     return true;
   }
-  public async Task<bool> DeleteDCI(int id, CancellationToken cancellationToken = default)
+  public async Task<bool> DeleteDci(int id, CancellationToken cancellationToken = default)
   {
-    var dCI = await dbContext.DCIs.FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
+    var dCi = await dbContext.MedicationNames.FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
 
-    if (dCI is not null)
+    if (dCi is not null)
     {
-      dbContext.DCIs.Remove(dCI);
+      dbContext.MedicationNames.Remove(dCi);
       await dbContext.SaveChangesAsync(cancellationToken);
       return true;
     }
     return false;
   }
 
-  public async Task<bool> UpdateDCI(int id, DCIDto request, CancellationToken cancellationToken = default)
+  public async Task<bool> UpdateDci(int id, DciDto request, CancellationToken cancellationToken = default)
   {
-    var dCI = await dbContext.DCIs.FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
+    var dCi = await dbContext.MedicationNames.FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
 
-    if (dCI is not null)
+    if (dCi is not null)
     {
-      dCI.Name = request.Name;
-      dCI.Description = request.Description;
+      dCi.Name = request.Name;
+      dCi.Description = request.Description;
 
-      dbContext.DCIs.Update(dCI);
+      dbContext.MedicationNames.Update(dCi);
       await dbContext.SaveChangesAsync(cancellationToken);
       return true;
     }
     return false;
   }
 
-  public async Task<PaginatedResponse<DCI>> GetDCIs(string? name, CancellationToken cancellationToken)
+  public async Task<PaginatedResponse<Dci>> GetDcIs(string? name, CancellationToken cancellationToken)
   {
-    var query = dbContext.DCIs.AsNoTracking();
+    var query = dbContext.MedicationNames.AsNoTracking();
 
     if (string.IsNullOrWhiteSpace(name))
     {

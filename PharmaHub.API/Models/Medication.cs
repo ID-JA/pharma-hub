@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace PharmaHub.API.Models;
@@ -9,7 +8,7 @@ namespace PharmaHub.API.Models;
 /// <remarks>
 /// Also known as the Medication's stock.
 /// </remarks>
-public class Medicament : BaseModel
+public class Medication : BaseModel
 {
     /// <summary>
     /// The name of the medicament
@@ -26,7 +25,7 @@ public class Medicament : BaseModel
     /// <summary>
     ///  Dénomination commune internationale
     /// </summary>
-    public List<string> DCI { get; set; }
+    public List<string> Dci { get; set; }
     public string Form { get; set; }
     public string Family { get; set; }
 
@@ -37,18 +36,18 @@ public class Medicament : BaseModel
     public string? Laboratory { get; set; }
 
     [Precision(10, 2)]
-    public decimal PFHTNotActive { get; set; }
+    public decimal PfhtNotActive { get; set; }
 
     [Precision(10, 2)]
-    public decimal PFHTActive { get; set; }
+    public decimal PfhtActive { get; set; }
 
     [Precision(10, 2)]
-    public decimal PAMP { get; set; }
+    public decimal Pamp { get; set; }
 
     [Precision(10, 2)]
-    public decimal PBR { get; set; }
+    public decimal Pbr { get; set; }
 
-    public double TVA { get; set; }
+    public double Tva { get; set; }
 
     public double Marge { get; set; }
     public double DiscountRate { get; set; }
@@ -72,21 +71,5 @@ public class Medicament : BaseModel
 
     public string? Section { get; set; }
 
-    public List<Inventory> Inventories { get; set; }
-    public List<StockHistory> StockHistories { get; set; }
-    public List<SaleMedicament> SaleMedicaments { get; set; }
-    public List<OrderMedicament> OrderMedicaments { get; set; } = [];
-}
-
-
-public enum UsedBy
-{
-    [Description("Infant")]
-    Infant,
-
-    [Description("Child")]
-    Child,
-
-    [Description("Adult")]
-    Adult
+    public List<Inventory> Inventories { get; set; } = [];
 }

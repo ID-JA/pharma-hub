@@ -9,5 +9,5 @@ public class OrderUpdateDto : BaseDto<OrderUpdateDto , Models.Order>
     public int? UserId { get; set; }
     public int? SupplierId { get; set; }
     public int? BillId { get; set; }
-    public List<OrderMedicamentUpdateDto> OrderMedicaments { get; set; }
+    public List<OrderMedicationUpdateDto> OrderMedicaments { get; set; }
 }
