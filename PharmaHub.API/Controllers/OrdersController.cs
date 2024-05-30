@@ -17,9 +17,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
 
     [HttpGet]
     [MustHavePermission(AppAction.View, AppResource.Orders)]
-    public async Task<ActionResult> GetOrders(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetOrders(CancellationToken cancellationToken, [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] int supplier, [FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        return Ok(await orderService.GetOrdersAsync(cancellationToken));
+        return Ok(await orderService.GetOrdersAsync(from, to, supplier, pageNumber, pageSize, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
