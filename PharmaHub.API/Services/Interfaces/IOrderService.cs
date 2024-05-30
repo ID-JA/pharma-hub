@@ -7,7 +7,7 @@ namespace PharmaHub.API.Services.Interfaces;
 
 public interface IOrderService
 {
-    Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageSize, int pageNumber, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<OrderBasicDto?> GetOrderAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> CreateOrderAsync(OrderCreateDto request, CancellationToken cancellationToken = default);
     Task<bool> UpdateOrder(int id, OrderUpdateDto request, CancellationToken cancellationToken = default);
@@ -19,7 +19,7 @@ public class OrderService(ApplicationDbContext dbContext, ICurrentUser currentUs
 {
     public async Task<OrderBasicDto?> GetOrderAsync(int id, CancellationToken cancellationToken = default) => await dbContext.Orders.Where(o => o.Id == id).ProjectToType<OrderBasicDto>().FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageSize, int pageNumber, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         if (supplier != 0)
         {
