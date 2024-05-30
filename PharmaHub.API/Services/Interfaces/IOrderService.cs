@@ -1,12 +1,13 @@
 ﻿using Mapster;
 using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Common.Models;
 using PharmaHub.API.Dtos.Order;
 
 namespace PharmaHub.API.Services.Interfaces;
 
 public interface IOrderService
 {
-    Task<List<OrderDetailedDto>> GetOrdersAsync(CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<OrderBasicDto?> GetOrderAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> CreateOrderAsync(OrderCreateDto request, CancellationToken cancellationToken = default);
     Task<bool> UpdateOrder(int id, OrderUpdateDto request, CancellationToken cancellationToken = default);
@@ -18,7 +19,19 @@ public class OrderService(ApplicationDbContext dbContext, ICurrentUser currentUs
 {
     public async Task<OrderBasicDto?> GetOrderAsync(int id, CancellationToken cancellationToken = default) => await dbContext.Orders.Where(o => o.Id == id).Include(o => o.OrderMedications).ProjectToType<OrderBasicDto>().FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<List<OrderDetailedDto>> GetOrdersAsync(CancellationToken cancellationToken = default) => await dbContext.Orders.Include(o => o.OrderMedications).ProjectToType<OrderDetailedDto>().ToListAsync(cancellationToken);
+    public async Task<PaginatedResponse<OrderBasicDto>> GetOrdersAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        if (supplier != 0)
+        {
+            return await dbContext.Orders.Where(o => o.OrderDate >= from && o.OrderDate <= to && o.SupplierId == supplier).OrderBy(o => o.OrderDate)
+                    .Include(o => o.OrderMedications).ProjectToType<OrderBasicDto>().PaginatedListAsync(pageNumber, pageSize);
+        }
+        else
+        {
+            return await dbContext.Orders.Where(o => o.OrderDate >= from && o.OrderDate <= to).OrderBy(o => o.OrderDate)
+                   .Include(o => o.OrderMedications).ProjectToType<OrderBasicDto>().PaginatedListAsync(pageNumber, pageSize);
+        }
+    }
 
     public async Task<bool> CreateOrderAsync(OrderCreateDto request, CancellationToken cancellationToken = default)
     {
