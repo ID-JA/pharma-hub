@@ -70,7 +70,9 @@ const DEFAULT_VALUE = {
 function CreateEditMedicamentPage() {
   const navigate = useNavigate()
   const searchParams = Route.useSearch()
-  const { data: medicamentDetail } = useQuery(medicamentQueryOptions(searchParams.medicamentId))
+  const { data: medicamentDetail } = useQuery(
+    medicamentQueryOptions(searchParams.medicamentId)
+  )
   const { mutate: createMedicament } = useCreateMedicament()
   const { mutate: updateMedicament } = useUpdateMedicament()
 
@@ -126,7 +128,10 @@ function CreateEditMedicamentPage() {
             </Group>
             <Group grow align="start">
               <NumberInput label="TVA" {...form.getInputProps('tva')} />
-              <NumberInput label="Discount" {...form.getInputProps('discount')} />
+              <NumberInput
+                label="Discount"
+                {...form.getInputProps('discount')}
+              />
               <NumberInput label="Marge" {...form.getInputProps('marge')} />
             </Group>
           </Fieldset>

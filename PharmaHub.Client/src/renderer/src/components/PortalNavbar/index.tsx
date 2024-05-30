@@ -50,7 +50,11 @@ export function PortalNavbar() {
           </Box>
         </Link>
 
-        <a href="#" className={classes.control} onClick={(event) => event.preventDefault()}>
+        <a
+          href="#"
+          className={classes.control}
+          onClick={(event) => event.preventDefault()}
+        >
           <IconLogout className={classes.linkIcon} stroke={1.5} />
           <span>Logout</span>
         </a>

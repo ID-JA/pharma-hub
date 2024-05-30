@@ -4,81 +4,93 @@ import { useNavigate } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
 import { forwardRef } from 'react'
 
-const MedicamentCard = forwardRef<HTMLDivElement, any>(({ medicament, handleAddItem }, ref) => {
-  const navigate = useNavigate()
+const MedicamentCard = forwardRef<HTMLDivElement, any>(
+  ({ medicament, handleAddItem }, ref) => {
+    const navigate = useNavigate()
 
-  return (
-    <Paper key={medicament.id} ref={ref} px="xs" py="xs" withBorder mb="sm">
-      <Group justify="space-between" align="center">
-        <Group grow flex={1} align="center">
-          <Group>
-            <Text fw="bold" size="sm">
-              CC
-            </Text>
-            <Text fw="bold" size="sm">
-              {medicament.name}
-            </Text>
+    return (
+      <Paper key={medicament.id} ref={ref} px="xs" py="xs" withBorder mb="sm">
+        <Group justify="space-between" align="center">
+          <Group grow flex={1} align="center">
+            <Group>
+              <Text fw="bold" size="sm">
+                CC
+              </Text>
+              <Text fw="bold" size="sm">
+                {medicament.name}
+              </Text>
+            </Group>
+            <Text fw="bold">$ {medicament.ppv}</Text>
+            <Text fw="bold">{medicament.quantity}</Text>
+            <div>
+              <Badge
+                variant="outline"
+                color={
+                  medicament.status.toUpperCase() === 'OUT OF STOCK'
+                    ? 'red'
+                    : 'green'
+                }
+              >
+                {medicament.status}
+              </Badge>
+            </div>
           </Group>
-          <Text fw="bold">$ {medicament.ppv}</Text>
-          <Text fw="bold">{medicament.quantity}</Text>
-          <div>
-            <Badge
-              variant="outline"
-              color={medicament.status.toUpperCase() === 'OUT OF STOCK' ? 'red' : 'green'}
-            >
-              {medicament.status}
-            </Badge>
-          </div>
-        </Group>
 
-        <Group>
-          {handleAddItem && (
+          <Group>
+            {handleAddItem && (
+              <ActionIcon
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  handleAddItem(medicament)
+                }}
+              >
+                <IconPlus
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            )}
+            {!handleAddItem && (
+              <ActionIcon
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigate({
+                    search: (old) => {
+                      return {
+                        ...old,
+                        medicamentId: medicament.id
+                      }
+                    },
+                    to: '/medicaments',
+                    replace: true
+                  })
+                }}
+              >
+                <IconPencil
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                />
+              </ActionIcon>
+            )}{' '}
             <ActionIcon
+              component={Link}
               variant="outline"
               size="sm"
-              onClick={() => {
-                handleAddItem(medicament)
+              to="/medicaments/$medicamentId"
+              preload="intent"
+              params={{
+                medicamentId: medicament.id
               }}
             >
-              <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.5} />
+              <IconEye style={{ width: '70%', height: '70%' }} stroke={1.5} />
             </ActionIcon>
-          )}
-          {!handleAddItem && (
-            <ActionIcon
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigate({
-                  search: (old) => {
-                    return {
-                      ...old,
-                      medicamentId: medicament.id
-                    }
-                  },
-                  to: '/medicaments',
-                  replace: true
-                })
-              }}
-            >
-              <IconPencil style={{ width: '70%', height: '70%' }} stroke={1.5} />
-            </ActionIcon>
-          )}{' '}
-          <ActionIcon
-            component={Link}
-            variant="outline"
-            size="sm"
-            to="/medicaments/$medicamentId"
-            preload="intent"
-            params={{
-              medicamentId: medicament.id
-            }}
-          >
-            <IconEye style={{ width: '70%', height: '70%' }} stroke={1.5} />
-          </ActionIcon>
+          </Group>
         </Group>
-      </Group>
-    </Paper>
-  )
-})
+      </Paper>
+    )
+  }
+)
 
 export default MedicamentCard

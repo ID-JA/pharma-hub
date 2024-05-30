@@ -2,7 +2,11 @@ import { Container, Tabs } from '@mantine/core'
 import classes from './TabsHeader.module.css'
 import { Link, useRouter } from '@tanstack/react-router'
 
-export function TabsHeader({ links }: { links: { to: string; label: string; exact?: boolean }[] }) {
+export function TabsHeader({
+  links
+}: {
+  links: { to: string; label: string; exact?: boolean }[]
+}) {
   const router = useRouter()
 
   const items = links.map(({ to, label, exact }) => {

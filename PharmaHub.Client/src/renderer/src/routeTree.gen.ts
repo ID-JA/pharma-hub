@@ -34,95 +34,95 @@ import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_p
 
 const PortalRoute = PortalImport.update({
   id: '/_portal',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const IndexRoute = IndexImport.update({
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRoute
 } as any)
 
 const PortalSettingsRoute = PortalSettingsImport.update({
   path: '/settings',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalSalesRoute = PortalSalesImport.update({
   path: '/sales',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalMedicamentsRoute = PortalMedicamentsImport.update({
   path: '/medicaments',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalDashboardRoute = PortalDashboardImport.update({
   path: '/dashboard',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalSettingsIndexRoute = PortalSettingsIndexImport.update({
   path: '/',
-  getParentRoute: () => PortalSettingsRoute,
+  getParentRoute: () => PortalSettingsRoute
 } as any)
 
 const PortalMedicamentsIndexRoute = PortalMedicamentsIndexImport.update({
   path: '/',
-  getParentRoute: () => PortalMedicamentsRoute,
+  getParentRoute: () => PortalMedicamentsRoute
 } as any)
 
 const PortalSettingsUsersRoute = PortalSettingsUsersImport.update({
   path: '/users',
-  getParentRoute: () => PortalSettingsRoute,
+  getParentRoute: () => PortalSettingsRoute
 } as any)
 
 const PortalSalesNewRoute = PortalSalesNewImport.update({
   path: '/sales/new',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalSalesSaleIdRoute = PortalSalesSaleIdImport.update({
   path: '/$saleId',
-  getParentRoute: () => PortalSalesRoute,
+  getParentRoute: () => PortalSalesRoute
 } as any)
 
 const PortalOrdersNewRoute = PortalOrdersNewImport.update({
   path: '/orders/new',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalOrdersConsultationRoute = PortalOrdersConsultationImport.update({
   path: '/orders/consultation',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalMedicamentsFormsRoute = PortalMedicamentsFormsImport.update({
   path: '/medicaments/forms',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalMedicamentsDciRoute = PortalMedicamentsDciImport.update({
   path: '/medicaments/dci',
-  getParentRoute: () => PortalRoute,
+  getParentRoute: () => PortalRoute
 } as any)
 
 const PortalMedicamentsConsultationRoute =
   PortalMedicamentsConsultationImport.update({
     path: '/medicaments/consultation',
-    getParentRoute: () => PortalRoute,
+    getParentRoute: () => PortalRoute
   } as any)
 
 const PortalMedicamentsMedicamentIdRoute =
   PortalMedicamentsMedicamentIdImport.update({
     path: '/$medicamentId',
-    getParentRoute: () => PortalMedicamentsRoute,
+    getParentRoute: () => PortalMedicamentsRoute
   } as any)
 
 const PortalMedicamentsMedicamentIdHistoryRoute =
   PortalMedicamentsMedicamentIdHistoryImport.update({
     path: '/history',
-    getParentRoute: () => PortalMedicamentsMedicamentIdRoute,
+    getParentRoute: () => PortalMedicamentsMedicamentIdRoute
   } as any)
 
 // Populate the FileRoutesByPath interface
@@ -267,22 +267,22 @@ export const routeTree = rootRoute.addChildren({
     PortalMedicamentsRoute: PortalMedicamentsRoute.addChildren({
       PortalMedicamentsMedicamentIdRoute:
         PortalMedicamentsMedicamentIdRoute.addChildren({
-          PortalMedicamentsMedicamentIdHistoryRoute,
+          PortalMedicamentsMedicamentIdHistoryRoute
         }),
-      PortalMedicamentsIndexRoute,
+      PortalMedicamentsIndexRoute
     }),
     PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
     PortalSettingsRoute: PortalSettingsRoute.addChildren({
       PortalSettingsUsersRoute,
-      PortalSettingsIndexRoute,
+      PortalSettingsIndexRoute
     }),
     PortalMedicamentsConsultationRoute,
     PortalMedicamentsDciRoute,
     PortalMedicamentsFormsRoute,
     PortalOrdersConsultationRoute,
     PortalOrdersNewRoute,
-    PortalSalesNewRoute,
-  }),
+    PortalSalesNewRoute
+  })
 })
 
 /* prettier-ignore-end */

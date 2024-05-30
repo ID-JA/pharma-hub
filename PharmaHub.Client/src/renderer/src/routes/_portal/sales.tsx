@@ -66,7 +66,14 @@ function SaleData() {
 
             {data?.map(function (item) {
               return (
-                <Paper withBorder component={Group} p="md" mb="md" grow key={item.id}>
+                <Paper
+                  withBorder
+                  component={Group}
+                  p="md"
+                  mb="md"
+                  grow
+                  key={item.id}
+                >
                   <Text ta="center">{item.id}</Text>
                   <Text ta="center">{item.totalQuantity}</Text>
                   <Text ta="center">{item.totalPrice}</Text>
@@ -78,7 +85,10 @@ function SaleData() {
                         saleId: item.id
                       }}
                     >
-                      <IconEye stroke={1.2} style={{ width: '70%', height: '70%' }} />
+                      <IconEye
+                        stroke={1.2}
+                        style={{ width: '70%', height: '70%' }}
+                      />
                     </ActionIcon>
                   </Group>
                 </Paper>

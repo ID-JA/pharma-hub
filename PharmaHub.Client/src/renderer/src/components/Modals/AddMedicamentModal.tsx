@@ -12,7 +12,10 @@ import {
 import { useForm } from '@mantine/form'
 import { DatePickerInput } from '@mantine/dates'
 
-import { useCreateMedicament, useTaxesQuery } from '@renderer/services/medicaments.service'
+import {
+  useCreateMedicament,
+  useTaxesQuery
+} from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
@@ -97,14 +100,24 @@ export function AddMedicamentForm({ setOpened }) {
               searchUrl="/api/forms"
               queryKey="fromSearch"
               queryParamName="query"
-              dataMapper={(item) => ({ value: item.id.toString(), label: item.name })}
+              dataMapper={(item) => ({
+                value: item.id.toString(),
+                label: item.name
+              })}
               error={form.getInputProps('form').error}
             />
             <TextInput label="Name" {...form.getInputProps('name')} />
-            <DatePickerInput label="Expiration Date" {...form.getInputProps('expirationDate')} />
+            <DatePickerInput
+              label="Expiration Date"
+              {...form.getInputProps('expirationDate')}
+            />
           </Stack>
           <Stack>
-            <Textarea label="Dosage" rows={8} {...form.getInputProps('dosage')} />
+            <Textarea
+              label="Dosage"
+              rows={8}
+              {...form.getInputProps('dosage')}
+            />
           </Stack>
         </Group>
         <Group grow>
@@ -120,11 +133,17 @@ export function AddMedicamentForm({ setOpened }) {
             searchUrl="/api/families"
             queryKey="familySearch"
             queryParamName="query"
-            dataMapper={(item) => ({ value: item.id.toString(), label: item.name })}
+            dataMapper={(item) => ({
+              value: item.id.toString(),
+              label: item.name
+            })}
             error={form.getInputProps('family').error}
           />
         </Group>
-        <Checkbox.Group label="Used by" {...form.getInputProps('usedBy', { type: 'checkbox' })}>
+        <Checkbox.Group
+          label="Used by"
+          {...form.getInputProps('usedBy', { type: 'checkbox' })}
+        >
           <Group grow>
             <Checkbox mt="md" label="Adult" value="adult" />
             <Checkbox mt="md" label="Child" value="child" />
@@ -132,18 +151,34 @@ export function AddMedicamentForm({ setOpened }) {
           </Group>
         </Checkbox.Group>
         <Group grow>
-          <Select label="Order System" data={['Manual']} {...form.getInputProps('orderSystem')} />
+          <Select
+            label="Order System"
+            data={['Manual']}
+            {...form.getInputProps('orderSystem')}
+          />
           <Select
             label="Laboratory"
             data={['ABC Laboratory']}
             {...form.getInputProps('laboratory')}
           />
-          <Select label="Section" data={['Fridge']} {...form.getInputProps('section')} />
+          <Select
+            label="Section"
+            data={['Fridge']}
+            {...form.getInputProps('section')}
+          />
         </Group>
         <Group grow>
           <NumberInput label="TVA(%)" readOnly value={form.getValues().tva} />
-          <NumberInput label="Marge(%)" readOnly value={form.getValues().marge} />
-          <NumberInput label="Discount(%)" readOnly value={form.getValues().discount} />
+          <NumberInput
+            label="Marge(%)"
+            readOnly
+            value={form.getValues().marge}
+          />
+          <NumberInput
+            label="Discount(%)"
+            readOnly
+            value={form.getValues().discount}
+          />
         </Group>
         <Group grow align="start" mb="sm">
           <NumberInput
@@ -152,7 +187,10 @@ export function AddMedicamentForm({ setOpened }) {
             min={0}
             onChange={(value) => {
               form.setFieldValue('ppv', value as number)
-              form.setFieldValue('pph', calculatePPH(value as number, form.getValues().marge))
+              form.setFieldValue(
+                'pph',
+                calculatePPH(value as number, form.getValues().marge)
+              )
             }}
           />
           <NumberInput label="PBR" {...form.getInputProps('pbr')} min={0} />
@@ -189,7 +227,12 @@ export const useAddMedicamentModal = () => {
   const [opened, setOpened] = useState(false)
   const AddMedicamentModalCallback = useCallback(() => {
     return (
-      <Modal size="xl" onClose={() => setOpened(false)} opened={opened} title="Add New Medicament">
+      <Modal
+        size="xl"
+        onClose={() => setOpened(false)}
+        opened={opened}
+        title="Add New Medicament"
+      >
         <AddMedicamentForm setOpened={setOpened} />
       </Modal>
     )

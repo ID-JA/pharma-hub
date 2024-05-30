@@ -66,7 +66,8 @@ export const Route = createFileRoute('/_portal/settings/users')({
     } = useGetUsers()
 
     //call DELETE hook
-    const { mutateAsync: deleteUser, isPending: isDeletingUser } = useDeleteUser()
+    const { mutateAsync: deleteUser, isPending: isDeletingUser } =
+      useDeleteUser()
 
     // Show delete confirm modal handler
     const openDeleteConfirmModal = (row: MRT_Row<User>) =>
@@ -74,8 +75,8 @@ export const Route = createFileRoute('/_portal/settings/users')({
         title: 'Are you sure you want to delete this user?',
         children: (
           <Text>
-            Are you sure you want to delete {row.original.firstName} {row.original.lastName}? This
-            action cannot be undone.
+            Are you sure you want to delete {row.original.firstName}{' '}
+            {row.original.lastName}? This action cannot be undone.
           </Text>
         ),
         labels: { confirm: 'Delete', cancel: 'Cancel' },
@@ -101,9 +102,10 @@ export const Route = createFileRoute('/_portal/settings/users')({
       },
 
       renderRowActions: ({ row }) => {
-        const { setShowAddEditUserModal, AddEditUserModal } = useAddEditUserModal({
-          props: row.original
-        })
+        const { setShowAddEditUserModal, AddEditUserModal } =
+          useAddEditUserModal({
+            props: row.original
+          })
         return (
           <>
             <AddEditUserModal />
@@ -115,7 +117,10 @@ export const Route = createFileRoute('/_portal/settings/users')({
                 }}
               >
                 <ActionIcon variant="filled" aria-label="Delete" size="sm">
-                  <IconEdit style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                  <IconEdit
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Delete">
@@ -126,7 +131,10 @@ export const Route = createFileRoute('/_portal/settings/users')({
                   color="red"
                   onClick={() => openDeleteConfirmModal(row)}
                 >
-                  <IconTrash style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                  <IconTrash
+                    style={{ width: '70%', height: '70%' }}
+                    stroke={1.5}
+                  />
                 </ActionIcon>
               </Tooltip>
             </Flex>

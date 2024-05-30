@@ -111,7 +111,11 @@ export function NewDeliveryPage() {
     setDeliveryItems((prev) => [...prev, item])
   }
 
-  const [totals, setTotals] = useState<any>({ totalPpv: 0, totalPphBrut: 0, totalProducts: 0 })
+  const [totals, setTotals] = useState<any>({
+    totalPpv: 0,
+    totalPphBrut: 0,
+    totalProducts: 0
+  })
   const { mutateAsync } = useMutation({
     mutationFn: async (data: Order) => {
       return (await http.post('/api/orders', data)).data
@@ -145,14 +149,22 @@ export function NewDeliveryPage() {
               modals.openConfirmModal({
                 centered: true,
                 title: 'Please confirm your action',
-                children: <Text size="sm">Are you sure you want to validate this delivery?</Text>,
+                children: (
+                  <Text size="sm">
+                    Are you sure you want to validate this delivery?
+                  </Text>
+                ),
                 labels: { confirm: 'Validate Delivery', cancel: 'Cancel' },
                 onConfirm: async () => {
                   await mutateAsync(values, {
                     onSuccess: () => {
                       form.reset()
                       setDeliveryItems([])
-                      setTotals({ totalPpv: 0, totalPphBrut: 0, totalProducts: 0 })
+                      setTotals({
+                        totalPpv: 0,
+                        totalPphBrut: 0,
+                        totalProducts: 0
+                      })
                     }
                   })
                 }
@@ -229,7 +241,12 @@ export function NewDeliveryPage() {
               </Table>
             </ScrollArea>
             <Group grow mb="md">
-              <NumberInput hideControls label="Total PPV" readOnly value={totals.totalPpv} />
+              <NumberInput
+                hideControls
+                label="Total PPV"
+                readOnly
+                value={totals.totalPpv}
+              />
               <NumberInput
                 hideControls
                 label="Total PPH brut"
@@ -257,13 +274,21 @@ export function NewDeliveryPage() {
                   modals.openConfirmModal({
                     centered: true,
                     title: 'Please confirm your action',
-                    children: <Text size="sm">Are you sure you want to cancel this delivery?</Text>,
+                    children: (
+                      <Text size="sm">
+                        Are you sure you want to cancel this delivery?
+                      </Text>
+                    ),
                     labels: { confirm: 'Yes', cancel: 'No' },
                     confirmProps: { color: 'red' },
                     onConfirm: async () => {
                       form.reset()
                       setDeliveryItems([])
-                      setTotals({ totalPpv: 0, totalPphBrut: 0, totalProducts: 0 })
+                      setTotals({
+                        totalPpv: 0,
+                        totalPphBrut: 0,
+                        totalProducts: 0
+                      })
                     }
                   })
                 }}
@@ -336,16 +361,32 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
         />
       </Table.Td>
       <Table.Td ta="center">
-        <NumberInput hideControls size="xs" min={0} defaultValue={item.medication.discountRate} />
+        <NumberInput
+          hideControls
+          size="xs"
+          min={0}
+          defaultValue={item.medication.discountRate}
+        />
       </Table.Td>
       <Table.Td ta="center">
         <NumberInput hideControls size="xs" min={0} readOnly value={totalPph} />
       </Table.Td>
       <Table.Td ta="center">
-        <NumberInput hideControls size="xs" min={0} readOnly value={item.inventory.quantity} />
+        <NumberInput
+          hideControls
+          size="xs"
+          min={0}
+          readOnly
+          value={item.inventory.quantity}
+        />
       </Table.Td>
       <Table.Td ta="center">
-        <ActionIcon color="red" variant="light" size="sm" onClick={handleRemove}>
+        <ActionIcon
+          color="red"
+          variant="light"
+          size="sm"
+          onClick={handleRemove}
+        >
           <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
         </ActionIcon>
       </Table.Td>
@@ -353,7 +394,13 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
   )
 }
 
-function Inventories({ handleAddItem, items }: { handleAddItem?: any; items?: any }) {
+function Inventories({
+  handleAddItem,
+  items
+}: {
+  handleAddItem?: any
+  items?: any
+}) {
   const [medicamentName, setMedicamentName] = useDebouncedState('', 500)
   // implement the infinity scroll
   const { data } = useQuery({
@@ -379,7 +426,9 @@ function Inventories({ handleAddItem, items }: { handleAddItem?: any; items?: an
         <Table.Td ta="center">{item.inventory.quantity}</Table.Td>
         <Table.Td ta="center">{item.inventory.ppv}</Table.Td>
         <Table.Td ta="center">{item.inventory.pph}</Table.Td>
-        <Table.Td ta="center">{dayjs(item.inventory.expirationDate).format('DD/MM/YYYY')}</Table.Td>
+        <Table.Td ta="center">
+          {dayjs(item.inventory.expirationDate).format('DD/MM/YYYY')}
+        </Table.Td>
         <Table.Td ta="center">
           <ActionIcon
             variant="default"

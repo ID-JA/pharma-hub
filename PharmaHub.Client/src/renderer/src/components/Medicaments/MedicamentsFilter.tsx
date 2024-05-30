@@ -1,13 +1,26 @@
 import { useEffect } from 'react'
-import { TextInput, ActionIcon, Select, Group, SegmentedControl } from '@mantine/core'
+import {
+  TextInput,
+  ActionIcon,
+  Select,
+  Group,
+  SegmentedControl
+} from '@mantine/core'
 import { useDebouncedState } from '@mantine/hooks'
 import { IconX } from '@tabler/icons-react'
 import { useNavigate } from '@tanstack/react-router'
 
-function MedicamentsFilter({ search }: { search: { name?: string | undefined } }) {
+function MedicamentsFilter({
+  search
+}: {
+  search: { name?: string | undefined }
+}) {
   const navigate = useNavigate()
 
-  const [filterQuery, setFilterQuery] = useDebouncedState(search.name ?? '', 300)
+  const [filterQuery, setFilterQuery] = useDebouncedState(
+    search.name ?? '',
+    300
+  )
 
   useEffect(() => {
     navigate({

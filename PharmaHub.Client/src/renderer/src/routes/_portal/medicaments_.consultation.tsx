@@ -71,26 +71,65 @@ function StockDetail() {
           readOnly
           defaultValue={data.barcode}
         />
-        <TextInput label="Form" leftSection={<IconCategory />} readOnly defaultValue={data.form} />
+        <TextInput
+          label="Form"
+          leftSection={<IconCategory />}
+          readOnly
+          defaultValue={data.form}
+        />
       </Group>
       <Group grow align="start">
         <Stack>
           <Fieldset legend="Basic information">
             <Group grow mb="lg">
-              <InputBase label="Medicament Name" readOnly defaultValue={data.name} />
+              <InputBase
+                label="Medicament Name"
+                readOnly
+                defaultValue={data.name}
+              />
               <InputBase label="Section" readOnly defaultValue={data.section} />
             </Group>
             <Group>
-              <InputBase flex="1" label="Tax Nature" readOnly defaultValue={data.type} />
-              <InputBase w="100px" label="TVA" readOnly defaultValue={data.tva} />
-              <InputBase w="100px" label="Marge" readOnly defaultValue={data.marge} />
+              <InputBase
+                flex="1"
+                label="Tax Nature"
+                readOnly
+                defaultValue={data.type}
+              />
+              <InputBase
+                w="100px"
+                label="TVA"
+                readOnly
+                defaultValue={data.tva}
+              />
+              <InputBase
+                w="100px"
+                label="Marge"
+                readOnly
+                defaultValue={data.marge}
+              />
             </Group>
           </Fieldset>
           <Fieldset legend="Supplier Purchases and Labor Cost plus Third-Party Payments">
             <Group mb="lg">
-              <InputBase w="150px" label="Laboratory" readOnly defaultValue={data.laboratory} />
-              <InputBase w="150px" label="Supplier" readOnly defaultValue={data.laboratory} />
-              <InputBase flex="1" label="Order System:" readOnly defaultValue={data.orderSystem} />
+              <InputBase
+                w="150px"
+                label="Laboratory"
+                readOnly
+                defaultValue={data.laboratory}
+              />
+              <InputBase
+                w="150px"
+                label="Supplier"
+                readOnly
+                defaultValue={data.laboratory}
+              />
+              <InputBase
+                flex="1"
+                label="Order System:"
+                readOnly
+                defaultValue={data.orderSystem}
+              />
             </Group>
             <Group grow>
               <InputBase
@@ -98,13 +137,25 @@ function StockDetail() {
                 readOnly
                 defaultValue={data.reimbursementRate}
               />
-              <InputBase label="PFHT Active:" readOnly defaultValue={data.pfhtActive} />
-              <InputBase label="PFHT Not Active:" readOnly defaultValue={data.pfhtNotActive} />
+              <InputBase
+                label="PFHT Active:"
+                readOnly
+                defaultValue={data.pfhtActive}
+              />
+              <InputBase
+                label="PFHT Not Active:"
+                readOnly
+                defaultValue={data.pfhtNotActive}
+              />
             </Group>
           </Fieldset>
           <Fieldset legend="DCI or Care Components and Miscellaneous (Retail Product)">
             <Group grow mb="lg">
-              <Checkbox.Group readOnly label="Used by" value={['Child', 'Adult']}>
+              <Checkbox.Group
+                readOnly
+                label="Used by"
+                value={['Child', 'Adult']}
+              >
                 <Group mt="xs">
                   <Checkbox value="Infant" label="Infant" />
                   <Checkbox value="Child" label="Child" />

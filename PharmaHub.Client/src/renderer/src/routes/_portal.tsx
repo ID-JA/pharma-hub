@@ -1,5 +1,11 @@
 import { ActionIcon, AppShell, Group, ScrollArea } from '@mantine/core'
-import { Link, Outlet, createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import {
+  Link,
+  Outlet,
+  createFileRoute,
+  useNavigate,
+  useRouter
+} from '@tanstack/react-router'
 import { useElementSize } from '@mantine/hooks'
 import { IconArrowLeft, IconArrowRight, IconX } from '@tabler/icons-react'
 import AppNavbar from '@renderer/components/PortalNavbar/AppNavbar'
@@ -27,8 +33,17 @@ function PortalLayout() {
       </AppShell.Header>
       <AppShell.Main ref={ref} style={{ height: '100vh' }}>
         <Group style={{ position: 'fixed', zIndex: 100, right: 10, top: 10 }}>
-          <ActionIcon component={Link} to="/dashboard" size="sm" variant="default" onClick={goBack}>
-            <IconArrowLeft style={{ width: '70%', height: '70%' }} stroke={1.5} />
+          <ActionIcon
+            component={Link}
+            to="/dashboard"
+            size="sm"
+            variant="default"
+            onClick={goBack}
+          >
+            <IconArrowLeft
+              style={{ width: '70%', height: '70%' }}
+              stroke={1.5}
+            />
           </ActionIcon>
           <ActionIcon
             component={Link}
@@ -37,7 +52,10 @@ function PortalLayout() {
             variant="default"
             onClick={goForward}
           >
-            <IconArrowRight style={{ width: '70%', height: '70%' }} stroke={1.5} />
+            <IconArrowRight
+              style={{ width: '70%', height: '70%' }}
+              stroke={1.5}
+            />
           </ActionIcon>
 
           <ActionIcon

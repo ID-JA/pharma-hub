@@ -1,6 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useMedicaments } from '@renderer/services/medicaments.service'
-import { ActionIcon, Box, Button, Group, Table, Text, TextInput, Title } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Group,
+  Table,
+  Text,
+  TextInput,
+  Title
+} from '@mantine/core'
 import { IconPlus } from '@tabler/icons-react'
 import { modals } from '@mantine/modals'
 import dayjs from 'dayjs'
@@ -15,10 +24,16 @@ function MedicamentList({
   // const search = useSearch({ from: '/_portal/medicaments' })
   const observer = useRef<IntersectionObserver>()
 
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, isLoading } =
-    useMedicaments({
-      name: search.name
-    })
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    isLoading
+  } = useMedicaments({
+    name: search.name
+  })
 
   const medicaments = useMemo(() => {
     return data?.pages.reduce((acc, page) => {
@@ -73,7 +88,9 @@ function MedicamentList({
                     <Table.Td>{element.ppv}</Table.Td>
                     <Table.Td>{element.pph}</Table.Td>
                     <Table.Td>{element.quantity}</Table.Td>
-                    <Table.Td>{dayjs(element.expirationDate).format('DD/MM/YYYY')}</Table.Td>
+                    <Table.Td>
+                      {dayjs(element.expirationDate).format('DD/MM/YYYY')}
+                    </Table.Td>
                     {handleAddItem && (
                       <Table.Td>
                         <ActionIcon
@@ -89,7 +106,10 @@ function MedicamentList({
                           }}
                           disabled={addedItems.includes(element.id)}
                         >
-                          <IconPlus style={{ width: '80%', height: '80%' }} stroke={1.2} />
+                          <IconPlus
+                            style={{ width: '80%', height: '80%' }}
+                            stroke={1.2}
+                          />
                         </ActionIcon>
                       </Table.Td>
                     )}
@@ -139,7 +159,9 @@ function MedicamentList({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-      {isFetchingNextPage && <div style={{ textAlign: 'center' }}>Fetching more data...</div>}
+      {isFetchingNextPage && (
+        <div style={{ textAlign: 'center' }}>Fetching more data...</div>
+      )}
       <div style={{ textAlign: 'center' }}>
         {isFetching && !isFetchingNextPage ? 'Fetching...' : null}
       </div>

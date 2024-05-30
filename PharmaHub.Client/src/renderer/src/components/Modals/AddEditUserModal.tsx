@@ -3,7 +3,14 @@
 import { Button, Group, Modal, Select, Stack, TextInput } from '@mantine/core'
 import { useCreateUser, useUpdateUser } from '@renderer/services/users.service'
 import { User } from '@renderer/utils/types'
-import { ChangeEvent, Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react'
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState
+} from 'react'
 
 const DEFAULT_USER_DATA = {
   id: '',
@@ -57,7 +64,11 @@ function AddEditUserModal({
         onClose={() => {
           setShowAddEditUserModal(false)
         }}
-        title={props ? `Edit user ${props?.firstName} ${props?.lastName}` : 'Add new user'}
+        title={
+          props
+            ? `Edit user ${props?.firstName} ${props?.lastName}`
+            : 'Add new user'
+        }
       >
         <Stack
           align="stretch"
@@ -84,11 +95,31 @@ function AddEditUserModal({
               onChange={handleChange}
             />
           </Group>
-          <TextInput name="cni" label="CNI" value={data.cni} onChange={handleChange} />
-          <TextInput name="phone" label="Phone Number" value={data.phone} onChange={handleChange} />
-          <TextInput name="address" label="Address" value={data.address} onChange={handleChange} />
+          <TextInput
+            name="cni"
+            label="CNI"
+            value={data.cni}
+            onChange={handleChange}
+          />
+          <TextInput
+            name="phone"
+            label="Phone Number"
+            value={data.phone}
+            onChange={handleChange}
+          />
+          <TextInput
+            name="address"
+            label="Address"
+            value={data.address}
+            onChange={handleChange}
+          />
           <Group grow>
-            <TextInput name="email" label="Email" value={data.email} onChange={handleChange} />
+            <TextInput
+              name="email"
+              label="Email"
+              value={data.email}
+              onChange={handleChange}
+            />
             <TextInput
               name="password"
               label="Password"

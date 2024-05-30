@@ -47,7 +47,9 @@ export function AddInventoryModal({ setOpened }) {
   const { mutate: updateInventory } = useUpdateInventory(medicamentId)
   const { mutate: deleteInventory } = useDeleteInventory(medicamentId)
 
-  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({})
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string | undefined>
+  >({})
   const [pph, setPph] = useState(0)
   const columns = useMemo<MRT_ColumnDef<Inventory>[]>(
     () => [
@@ -123,37 +125,33 @@ export function AddInventoryModal({ setOpened }) {
   )
 
   //CREATE action
-  const handleCreateInventory: MRT_TableOptions<Inventory>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode
-  }) => {
-    // const newValidationErrors = validateUser(values);
-    // if (Object.values(newValidationErrors).some((error) => error)) {
-    //   setValidationErrors(newValidationErrors);
-    //   return;
-    // }
-    setValidationErrors({})
-    await createInventory({
-      ...values,
-      pph
-    })
-    exitCreatingMode()
-  }
+  const handleCreateInventory: MRT_TableOptions<Inventory>['onCreatingRowSave'] =
+    async ({ values, exitCreatingMode }) => {
+      // const newValidationErrors = validateUser(values);
+      // if (Object.values(newValidationErrors).some((error) => error)) {
+      //   setValidationErrors(newValidationErrors);
+      //   return;
+      // }
+      setValidationErrors({})
+      await createInventory({
+        ...values,
+        pph
+      })
+      exitCreatingMode()
+    }
 
   //UPDATE action
-  const handleSaveInventory: MRT_TableOptions<Inventory>['onEditingRowSave'] = async ({
-    values,
-    table
-  }) => {
-    // const newValidationErrors = validateUser(values);
-    // if (Object.values(newValidationErrors).some((error) => error)) {
-    //   setValidationErrors(newValidationErrors);
-    //   return;
-    // }
-    setValidationErrors({})
-    updateInventory(values)
-    table.setEditingRow(null) //exit editing mode
-  }
+  const handleSaveInventory: MRT_TableOptions<Inventory>['onEditingRowSave'] =
+    async ({ values, table }) => {
+      // const newValidationErrors = validateUser(values);
+      // if (Object.values(newValidationErrors).some((error) => error)) {
+      //   setValidationErrors(newValidationErrors);
+      //   return;
+      // }
+      setValidationErrors({})
+      updateInventory(values)
+      table.setEditingRow(null) //exit editing mode
+    }
 
   //DELETE action
   const openDeleteConfirmModal = (row: MRT_Row<Inventory>) =>
@@ -198,7 +196,11 @@ export function AddInventoryModal({ setOpened }) {
     onEditingRowSave: handleSaveInventory,
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
-        <ActionIcon onClick={() => table.setEditingRow(row)} size="md" variant="light">
+        <ActionIcon
+          onClick={() => table.setEditingRow(row)}
+          size="md"
+          variant="light"
+        >
           <IconEdit style={{ height: '80%', width: '80%' }} stroke={1.2} />
         </ActionIcon>
         <ActionIcon
@@ -256,7 +258,12 @@ export const useAddInventoryModal = () => {
   const [opened, setOpened] = useState(false)
   const AddInventoryModalCallback = useCallback(() => {
     return (
-      <Modal size="xl" onClose={() => setOpened(false)} opened={opened} title="Add New Inventory">
+      <Modal
+        size="xl"
+        onClose={() => setOpened(false)}
+        opened={opened}
+        title="Add New Inventory"
+      >
         <AddInventoryModal setOpened={setOpened} />
       </Modal>
     )

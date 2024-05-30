@@ -53,7 +53,12 @@ function useSaleForm() {
     }
   })
 
-  const calculateTotalPrice = (ppv: number, quantity: number, tva: number, discount: number) => {
+  const calculateTotalPrice = (
+    ppv: number,
+    quantity: number,
+    tva: number,
+    discount: number
+  ) => {
     const basePrice = ppv * quantity
     const priceWithTVA = basePrice + (basePrice * tva) / 100
     const discountAmount = (priceWithTVA * discount) / 100
@@ -97,14 +102,21 @@ function useSaleForm() {
       if (
         form
           .getValues()
-          .saleMedicaments.some((m) => m.medicamentId.toString() === item.id.toString())
+          .saleMedicaments.some(
+            (m) => m.medicamentId.toString() === item.id.toString()
+          )
       ) {
         const existingItemIndex = form
           .getValues()
-          .saleMedicaments.findIndex((m) => m.medicamentId.toString() === item.id.toString())
+          .saleMedicaments.findIndex(
+            (m) => m.medicamentId.toString() === item.id.toString()
+          )
         const existingItem = form.getValues().saleMedicaments[existingItemIndex]
         const updatedQuantity = existingItem.quantity + 1
-        form.setFieldValue(`saleMedicaments.${existingItemIndex}.quantity`, updatedQuantity)
+        form.setFieldValue(
+          `saleMedicaments.${existingItemIndex}.quantity`,
+          updatedQuantity
+        )
         onChangeSaleItem(existingItemIndex, 'quantity', updatedQuantity)
       } else {
         // Add the new item to the cart
@@ -116,7 +128,11 @@ function useSaleForm() {
           quantity: 1,
           tva
         })
-        onChangeSaleItem(form.getValues().saleMedicaments.length - 1, 'quantity', 1)
+        onChangeSaleItem(
+          form.getValues().saleMedicaments.length - 1,
+          'quantity',
+          1
+        )
       }
       updateTotals()
     },
@@ -144,7 +160,8 @@ function useSaleForm() {
 function NewSalePage() {
   const { ref, height } = useElementSize()
   const search = Route.useSearch()
-  const { form, onChangeSaleItem, handleAddItem, handleRemoveItem } = useSaleForm()
+  const { form, onChangeSaleItem, handleAddItem, handleRemoveItem } =
+    useSaleForm()
   const { AddMedicamentModal, AddMedicamentButton } = useAddMedicamentModal()
 
   const handleConfirmCancel = () => {
@@ -217,7 +234,11 @@ function NewSalePage() {
                 radius="xs"
                 {...form.getInputProps(`saleMedicaments.${index}.totalPrice`)}
               />
-              <ActionIcon variant="light" color="red" onClick={() => handleRemoveItem(index)}>
+              <ActionIcon
+                variant="light"
+                color="red"
+                onClick={() => handleRemoveItem(index)}
+              >
                 <IconTrash size={16} />
               </ActionIcon>
             </Group>
@@ -230,7 +251,10 @@ function NewSalePage() {
   const { mutate: createSale } = useCreateSale()
 
   return (
-    <div ref={ref} style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl)' }}>
+    <div
+      ref={ref}
+      style={{ height: 'inherit', padding: '0 var(--mantine-spacing-xl)' }}
+    >
       <AddMedicamentModal />
       <ScrollArea h={(height - 100) / 2}>
         <Group justify="space-between">
@@ -268,8 +292,18 @@ function NewSalePage() {
         </Stack>
       </Group>
       <Group pb="xl" justify="space-between">
-        <NumberInput label="Manual Discount" defaultValue={0} min={0} max={100} />
-        <Button variant="light" color="red" title="delete" onClick={handleConfirmCancel}>
+        <NumberInput
+          label="Manual Discount"
+          defaultValue={0}
+          min={0}
+          max={100}
+        />
+        <Button
+          variant="light"
+          color="red"
+          title="delete"
+          onClick={handleConfirmCancel}
+        >
           Cancel SALE
         </Button>
       </Group>

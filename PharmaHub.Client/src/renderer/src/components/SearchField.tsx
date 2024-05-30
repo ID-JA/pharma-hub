@@ -23,7 +23,8 @@ type MultiSelectProps = {
   setValue: (items: string[]) => void
   // setValue: (item: { value: string; label: string }[]) => void
 }
-type SearchFieldProps = SearchFieldPropsBase & (MultiSelectProps | SingleSelectProps)
+type SearchFieldProps = SearchFieldPropsBase &
+  (MultiSelectProps | SingleSelectProps)
 
 function SearchField(props) {
   const {
@@ -78,7 +79,11 @@ function SearchField(props) {
   return isMultiSelect ? (
     <MultiSelect {...commonProps} onChange={(values) => setValue(values)} />
   ) : (
-    <Select {...commonProps} defaultValue={search} onChange={(_, item) => setValue(item)} />
+    <Select
+      {...commonProps}
+      defaultValue={search}
+      onChange={(_, item) => setValue(item)}
+    />
   )
 }
 

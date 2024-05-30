@@ -4,7 +4,13 @@ import { useMemo, useState } from 'react'
 import classes from './PortalNavbar.module.css'
 import { Link } from '@tanstack/react-router'
 
-export function LinksGroup({ icon: Icon, label, to, initiallyOpened, links }: any) {
+export function LinksGroup({
+  icon: Icon,
+  label,
+  to,
+  initiallyOpened,
+  links
+}: any) {
   const hasLinks = Array.isArray(links)
   const [opened, setOpened] = useState(initiallyOpened || false)
 
@@ -54,7 +60,11 @@ export function LinksGroup({ icon: Icon, label, to, initiallyOpened, links }: an
           {hasLinks && <Collapse in={opened}>{items}</Collapse>}
         </>
       ) : (
-        <Link to={to} className={classes.control} activeProps={{ className: classes.activeLink }}>
+        <Link
+          to={to}
+          className={classes.control}
+          activeProps={{ className: classes.activeLink }}
+        >
           <Box style={{ display: 'flex', alignItems: 'center' }}>
             <Icon className={classes.linkIcon} stroke={1.5} />
             <Box ml="md">{label}</Box>

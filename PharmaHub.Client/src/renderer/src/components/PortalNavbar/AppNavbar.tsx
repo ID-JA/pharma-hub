@@ -18,7 +18,8 @@ export default AppNavbar
 
 function StockMenu() {
   const { AddMedicamentModal, setOpened } = useAddMedicamentModal()
-  const { AddInventoryModal, setOpened: setOpenedInventoryModal } = useAddInventoryModal()
+  const { AddInventoryModal, setOpened: setOpenedInventoryModal } =
+    useAddInventoryModal()
   return (
     <>
       <AddMedicamentModal />
@@ -38,24 +39,32 @@ function StockMenu() {
           <Menu.Item
             component={Link}
             to="/medicaments/consultation"
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Stock Consultation
           </Menu.Item>
           <Menu.Item
             onClick={() => setOpened(true)}
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Add New Product
           </Menu.Item>
           <Menu.Item
             onClick={() => setOpenedInventoryModal(true)}
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Add New Inventory
           </Menu.Item>
           <Menu.Item
-            leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Remove expired stock
           </Menu.Item>
@@ -83,25 +92,33 @@ function SaleMenu() {
           <Menu.Item
             component={Link}
             to="/medicaments/consultation"
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Sales Consultation
           </Menu.Item>
           <Menu.Item
             component={Link}
             to="/sales/new"
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Add New Sale
           </Menu.Item>
           <Menu.Item
-            leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Returned Clients
           </Menu.Item>
           <Menu.Divider />
           <Menu.Item
-            leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Clients Management
           </Menu.Item>
@@ -129,14 +146,18 @@ function OrderMenu() {
           <Menu.Item
             component={Link}
             to="/orders/new"
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             New Delivery
           </Menu.Item>
           <Menu.Item
             component={Link}
             to="/orders/consultation"
-            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
           >
             Deliveries Consultation
           </Menu.Item>
