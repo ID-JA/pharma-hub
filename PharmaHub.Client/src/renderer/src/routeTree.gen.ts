@@ -22,6 +22,8 @@ import { Route as PortalMedicamentsIndexImport } from './routes/_portal/medicame
 import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
 import { Route as PortalSalesNewImport } from './routes/_portal/sales_.new'
 import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
+import { Route as PortalOrdersNewImport } from './routes/_portal/orders.new'
+import { Route as PortalOrdersConsultationImport } from './routes/_portal/orders.consultation'
 import { Route as PortalMedicamentsFormsImport } from './routes/_portal/medicaments_.forms'
 import { Route as PortalMedicamentsDciImport } from './routes/_portal/medicaments_.dci'
 import { Route as PortalMedicamentsConsultationImport } from './routes/_portal/medicaments_.consultation'
@@ -83,6 +85,16 @@ const PortalSalesNewRoute = PortalSalesNewImport.update({
 const PortalSalesSaleIdRoute = PortalSalesSaleIdImport.update({
   path: '/$saleId',
   getParentRoute: () => PortalSalesRoute,
+} as any)
+
+const PortalOrdersNewRoute = PortalOrdersNewImport.update({
+  path: '/orders/new',
+  getParentRoute: () => PortalRoute,
+} as any)
+
+const PortalOrdersConsultationRoute = PortalOrdersConsultationImport.update({
+  path: '/orders/consultation',
+  getParentRoute: () => PortalRoute,
 } as any)
 
 const PortalMedicamentsFormsRoute = PortalMedicamentsFormsImport.update({
@@ -187,6 +199,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMedicamentsFormsImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/orders/consultation': {
+      id: '/_portal/orders/consultation'
+      path: '/orders/consultation'
+      fullPath: '/orders/consultation'
+      preLoaderRoute: typeof PortalOrdersConsultationImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/orders/new': {
+      id: '/_portal/orders/new'
+      path: '/orders/new'
+      fullPath: '/orders/new'
+      preLoaderRoute: typeof PortalOrdersNewImport
+      parentRoute: typeof PortalImport
+    }
     '/_portal/sales/$saleId': {
       id: '/_portal/sales/$saleId'
       path: '/$saleId'
@@ -253,6 +279,8 @@ export const routeTree = rootRoute.addChildren({
     PortalMedicamentsConsultationRoute,
     PortalMedicamentsDciRoute,
     PortalMedicamentsFormsRoute,
+    PortalOrdersConsultationRoute,
+    PortalOrdersNewRoute,
     PortalSalesNewRoute,
   }),
 })

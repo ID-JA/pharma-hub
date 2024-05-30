@@ -9,6 +9,7 @@ function AppNavbar() {
     <Group align="center" h="100%" px="lg">
       <StockMenu />
       <SaleMenu />
+      <OrderMenu />
     </Group>
   )
 }
@@ -103,6 +104,41 @@ function SaleMenu() {
             leftSection={<IconMessageCircle style={{ width: rem(14), height: rem(14) }} />}
           >
             Clients Management
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </>
+  )
+}
+
+function OrderMenu() {
+  return (
+    <>
+      <Menu shadow="md" width={200}>
+        <Menu.Target>
+          <ActionIcon size="50px" radius="100%" variant="default">
+            <img
+              height={40}
+              width={40}
+              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACrUlEQVR4nO2Yy2sTURTGL4IZu+hKdxJBsIKguGqixEBdTNI8J20MQmiENDOmak2iJNiAiCK6qIKvDAFTcFWqiKvuLDUZC66M7X/gQtwZMFV3llPutJPnJJmmTXun3A8+CIH5zvnNuWdCBiEqKioqKio9S0wVYTecSRZXM8mvH7KpbwO6BBAVkFSxlL21fBT1Svcuf4btWCPIO10DZJLF3z0DEHfpKOmuYbHBUDA4QTL8AImB9jZ8hzwzTB6ApuaZDReYf7B08KymifRoaVUAqg1Oxn3ABvkmO0Nh+Jg7VZ3EQv9hIgFYleYVO8bGYWXumDKJeQB0gIid0ArABnnwh6/Az/kjyiTuErID2gHYIA+RGwH4u9CPp7BWt9R6AWCDPKTvOGGtcAhDlEBijne1A3sJwAZ5eD19XrluGb6gPt0BOEPh2mtfELHEkwn1x2gr1/4+ELED0OD/+T5489TUGUBigEgA2PTss0EYHhuvaz6W8NUDdNqBvQQADd5/ACJBRwgoQGqfTmAqOgve0RhYHAHZ+HM6OrcjAFLOCBOCFYbcbtnXBCsszRi3BFBuVzgSmgaznVM1H3qyLYDM/TMts7MPTqtd0/zfGr+7aXfnlcAL7kswItyUbXH5K9+no2+7ApByxo7ZTZMoMO+bAF7dXjkpJou/1Irio6IUiD9+CVPPZ2Tjz0ohzh/vCmBCsHbMvn7VWtt8CfLMCaQm/OIJv7tpPE4WZ0AOGhXilQKK8d2SG3AEugIY8rg6Zl/0uHDjZXznWzbfTia79w8OwoGNRXyRjSJmG1fecjDqbXa1iM2bVxtzombMZju3SFp2RedYzqMsFA4d4WOyaxfNZPe6EGHZdTLbvI9aPepMNu4hIjS7ToM2n9ts5z7hc7t5dhd35O6g3mZTUVFRUaFGrQMM9Rv+3ZlwfQAAAABJRU5ErkJggg=="
+            />
+          </ActionIcon>
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Item
+            component={Link}
+            to="/orders/new"
+            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+          >
+            New Delivery
+          </Menu.Item>
+          <Menu.Item
+            component={Link}
+            to="/orders/consultation"
+            leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+          >
+            Deliveries Consultation
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

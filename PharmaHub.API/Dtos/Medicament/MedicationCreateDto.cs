@@ -18,15 +18,14 @@ public class MedicationCreateDto : BaseDto<MedicationCreateDto, Models.Medicatio
     public decimal Pbr { get; set; }
     public double Tva { get; set; }
     public double Marge { get; set; }
-    public double DiscountRate { get; set; }
-    public double ReimbursementRate { get; set; }
-    public string Status { get; set; }
+    //public double DiscountRate { get; set; }
+    //public double ReimbursementRate { get; set; }
     public string OrderSystem { get; set; }
     public int MinQuantity { get; set; }
     public int MaxQuantity { get; set; }
     public List<string> UsedBy { get; set; }
     public bool WithPrescription { get; set; }
     public string? Section { get; set; }
-    public InventoryBasicDto Inventory { get; set; }
+    public InventoryCreateDto Inventory { get; set; }
 
 }

@@ -48,9 +48,9 @@ export const Route = createRootRouteWithContext<{
             <Outlet />
           </ModalsProvider>
         </MantineProvider>
-        <ReactQueryDevtools buttonPosition="bottom-left" />
+        <ReactQueryDevtools buttonPosition="top-right" />
       </QueryClientProvider>
-      <TanStackRouterDevtools position="bottom-right" />
+      <TanStackRouterDevtools position="top-left" />
     </>
   )
 })

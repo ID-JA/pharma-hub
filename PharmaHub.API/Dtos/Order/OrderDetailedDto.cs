@@ -14,10 +14,10 @@ public class OrderDetailedDto : BaseDto<OrderDetailedDto, Models.Order>
     public SupplierBasicDto? Supplier { get; set; }
     public BillBasic? Bill { get; set; }
     public List<StockHistoryBasicDto> InventoryHistories { get; set; }
-    public List<OrderMedicationDto> OrderMedicaments { get; set; }
+    public List<OrderMedicationDto> OrderMedications { get; set; }
 }
 
-public class BillBasic
+public class BillBasic : BaseDto<BillBasic, Models.Bill>
 {
-
+    public int Id { get; set; }
 }

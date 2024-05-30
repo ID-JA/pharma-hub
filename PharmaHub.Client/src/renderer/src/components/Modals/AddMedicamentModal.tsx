@@ -47,7 +47,7 @@ const schema = z.object({
 
 type Medicament = z.infer<typeof schema>
 
-function AddMedicamentForm({ setOpened }) {
+export function AddMedicamentForm({ setOpened }) {
   const form = useForm<Medicament>({
     validate: zodResolver(schema)
   })
@@ -76,7 +76,15 @@ function AddMedicamentForm({ setOpened }) {
   return (
     <form
       onSubmit={form.onSubmit((values) => {
-        mutate(values)
+        mutate({
+          ...values,
+          inventory: {
+            quantity: 0,
+            expirationDate: values.expirationDate,
+            ppv: values.ppv,
+            pph: values.pph
+          }
+        })
         setOpened(false)
       })}
     >

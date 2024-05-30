@@ -50,16 +50,16 @@ public class MedicamentsController(IMedicationService medicationService, IServic
         }
 
         medicament.Name = request.Detials.Name;
-        // medicament.DCI = request.DCI;
+        medicament.Dci = request.Detials.Dci;
         medicament.Form = request.Detials.Form;
         medicament.Tva = request.Detials.Tva;
-        medicament.DiscountRate = request.Detials.DiscountRate;
+        medicament.DiscountRate = 0; // request.DiscountRate, this should be deleted because it belongs to inventory
         medicament.Pbr = request.Detials.Pbr;
         medicament.Type = request.Detials.Type;
         medicament.Marge = request.Detials.Marge;
         medicament.Barcode = request.Detials.Barcode;
         medicament.Family = request.Detials.Family;
-        // medicament.UsedBy = request.UsedBy;
+        medicament.UsedBy = request.Detials.UsedBy;
         medicament.WithPrescription = request.Detials.WithPrescription;
 
         await medicationService.UpdateAsync(medicament, cancellationToken);

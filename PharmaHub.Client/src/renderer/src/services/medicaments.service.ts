@@ -7,23 +7,22 @@ import {
   useQueryClient
 } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
-import { Medication } from '@renderer/utils/types'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 
 const fetchMedicaments = async ({ pageParam, queryKey }) => {
+  console.log({ queryKey })
   return (
-    await http.get(`/api/medicaments`, {
+    await http.get(`/api/medicaments/search`, {
       params: {
-        'query.PageNumber': pageParam,
-        'query.PageSize': 10,
-        'query.Query': queryKey[1].name
+        query: queryKey[1].name,
+        field: queryKey[1].field || 'name'
       }
     })
   ).data
 }
 
-export const useMedicaments = (opts: { name?: string }) =>
+export const useMedicaments = (opts: { name?: string; field?: string }) =>
   useInfiniteQuery(
     infiniteQueryOptions({
       queryKey: ['medicaments', opts],

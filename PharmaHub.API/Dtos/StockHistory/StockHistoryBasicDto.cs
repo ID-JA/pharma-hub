@@ -1,6 +1,6 @@
 ﻿namespace PharmaHub.API.Dtos.StockHistory
 {
-    public class StockHistoryBasicDto
+    public class StockHistoryBasicDto : BaseDto<StockHistoryBasicDto, Models.InventoryHistory>
     {
         public int Id { get; set; }
         public int QuantityChanged { get; set; }
