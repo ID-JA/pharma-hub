@@ -1,6 +1,6 @@
 ﻿using PharmaHub.API.Dtos.Inventory;
 using PharmaHub.API.Dtos.Medicament;
-using PharmaHub.API.Dtos.Order;
+using PharmaHub.API.Dtos.Delivery;
 using PharmaHub.API.Dtos.Sale;
 
 namespace PharmaHub.API.Dtos.StockHistory
@@ -12,6 +12,6 @@ namespace PharmaHub.API.Dtos.StockHistory
         public MedicationBasicDto Medication { get; set; }
         public InventoryBasicDto Inventory { get; set; }
         public SaleBasicDto? Sale { get; set; }
-        public OrderBasicDto? Order { get; set; }
+        public DeliveryBasicDto? Order { get; set; }
     }
 }

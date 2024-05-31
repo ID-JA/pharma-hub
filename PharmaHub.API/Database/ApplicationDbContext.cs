@@ -24,7 +24,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<OrderMedication>(entity =>
+        builder.Entity<DeliveryMedication>(entity =>
         {
             entity.HasKey(e => new { e.OrderId, e.InventoryId });
 
@@ -54,10 +54,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Medication> Medications { get; set; }
     public DbSet<Bill> Bills { get; set; }
     public DbSet<Sale> Sales { get; set; }
-    public DbSet<Order> Orders { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<SaleMedications> SaleMedications { get; set; }
-    public DbSet<OrderMedication> OrderMedications { get; set; }
+    public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }
 }

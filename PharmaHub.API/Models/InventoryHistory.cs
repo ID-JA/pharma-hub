@@ -8,5 +8,5 @@ public class InventoryHistory : BaseModel
     public int? SaleId { get; set; }
     public Sale Sale { get; set; } = null!;
     public int? OrderId { get; set; }
-    public Order Order { get; set; } = null!;
+    public Delivery Order { get; set; } = null!;
 }

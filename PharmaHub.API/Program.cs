@@ -37,7 +37,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IMedicationService, MedicationService>();
     builder.Services.AddScoped<ISaleService, SaleService>();
-    builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IDeliveryService, DeliveryService>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
     builder.Services.AddScoped<IFormService, FormService>();
     builder.Services.AddScoped<IFamilyService, FamilyService>();

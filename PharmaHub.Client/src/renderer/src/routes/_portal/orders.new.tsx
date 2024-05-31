@@ -118,7 +118,7 @@ export function NewDeliveryPage() {
   })
   const { mutateAsync } = useMutation({
     mutationFn: async (data: Order) => {
-      return (await http.post('/api/orders', data)).data
+      return (await http.post('/api/deliveries', data)).data
     },
     onSuccess: (res) => {
       console.log(res)
