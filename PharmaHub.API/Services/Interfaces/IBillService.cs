@@ -1,9 +1,11 @@
-﻿namespace PharmaHub.API.Services.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace PharmaHub.API.Services.Interfaces;
 
 public interface IBillService
 {
   Task<bool> CreateBillAsync(CreateBillDto request, CancellationToken cancellationToken = default);
-  // Task<BillDto?> GetBillAsync(int id, CancellationToken cancellationToken = default);
+  Task<BillBasicDto?> GetBillAsync(int id, CancellationToken cancellationToken = default);
   // Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
   // Task<bool> UpdateBill(int id, BillDto request, CancellationToken cancellationToken = default);
   // Task<PaginatedResponse<Bill>> GetBills(string name, CancellationToken cancellationToken);
@@ -31,5 +33,12 @@ public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUse
     dbContext.Bills.Add(bill);
     await dbContext.SaveChangesAsync(cancellationToken);
     return true;
+  }
+  public async Task<BillBasicDto?> GetBillAsync(int id, CancellationToken cancellationToken = default)
+  {
+    return await dbContext.Bills
+            .Where(b => b.Id == id)
+            .ProjectToType<BillBasicDto>()
+            .FirstOrDefaultAsync(cancellationToken);
   }
 }
