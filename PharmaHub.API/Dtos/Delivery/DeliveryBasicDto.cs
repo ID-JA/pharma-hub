@@ -1,6 +1,6 @@
-﻿namespace PharmaHub.API.Dtos.Order;
+﻿namespace PharmaHub.API.Dtos.Delivery;
 
-public class OrderBasicDto: BaseDto<OrderBasicDto, Models.Order>
+public class DeliveryBasicDto : BaseDto<DeliveryBasicDto, Models.Delivery>
 {
     public int Id { get; set; }
     public int OrderNumber { get; set; }

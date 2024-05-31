@@ -1,6 +1,6 @@
-﻿namespace PharmaHub.API.Dtos.Order;
+﻿namespace PharmaHub.API.Dtos.Delivery;
 
-public class OrderMedicationCreateDto : BaseDto<OrderMedicationCreateDto, Models.OrderMedication>
+public class DeliveryMedicationCreateDto : BaseDto<DeliveryMedicationCreateDto, Models.DeliveryMedication>
 {
     public int Quantity { get; set; }
     public decimal Ppv { get; set; }

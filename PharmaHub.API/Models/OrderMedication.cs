@@ -2,10 +2,10 @@
 
 namespace PharmaHub.API.Models;
 
-public class OrderMedication 
+public class DeliveryMedication
 {
     public int OrderId { get; set; }
-    public Order Order { get; set; } = null!;
+    public Delivery Order { get; set; } = null!;
     public int Quantity { get; set; } = 0;
     [Precision(10, 2)]
     public decimal Ppv { get; set; }

@@ -10,6 +10,6 @@ public class User : IdentityUser<int>
     public string Phone { get; set; }
     public string Address { get; set; }
     public List<Sale> Sales { get; set; } = [];
-    public List<Order> Orders { get; set; } = [];
+    public List<Delivery> Deliveries { get; set; } = [];
     public List<Bill> Bills { get; set; } = [];
 }

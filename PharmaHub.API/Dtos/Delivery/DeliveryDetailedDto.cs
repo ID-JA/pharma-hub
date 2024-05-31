@@ -2,9 +2,9 @@
 using PharmaHub.API.Dtos.Supplier;
 using PharmaHub.API.Dtos.User;
 
-namespace PharmaHub.API.Dtos.Order;
+namespace PharmaHub.API.Dtos.Delivery;
 
-public class OrderDetailedDto : BaseDto<OrderDetailedDto, Models.Order>
+public class DeliveryDetailedDto : BaseDto<DeliveryDetailedDto, Models.Delivery>
 {
     public int Id { get; set; }
     public int TotalQuantity { get; set; }
@@ -14,7 +14,7 @@ public class OrderDetailedDto : BaseDto<OrderDetailedDto, Models.Order>
     public SupplierBasicDto? Supplier { get; set; }
     public BillBasic? Bill { get; set; }
     public List<StockHistoryBasicDto> InventoryHistories { get; set; }
-    public List<OrderMedicationDto> OrderMedications { get; set; }
+    public List<DeliveryMedicationDto> DeliveryMedications { get; set; }
 }
 
 public class BillBasic : BaseDto<BillBasic, Models.Bill>

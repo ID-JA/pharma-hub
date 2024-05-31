@@ -1,9 +1,9 @@
 using PharmaHub.API.Dtos.Inventory;
 using PharmaHub.API.Dtos.Medicament;
 
-namespace PharmaHub.API.Dtos.Order;
+namespace PharmaHub.API.Dtos.Delivery;
 
-public class OrderMedicationDto : BaseDto<OrderMedicationDto, Models.OrderMedication>
+public class DeliveryMedicationDto : BaseDto<DeliveryMedicationDto, Models.DeliveryMedication>
 {
     public int Id { get; set; }
     public int Quantity { get; set; }

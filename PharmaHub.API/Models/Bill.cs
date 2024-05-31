@@ -15,5 +15,8 @@ public class Bill : BaseModel
     public string? BankName { get; set; }
     [Precision(10, 2)]
     public decimal TotalPayment { get; set; }
-
+    public string Status { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; }
+    public List<Delivery> Orders { get; set; }
 }

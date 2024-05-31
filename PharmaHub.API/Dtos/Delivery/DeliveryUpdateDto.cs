@@ -1,6 +1,6 @@
-﻿namespace PharmaHub.API.Dtos.Order;
+﻿namespace PharmaHub.API.Dtos.Delivery;
 
-public class OrderUpdateDto : BaseDto<OrderUpdateDto , Models.Order>
+public class DeliveryUpdateDto : BaseDto<DeliveryUpdateDto, Models.Delivery>
 {
     public int Id { get; set; }
     public int? TotalQuantity { get; set; }
@@ -9,5 +9,5 @@ public class OrderUpdateDto : BaseDto<OrderUpdateDto , Models.Order>
     public int? UserId { get; set; }
     public int? SupplierId { get; set; }
     public int? BillId { get; set; }
-    public List<OrderMedicationUpdateDto> OrderMedicaments { get; set; }
+    public List<DeliveryMedicationUpdateDto> DeliveryMedicaments { get; set; }
 }
