@@ -12,12 +12,19 @@ public class BillsController(IBillService billService) : ControllerBase
     await billService.CreateBillAsync(request, cancellationToken);
     return NoContent();
   }
+
   [HttpGet("{id:int}")]
   public async Task<ActionResult> GetBillAsync([FromRoute] int id, CancellationToken cancellationToken)
   {
     var result = await billService.GetBillAsync(id, cancellationToken);
     return result != null ? Ok(result) : NotFound();
-  }
 
+  }
+  [HttpGet]
+
+  public async Task<ActionResult> GetBillsAsync(CancellationToken cancellationToken)
+  {
+    return Ok(await billService.GetBillsAsync(cancellationToken));
+  }
 }
 
