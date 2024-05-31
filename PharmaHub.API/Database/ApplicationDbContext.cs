@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Models.Order;
 
 namespace PharmaHub.API.Database;
 
@@ -24,13 +25,28 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<DeliveryMedication>(entity =>
+        builder.Entity<OrderItem>(entity =>
         {
             entity.HasKey(e => new { e.OrderId, e.InventoryId });
 
             entity.HasOne(e => e.Order)
-                .WithMany(o => o.OrderMedications)
+                .WithMany(o => o.OrderItems)
                 .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Inventory)
+                .WithMany(i => i.OrderItems)
+                .HasForeignKey(e => e.InventoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<DeliveryMedication>(entity =>
+        {
+            entity.HasKey(e => new { e.DeliveryId, e.InventoryId });
+
+            entity.HasOne(e => e.Delivery)
+                .WithMany(o => o.OrderMedications)
+                .HasForeignKey(e => e.DeliveryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(e => e.Inventory)
@@ -55,6 +71,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Bill> Bills { get; set; }
     public DbSet<Sale> Sales { get; set; }
     public DbSet<Delivery> Deliveries { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<SaleMedications> SaleMedications { get; set; }
     public DbSet<DeliveryMedication> DeliveryMedications { get; set; }

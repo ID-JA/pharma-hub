@@ -145,12 +145,21 @@ function OrderMenu() {
         <Menu.Dropdown>
           <Menu.Item
             component={Link}
-            to="/orders/new"
+            to="/deliveries/new"
             leftSection={
               <IconSettings style={{ width: rem(14), height: rem(14) }} />
             }
           >
             New Delivery
+          </Menu.Item>
+          <Menu.Item
+            component={Link}
+            to="/orders/new"
+            leftSection={
+              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+            }
+          >
+            New Order
           </Menu.Item>
           <Menu.Item
             component={Link}

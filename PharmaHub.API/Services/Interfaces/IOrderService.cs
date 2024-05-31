@@ -2,8 +2,26 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Common.Models;
 using PharmaHub.API.Dtos.Delivery;
+using PharmaHub.API.Models.Order;
 
 namespace PharmaHub.API.Services.Interfaces;
+
+public class OrderCreateDto : BaseDto<OrderCreateDto, Order>
+{
+    public DateTime OrderDate { get; set; }
+    public int SupplierId { get; set; }
+    public List<OrderItemCreateDto> OrderItems { get; set; } = [];
+
+}
+
+public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, Models.Order.OrderItem>
+{
+    public int Quantity { get; set; }
+    public decimal TotalPurchasePrice { get; set; }
+    public decimal Pph { get; set; }
+    public double DiscountRate { get; set; }
+    public int InventoryId { get; set; }
+}
 
 public interface IDeliveryService
 {
@@ -12,6 +30,8 @@ public interface IDeliveryService
     Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default);
     Task<bool> UpdateDelivery(int id, DeliveryUpdateDto request, CancellationToken cancellationToken = default);
     Task<bool> DeleteDelivery(int id, CancellationToken cancellationToken = default);
+
+    Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken);
 }
 
 
@@ -62,7 +82,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
             DeliveryMedication orderMedication = new()
             {
-                OrderId = result.Entity.Id,
+                DeliveryId = result.Entity.Id,
                 Quantity = item.Quantity,
                 InventoryId = inventory.Id,
                 Ppv = item.Ppv,
@@ -89,7 +109,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         foreach (var orderMedicament in request.DeliveryMedicaments.Select(item => new DeliveryMedication
         {
-            OrderId = order.Id,
+            DeliveryId = order.Id,
             InventoryId = item.InventoryId,
             Pph = item.Pph,
             Ppv = item.Ppv,
@@ -110,4 +130,38 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         return Task.FromResult(true);
     }
 
+    public async Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken)
+    {
+        Order order = new()
+        {
+            SupplierId = request.SupplierId,
+            OrderDate = request.OrderDate,
+            Status = "Pending",
+        };
+
+        dbContext.Orders.Add(order);
+        var result = await dbContext.SaveChangesAsync();
+
+
+        if (result > 0)
+        {
+            foreach (var OrderItem in request.OrderItems)
+            {
+                OrderItem orderItem = new()
+                {
+                    OrderId = order.Id,
+                    InventoryId = OrderItem.InventoryId,
+                    DiscountRate = OrderItem.DiscountRate,
+                    TotalPurchasePrice = OrderItem.TotalPurchasePrice,
+                    Pph = OrderItem.Pph,
+                    Quantity = OrderItem.Quantity,
+                };
+
+                dbContext.OrderItems.Add(orderItem);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        return true;
+    }
 }

@@ -3,7 +3,6 @@ namespace PharmaHub.API.Models;
 public class Delivery : BaseModel
 {
     public int TotalQuantity { get; set; }
-    public string Type { get; set; }
     public int OrderNumber { get; set; }
     public DateTime OrderDate { get; set; }
     public int UserId { get; set; }

@@ -42,4 +42,12 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
         var result = await deliveryService.DeleteDelivery(id, cancellationToken);
         return result ? Ok(result) : NotFound();
     }
+
+    [HttpPost("orders")]
+    public async Task<ActionResult> CreateOrder([FromBody] OrderCreateDto request, CancellationToken cancellationToken)
+    {
+        await deliveryService.CreateOrder(request, cancellationToken);
+        return NoContent();
+    }
+
 }

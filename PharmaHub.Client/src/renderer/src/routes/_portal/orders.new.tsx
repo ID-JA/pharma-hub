@@ -1,49 +1,40 @@
 import {
   ActionIcon,
-  Box,
   Button,
   Grid,
   Group,
-  InputBase,
   NumberInput,
   ScrollArea,
   Select,
-  Table,
-  Text
+  Table
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
-import { Form, useForm, zodResolver } from '@mantine/form'
-import { useDebouncedState } from '@mantine/hooks'
-import { modals } from '@mantine/modals'
-import { calculatePPH } from '@renderer/utils/functions'
-import { http } from '@renderer/utils/http'
-import { IconPlus, IconTrash } from '@tabler/icons-react'
-import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { Inventories } from './deliveries.new'
+import { DatePickerInput, TimeInput } from '@mantine/dates'
 import dayjs from 'dayjs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { useCallback, useEffect, useState } from 'react'
+import { IconTrash } from '@tabler/icons-react'
+import { calculatePPH } from '@renderer/utils/functions'
+import { Form, useForm } from '@mantine/form'
 import { z } from 'zod'
+import { zodResolver } from 'mantine-form-zod-resolver'
+import { useMutation } from '@tanstack/react-query'
+import { http } from '@renderer/utils/http'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_portal/orders/new')({
-  component: NewDeliveryPage
+  component: NewOrder
 })
-
 const schema = z.object({
-  totalQuantity: z.number(),
-  supplierId: z.string().min(1, {
-    message: 'Required'
-  }),
-  deliveryNumber: z.string().min(1, {
-    message: 'Required'
-  }),
-  deliveryDate: z.date(),
-  orderMedications: z
+  orderDate: z.date(),
+  supplierId: z.string().min(1, { message: 'Required' }),
+  orderItems: z
     .array(
       z.object({
-        quantity: z.number(),
+        quantity: z.number().min(1, { message: 'More then 0' }),
+        totalPurchasePrice: z.number(),
         pph: z.number(),
-        ppv: z.number(),
+        discountRate: z.number(),
         inventoryId: z.number()
       })
     )
@@ -51,26 +42,25 @@ const schema = z.object({
 })
 
 type Order = z.infer<typeof schema>
-
-function useDeliveryForm() {
+const useOrderForm = () => {
   const form = useForm<Order>({
+    validate: zodResolver(schema),
     initialValues: {
-      totalQuantity: 0,
+      orderDate: new Date(),
       supplierId: '',
-      deliveryNumber: '',
-      deliveryDate: new Date(),
-      orderMedications: []
-    },
-    validate: zodResolver(schema)
+      orderItems: []
+    }
   })
 
   const handleAddItem = useCallback(
     (item: any) => {
-      form.insertListItem('orderMedications', {
+      console.log({ item })
+      form.insertListItem('orderItems', {
         inventoryId: item.inventory.id,
-        quantity: 1,
-        ppv: item.inventory.ppv,
-        pph: item.inventory.pph
+        quantity: 0,
+        totalPurchasePrice: 101,
+        pph: item.inventory.pph,
+        discountRate: item.medication.discountRate
       })
     },
     [form]
@@ -78,7 +68,7 @@ function useDeliveryForm() {
 
   const handleRemoveItem = useCallback(
     (index) => {
-      form.removeListItem('orderMedications', index)
+      form.removeListItem('orderItems', index)
     },
     [form]
   )
@@ -90,106 +80,64 @@ function useDeliveryForm() {
   }
 }
 
-export function NewDeliveryPage() {
-  const [deliveryItems, setDeliveryItems] = useState<any[]>([])
+function NewOrder() {
+  const [orderedItems, setOrderedItems] = useState<any>([])
 
-  const { form, handleAddItem, handleRemoveItem } = useDeliveryForm()
-
-  const deliveryItemsMemo = useMemo(() => {
-    return deliveryItems
-  }, [deliveryItems])
-
-  const handleRemoveDeliveryItem = useCallback(
-    (index) => {
-      setDeliveryItems((prev) => prev.filter((_, i) => i !== index))
-    },
-    [setDeliveryItems]
-  )
-
+  const { form, handleAddItem, handleRemoveItem } = useOrderForm()
   const handleAdd = (item) => {
     handleAddItem(item)
-    setDeliveryItems((prev) => [...prev, item])
+    setOrderedItems((prev) => [...prev, item])
   }
 
-  const [totals, setTotals] = useState<any>({
-    totalPpv: 0,
-    totalPphBrut: 0,
-    totalProducts: 0
-  })
-  const { mutateAsync } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async (data: Order) => {
-      return (await http.post('/api/deliveries', data)).data
+      const response = await http.post('/api/deliveries/orders', data)
+      return response.data
     },
-    onSuccess: (res) => {
-      console.log(res)
-      toast.success('YEYYEYEYE!')
+    onSuccess: () => {
+      setOrderedItems([])
+      form.reset()
+      toast.success('Order Created with Success')
+      form.setFieldValue('orderDate', new Date())
     }
   })
-  useEffect(() => {
-    if (form.getValues().orderMedications?.length) {
-      setTotals({
-        totalPpv: form
-          .getValues()
-          .orderMedications.reduce((acc, item) => acc + Number(item.ppv), 0),
-        totalPphBrut: form
-          .getValues()
-          .orderMedications.reduce((acc, item) => acc + Number(item.pph), 0),
-        totalProducts: form.getValues().orderMedications.length
-      })
-    }
-  }, [form.values])
 
   return (
-    <Box p="lg">
-      <Grid>
-        <Grid.Col span={7}>
+    <div>
+      <Grid p="md">
+        <Grid.Col span={6}>
+          <Inventories items={orderedItems} handleAddItem={handleAdd} />
+        </Grid.Col>
+        <Grid.Col span={6}>
           <Form
             form={form}
             onSubmit={(values) => {
-              modals.openConfirmModal({
-                centered: true,
-                title: 'Please confirm your action',
-                children: (
-                  <Text size="sm">
-                    Are you sure you want to validate this delivery?
-                  </Text>
-                ),
-                labels: { confirm: 'Validate Delivery', cancel: 'Cancel' },
-                onConfirm: async () => {
-                  await mutateAsync(values, {
-                    onSuccess: () => {
-                      form.reset()
-                      setDeliveryItems([])
-                      setTotals({
-                        totalPpv: 0,
-                        totalPphBrut: 0,
-                        totalProducts: 0
-                      })
-                    }
-                  })
-                }
-              })
+              mutate(values)
             }}
           >
-            <Group grow mb="md">
+            <Group>
               <Select
-                label="Supplier"
-                data={[{ value: '1', label: 'Supplier 1' }]}
+                flex="1"
+                label="Select Supplier"
+                placeholder="Select an supplier"
+                data={[{ value: '1', label: 'ABC Medications' }]}
                 {...form.getInputProps('supplierId')}
                 key={form.key('supplierId')}
               />
-              <InputBase
-                label="Delivery Number"
-                {...form.getInputProps('deliveryNumber')}
-                key={form.key('deliveryNumber')}
-              />
               <DatePickerInput
-                label="Delivery Date"
-                {...form.getInputProps('deliveryDate')}
-                key={form.key('deliveryDate')}
+                readOnly
+                label="Order Date"
+                {...form.getInputProps('orderDate')}
+              />
+              <TimeInput
+                label="Order Time"
+                readOnly
+                value={dayjs(form.getInputProps('orderDate').value).format(
+                  'HH:mm'
+                )}
               />
             </Group>
-            <ScrollArea h={400} type="never" mb="md">
+            <ScrollArea h={400} type="never" my="md">
               <Table
                 verticalSpacing="md"
                 style={{
@@ -198,270 +146,165 @@ export function NewDeliveryPage() {
               >
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th w="200px">Product Name</Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br /> Ordered
+                    <Table.Th
+                      miw="50px"
+                      style={{
+                        position: 'sticky',
+                        left: 0,
+                        backgroundColor: 'var(--mantine-color-body)',
+                        zIndex: 1
+                      }}
+                    >
+                      ####
                     </Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br />
-                      Delivered
+
+                    <Table.Th
+                      miw="200px"
+                      style={{
+                        position: 'sticky',
+                        left: '50px',
+                        backgroundColor: 'var(--mantine-color-body)',
+                        zIndex: 1
+                      }}
+                    >
+                      Product Name
                     </Table.Th>
-                    <Table.Th ta="center">PPV. Unit</Table.Th>
-                    <Table.Th ta="center">PPH. Unit</Table.Th>
-                    <Table.Th ta="center">Discount</Table.Th>
-                    <Table.Th ta="center">Total PPH </Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br /> Stock
-                    </Table.Th>
-                    <Table.Th ta="center"></Table.Th>
+                    <Table.Th>Quantity inStock</Table.Th>
+                    <Table.Th>Quantity Ordered</Table.Th>
+                    <Table.Th>Sale Price</Table.Th>
+                    <Table.Th>Purchase Price</Table.Th>
+                    <Table.Th>Discount Rate</Table.Th>
+                    <Table.Th>Discounted PPH</Table.Th>
+                    <Table.Th> Purchase Price. Unit</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {deliveryItems.length ? (
-                    deliveryItemsMemo.map((item: any, index: any) => (
-                      <OrderItem
-                        key={item.inventory.id}
-                        form={form}
-                        item={item}
-                        index={index}
-                        handleRemove={() => {
-                          handleRemoveDeliveryItem(index)
-                          handleRemoveItem(index)
+                  {orderedItems.map((item, index) => (
+                    <Table.Tr key={item.inventory.id}>
+                      <Table.Th
+                        miw="50px"
+                        style={{
+                          position: 'sticky',
+                          left: 0,
+                          backgroundColor: 'var(--mantine-color-body)',
+                          zIndex: 1
                         }}
-                      />
-                    ))
-                  ) : (
-                    <Table.Tr ta="center" td="underline" fw="500" fz="lg">
-                      <Table.Td colSpan={9}>
-                        Select the Medications on right side by clicking on (+)
+                      >
+                        <ActionIcon
+                          color="red"
+                          variant="light"
+                          onClick={() => {
+                            handleRemoveItem(index)
+                            setOrderedItems((prev) =>
+                              prev.filter(
+                                (i) => i.inventory.id !== item.inventory.id
+                              )
+                            )
+                          }}
+                        >
+                          <IconTrash
+                            style={{
+                              width: '80%',
+                              height: '80%'
+                            }}
+                            stroke={1.5}
+                          />
+                        </ActionIcon>
+                      </Table.Th>
+
+                      <Table.Td
+                        miw="200px"
+                        style={{
+                          position: 'sticky',
+                          left: '50px',
+                          backgroundColor: 'var(--mantine-color-body)',
+                          zIndex: 1
+                        }}
+                      >
+                        {item.medication.name}
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          hideControls
+                          readOnly
+                          defaultValue={item.inventory.quantity}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          defaultValue={0}
+                          {...form.getInputProps(
+                            `orderItems.${index}.quantity`
+                          )}
+                          key={form.key(`orderItems.${index}.quantity`)}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          hideControls
+                          w="100px"
+                          readOnly
+                          defaultValue={101}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          hideControls
+                          w="100px"
+                          readOnly
+                          value={
+                            // TODO: find the formula to calculate the purchase price
+                            (
+                              ((34 * 101) / 100) *
+                              form.getValues().orderItems[index].quantity
+                            ).toFixed(2)
+                          }
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          hideControls
+                          w="100px"
+                          {...form.getInputProps(
+                            `orderItems.${index}.discountRate`
+                          )}
+                          key={form.key(`orderItems.${index}.discountRate`)}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          readOnly
+                          hideControls
+                          w="100px"
+                          value={
+                            calculatePPH(101, 34) *
+                            form.getValues().orderItems[index].quantity
+                          }
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          hideControls
+                          w="100px"
+                          readOnly
+                          defaultValue={((34 * 101) / 100).toFixed(2)}
+                        />
                       </Table.Td>
                     </Table.Tr>
-                  )}
+                  ))}
                 </Table.Tbody>
               </Table>
             </ScrollArea>
-            <Group grow mb="md">
-              <NumberInput
-                hideControls
-                label="Total PPV"
-                readOnly
-                value={totals.totalPpv}
-              />
-              <NumberInput
-                hideControls
-                label="Total PPH brut"
-                readOnly
-                value={totals.totalPphBrut}
-              />
-              <NumberInput
-                hideControls
-                label="Total PPH Net TTC"
-                readOnly
-                value={totals.totalPphBrut}
-              />
-              <NumberInput hideControls label="Discount for DN " />
-              <NumberInput
-                hideControls
-                label="Total Products"
-                readOnly
-                value={totals.totalProducts}
-              />
-            </Group>
-            <Group grow>
-              <Button type="submit">Validate Delivery</Button>
-              <Button
-                onClick={() => {
-                  modals.openConfirmModal({
-                    centered: true,
-                    title: 'Please confirm your action',
-                    children: (
-                      <Text size="sm">
-                        Are you sure you want to cancel this delivery?
-                      </Text>
-                    ),
-                    labels: { confirm: 'Yes', cancel: 'No' },
-                    confirmProps: { color: 'red' },
-                    onConfirm: async () => {
-                      form.reset()
-                      setDeliveryItems([])
-                      setTotals({
-                        totalPpv: 0,
-                        totalPphBrut: 0,
-                        totalProducts: 0
-                      })
-                    }
-                  })
-                }}
-              >
-                Cancel
+            <Group justify="end" p="md">
+              <Button type="submit" loading={isPending}>
+                Validate Order
               </Button>
-              <Button>Add Order</Button>
-              <Button>Load Orders</Button>
+              <Button variant="outline">Cancel Order</Button>
+              <Button variant="outline">Print Order</Button>
             </Group>
           </Form>
         </Grid.Col>
-        <Grid.Col span={5}>
-          <div style={{ minHeight: 'calc(100% - 40px)' }}>
-            <Inventories handleAddItem={handleAdd} items={deliveryItems} />
-          </div>
-        </Grid.Col>
       </Grid>
-    </Box>
-  )
-}
-
-const OrderItem = ({ form, item, index, handleRemove }) => {
-  const [totalPph, setTotalPph] = useState(0)
-
-  useEffect(() => {
-    const orderMedications = form.getValues().orderMedications
-    if (orderMedications && orderMedications[index]) {
-      const { pph, quantity } = orderMedications[index]
-      setTotalPph(pph * quantity)
-    }
-  }, [form.getValues().orderMedications, index])
-  return (
-    <Table.Tr>
-      <Table.Td>{item.medication.name}</Table.Td>
-      <Table.Td ta="center">
-        <NumberInput hideControls size="xs" min={0} defaultValue={1} />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          {...form.getInputProps(`orderMedications.${index}.quantity`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          defaultValue={item.ppv}
-          {...form.getInputProps(`orderMedications.${index}.ppv`)}
-          key={form.key(`orderMedications.${index}.ppv`)}
-          onBlur={(event) => {
-            form.setFieldValue(
-              `orderMedications.${index}.pph`,
-              calculatePPH(Number(event.target.value), item.medication.marge)
-            )
-          }}
-        />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          defaultValue={item.pph}
-          key={form.key(`orderMedications.${index}.pph`)}
-          {...form.getInputProps(`orderMedications.${index}.pph`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          defaultValue={item.medication.discountRate}
-        />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput hideControls size="xs" min={0} readOnly value={totalPph} />
-      </Table.Td>
-      <Table.Td ta="center">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          readOnly
-          value={item.inventory.quantity}
-        />
-      </Table.Td>
-      <Table.Td ta="center">
-        <ActionIcon
-          color="red"
-          variant="light"
-          size="sm"
-          onClick={handleRemove}
-        >
-          <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
-        </ActionIcon>
-      </Table.Td>
-    </Table.Tr>
-  )
-}
-
-function Inventories({
-  handleAddItem,
-  items
-}: {
-  handleAddItem?: any
-  items?: any
-}) {
-  const [medicamentName, setMedicamentName] = useDebouncedState('', 500)
-  // implement the infinity scroll
-  const { data } = useQuery({
-    queryKey: ['inventories', medicamentName],
-    queryFn: async () => {
-      return (
-        await http.get('/api/inventories', {
-          params: {
-            medicament: medicamentName ? medicamentName : undefined
-          }
-        })
-      ).data.data
-    }
-  })
-
-  function isItemAdded(idToCheck) {
-    return items.some((item) => item.inventory.id === idToCheck)
-  }
-  const rows = data?.map((item) => {
-    return (
-      <Table.Tr key={item.inventory.id}>
-        <Table.Td>{item.medication.name}</Table.Td>
-        <Table.Td ta="center">{item.inventory.quantity}</Table.Td>
-        <Table.Td ta="center">{item.inventory.ppv}</Table.Td>
-        <Table.Td ta="center">{item.inventory.pph}</Table.Td>
-        <Table.Td ta="center">
-          {dayjs(item.inventory.expirationDate).format('DD/MM/YYYY')}
-        </Table.Td>
-        <Table.Td ta="center">
-          <ActionIcon
-            variant="default"
-            onClick={() => handleAddItem(item)}
-            disabled={isItemAdded(item.inventory.id)}
-          >
-            <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.7} />
-          </ActionIcon>
-        </Table.Td>
-      </Table.Tr>
-    )
-  })
-  return (
-    <div>
-      <InputBase
-        defaultValue={medicamentName}
-        onChange={(event) => setMedicamentName(event.target.value)}
-        placeholder="Medicament Name"
-        mb="md"
-      />
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th ta="center">Quantity</Table.Th>
-            <Table.Th ta="center">PPV</Table.Th>
-            <Table.Th ta="center">PPH</Table.Th>
-            <Table.Th ta="center">Expiration Date</Table.Th>
-            <Table.Th ta="center"></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
     </div>
   )
 }
