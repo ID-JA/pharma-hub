@@ -11,7 +11,6 @@ public class Bill : BaseModel
     public string? EffectNumber { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? DisbursementDate { get; set; }
-
     public string? BankName { get; set; }
     [Precision(10, 2)]
     public decimal TotalPayment { get; set; }

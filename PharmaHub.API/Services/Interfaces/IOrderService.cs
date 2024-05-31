@@ -37,7 +37,12 @@ public interface IDeliveryService
 
 public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IDeliveryService
 {
-    public async Task<DeliveryBasicDto?> GetDeliveryAsync(int id, CancellationToken cancellationToken = default) => await dbContext.Deliveries.Where(o => o.Id == id).Include(o => o.OrderMedications).ProjectToType<DeliveryBasicDto>().FirstOrDefaultAsync(cancellationToken);
+    public async Task<DeliveryBasicDto?> GetDeliveryAsync(int id, CancellationToken cancellationToken = default)
+     => await dbContext.Deliveries
+    .Where(o => o.Id == id)
+    .Include(o => o.OrderMedications)
+    .ProjectToType<DeliveryBasicDto>()
+    .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<PaginatedResponse<DeliveryBasicDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {

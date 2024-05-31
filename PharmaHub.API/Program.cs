@@ -44,7 +44,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IDciService, DciService>();
     builder.Services.AddScoped<ITypeService, TypeService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
-
+    builder.Services.AddScoped<IBillService, BillService>();
     builder.Services.AddAuth();
 
 }
