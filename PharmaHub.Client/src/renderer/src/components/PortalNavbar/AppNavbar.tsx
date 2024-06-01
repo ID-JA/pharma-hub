@@ -1,5 +1,14 @@
 import { Menu, rem, Group, ActionIcon } from '@mantine/core'
-import { IconSettings, IconMessageCircle } from '@tabler/icons-react'
+import {
+  IconSettings,
+  IconMessageCircle,
+  IconPackageImport,
+  IconTruckDelivery,
+  IconDiscount,
+  IconBuildingWarehouse,
+  IconPill,
+  IconPackages
+} from '@tabler/icons-react'
 import { Link } from '@tanstack/react-router'
 import { useAddMedicamentModal } from '../Modals/AddMedicamentModal'
 import { useAddInventoryModal } from '../Modals/AddInventoryModal'
@@ -40,7 +49,9 @@ function StockMenu() {
             component={Link}
             to="/medicaments/consultation"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconBuildingWarehouse
+                style={{ width: rem(17), height: rem(17) }}
+              />
             }
           >
             Stock Consultation
@@ -48,7 +59,7 @@ function StockMenu() {
           <Menu.Item
             onClick={() => setOpened(true)}
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconPill style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Add New Product
@@ -56,17 +67,10 @@ function StockMenu() {
           <Menu.Item
             onClick={() => setOpenedInventoryModal(true)}
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconPackages style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Add New Inventory
-          </Menu.Item>
-          <Menu.Item
-            leftSection={
-              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
-            }
-          >
-            Remove expired stock
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
@@ -93,7 +97,7 @@ function SaleMenu() {
             component={Link}
             to="/medicaments/consultation"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconDiscount style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Sales Consultation
@@ -102,14 +106,14 @@ function SaleMenu() {
             component={Link}
             to="/sales/new"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconSettings style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Add New Sale
           </Menu.Item>
           <Menu.Item
             leftSection={
-              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
+              <IconMessageCircle style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Returned Clients
@@ -117,7 +121,7 @@ function SaleMenu() {
           <Menu.Divider />
           <Menu.Item
             leftSection={
-              <IconMessageCircle style={{ width: rem(14), height: rem(14) }} />
+              <IconMessageCircle style={{ width: rem(17), height: rem(17) }} />
             }
           >
             Clients Management
@@ -147,7 +151,7 @@ function OrderMenu() {
             component={Link}
             to="/deliveries/new"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconTruckDelivery style={{ width: rem(17), height: rem(17) }} />
             }
           >
             New Delivery
@@ -156,7 +160,7 @@ function OrderMenu() {
             component={Link}
             to="/orders/new"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconPackageImport style={{ width: rem(17), height: rem(17) }} />
             }
           >
             New Order
@@ -165,10 +169,10 @@ function OrderMenu() {
             component={Link}
             to="/orders/consultation"
             leftSection={
-              <IconSettings style={{ width: rem(14), height: rem(14) }} />
+              <IconSettings style={{ width: rem(17), height: rem(17) }} />
             }
           >
-            Deliveries Consultation
+            Deliveries List
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
