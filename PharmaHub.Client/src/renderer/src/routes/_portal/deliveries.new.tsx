@@ -15,6 +15,7 @@ import { DatePickerInput } from '@mantine/dates'
 import { Form, useForm, zodResolver } from '@mantine/form'
 import { useDebouncedState } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
+import { useListOrdersModal } from '@renderer/components/Orders/ListOrdersModal'
 import { calculatePPH } from '@renderer/utils/functions'
 import { http } from '@renderer/utils/http'
 import { IconPlus, IconTrash } from '@tabler/icons-react'
@@ -38,7 +39,7 @@ const schema = z.object({
     message: 'Required'
   }),
   deliveryDate: z.date(),
-  orderMedications: z
+  deliveryMedications: z
     .array(
       z.object({
         quantity: z.number(),
@@ -59,14 +60,14 @@ function useDeliveryForm() {
       supplierId: '',
       deliveryNumber: '',
       deliveryDate: new Date(),
-      orderMedications: []
+      deliveryMedications: []
     },
     validate: zodResolver(schema)
   })
 
   const handleAddItem = useCallback(
     (item: any) => {
-      form.insertListItem('orderMedications', {
+      form.insertListItem('deliveryMedications', {
         inventoryId: item.inventory.id,
         quantity: 1,
         ppv: item.inventory.ppv,
@@ -78,7 +79,7 @@ function useDeliveryForm() {
 
   const handleRemoveItem = useCallback(
     (index) => {
-      form.removeListItem('orderMedications', index)
+      form.removeListItem('deliveryMedications', index)
     },
     [form]
   )
@@ -92,7 +93,7 @@ function useDeliveryForm() {
 
 export function NewDeliveryPage() {
   const [deliveryItems, setDeliveryItems] = useState<any[]>([])
-
+  const { ListOrdersModal, setOpened } = useListOrdersModal()
   const { form, handleAddItem, handleRemoveItem } = useDeliveryForm()
 
   const deliveryItemsMemo = useMemo(() => {
@@ -121,26 +122,70 @@ export function NewDeliveryPage() {
       return (await http.post('/api/deliveries', data)).data
     },
     onSuccess: (res) => {
-      console.log(res)
       toast.success('YEYYEYEYE!')
     }
   })
   useEffect(() => {
-    if (form.getValues().orderMedications?.length) {
-      setTotals({
-        totalPpv: form
-          .getValues()
-          .orderMedications.reduce((acc, item) => acc + Number(item.ppv), 0),
-        totalPphBrut: form
-          .getValues()
-          .orderMedications.reduce((acc, item) => acc + Number(item.pph), 0),
-        totalProducts: form.getValues().orderMedications.length
-      })
+    if (form.getValues().deliveryMedications?.length) {
+      recalculateTotals()
     }
-  }, [form.values])
+  }, [form.getValues().deliveryMedications])
+
+  const recalculateTotals = () => {
+    setTotals({
+      totalPpv: form
+        .getValues()
+        .deliveryMedications.reduce((acc, item) => acc + Number(item.ppv), 0),
+      totalPphBrut: form
+        .getValues()
+        .deliveryMedications.reduce((acc, item) => acc + Number(item.pph), 0),
+      totalProducts: form.getValues().deliveryMedications.length
+    })
+  }
+  const [selectedPendingOrders, setSelectedPendingOrders] = useState<any[]>([])
+  const handleRowSelect = (orderItem, isSelected) => {
+    setSelectedPendingOrders((prevSelectedRows) =>
+      isSelected
+        ? [...prevSelectedRows, orderItem]
+        : prevSelectedRows.filter(
+            (item) =>
+              `${item.order.id}-${item.inventory.id}` !==
+              `${orderItem.order.id}-${orderItem.inventory.id}`
+          )
+    )
+
+    if (isSelected) {
+      form.insertListItem('deliveryMedications', {
+        inventoryId: orderItem.inventory.id,
+        quantity: orderItem.quantity,
+        ppv: orderItem.inventory.ppv,
+        pph: orderItem.inventory.pph
+      })
+      setDeliveryItems((prev) => [
+        ...prev,
+        { medication: orderItem.inventory.medication, ...orderItem }
+      ])
+    } else {
+      const index = form
+        .getValues()
+        .deliveryMedications.findIndex(
+          (item) => item.inventoryId === orderItem.inventory.id
+        )
+      if (index !== -1) {
+        form.removeListItem('deliveryMedications', index)
+        setDeliveryItems((prev) => prev.filter((_, i) => i !== index))
+        recalculateTotals()
+      }
+    }
+  }
 
   return (
     <Box p="lg">
+      {JSON.stringify(form.getValues())}
+      <ListOrdersModal
+        selectedRows={selectedPendingOrders}
+        onRowSelect={handleRowSelect}
+      />
       <Grid>
         <Grid.Col span={7}>
           <Form
@@ -227,6 +272,15 @@ export function NewDeliveryPage() {
                         handleRemove={() => {
                           handleRemoveDeliveryItem(index)
                           handleRemoveItem(index)
+                          recalculateTotals()
+
+                          setSelectedPendingOrders((prev) =>
+                            prev.filter(
+                              (item) =>
+                                `${item.order.id}-${item.inventory.id}` !==
+                                `${item.order.id}-${item.inventory.id}`
+                            )
+                          )
                         }}
                       />
                     ))
@@ -296,7 +350,7 @@ export function NewDeliveryPage() {
                 Cancel
               </Button>
               <Button>Add Order</Button>
-              <Button>Load Orders</Button>
+              <Button onClick={() => setOpened(true)}>Load Orders</Button>
             </Group>
           </Form>
         </Grid.Col>
@@ -311,67 +365,71 @@ export function NewDeliveryPage() {
 }
 
 const OrderItem = ({ form, item, index, handleRemove }) => {
-  const [totalPph, setTotalPph] = useState(0)
+  const [totalPph, setTotalPph] = useState(item.pph * item.quantity)
 
   useEffect(() => {
-    const orderMedications = form.getValues().orderMedications
-    if (orderMedications && orderMedications[index]) {
-      const { pph, quantity } = orderMedications[index]
+    const deliveryMedications = form.getValues().deliveryMedications
+    if (deliveryMedications && deliveryMedications[index]) {
+      const { pph, quantity } = deliveryMedications[index]
       setTotalPph(pph * quantity)
     }
-  }, [form.getValues().orderMedications, index])
+  }, [form.getValues().deliveryMedications, index])
   return (
     <Table.Tr>
       <Table.Td>{item.medication.name}</Table.Td>
-      <Table.Td ta="center">
-        <NumberInput hideControls size="xs" min={0} defaultValue={1} />
-      </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" role-description="Quantity Ordered">
         <NumberInput
           hideControls
           size="xs"
           min={0}
-          {...form.getInputProps(`orderMedications.${index}.quantity`)}
+          defaultValue={item.quantity}
         />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" role-description="Quantity Delivered">
         <NumberInput
-          hideControls
+          size="xs"
+          min={0}
+          {...form.getInputProps(`deliveryMedications.${index}.quantity`)}
+        />
+      </Table.Td>
+      <Table.Td ta="center" aria-roledescription="PPV">
+        <NumberInput
           size="xs"
           min={0}
           defaultValue={item.ppv}
-          {...form.getInputProps(`orderMedications.${index}.ppv`)}
-          key={form.key(`orderMedications.${index}.ppv`)}
+          {...form.getInputProps(`deliveryMedications.${index}.ppv`)}
+          key={form.key(`deliveryMedications.${index}.ppv`)}
           onBlur={(event) => {
             form.setFieldValue(
-              `orderMedications.${index}.pph`,
+              `deliveryMedications.${index}.pph`,
               calculatePPH(Number(event.target.value), item.medication.marge)
             )
           }}
         />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" aria-roledescription="PPH">
         <NumberInput
           hideControls
+          readOnly
           size="xs"
           min={0}
           defaultValue={item.pph}
-          key={form.key(`orderMedications.${index}.pph`)}
-          {...form.getInputProps(`orderMedications.${index}.pph`)}
+          key={form.key(`deliveryMedications.${index}.pph`)}
+          {...form.getInputProps(`deliveryMedications.${index}.pph`)}
         />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" aria-roledescription="Discount Rate">
         <NumberInput
-          hideControls
           size="xs"
           min={0}
+          max={99}
           defaultValue={item.medication.discountRate}
         />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" aria-roledescription="Total PPH">
         <NumberInput hideControls size="xs" min={0} readOnly value={totalPph} />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" aria-roledescription="Quantity in stock">
         <NumberInput
           hideControls
           size="xs"
@@ -380,7 +438,7 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
           value={item.inventory.quantity}
         />
       </Table.Td>
-      <Table.Td ta="center">
+      <Table.Td ta="center" aria-roledescription="Actions">
         <ActionIcon
           color="red"
           variant="light"

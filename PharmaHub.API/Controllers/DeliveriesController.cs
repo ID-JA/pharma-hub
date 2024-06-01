@@ -50,4 +50,10 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
         return NoContent();
     }
 
+    [HttpGet("orders")]
+    public async Task<ActionResult> GetOrders(CancellationToken cancellationToken)
+    {
+        return Ok(await deliveryService.GetOrders(cancellationToken));
+    }
+
 }

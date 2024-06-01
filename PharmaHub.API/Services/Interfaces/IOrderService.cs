@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Common.Models;
 using PharmaHub.API.Dtos.Delivery;
+using PharmaHub.API.Dtos.Inventory;
+using PharmaHub.API.Dtos.Medicament;
 using PharmaHub.API.Models.Order;
 
 namespace PharmaHub.API.Services.Interfaces;
@@ -14,6 +16,25 @@ public class OrderCreateDto : BaseDto<OrderCreateDto, Order>
 
 }
 
+public class OrderBasicDto : BaseDto<OrderBasicDto, Order>
+{
+    public int Id { get; set; }
+    public DateTime OrderDate { get; set; }
+    public string Status { get; set; }
+    public int SupplierId { get; set; }
+    public Supplier Supplier { get; set; }
+}
+
+public class OrderDetailedDto : BaseDto<OrderDetailedDto, Order>
+{
+    public int Id { get; set; }
+    public DateTime OrderDate { get; set; }
+    public string Status { get; set; }
+    public int SupplierId { get; set; }
+    public Supplier Supplier { get; set; }
+    public List<OrderItemDetailedDto> OrderItems { get; set; }
+}
+
 public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, Models.Order.OrderItem>
 {
     public int Quantity { get; set; }
@@ -21,6 +42,16 @@ public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, Models.Order.Order
     public decimal Pph { get; set; }
     public double DiscountRate { get; set; }
     public int InventoryId { get; set; }
+}
+
+public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
+{
+    public int Quantity { get; set; }
+    public decimal TotalPurchasePrice { get; set; }
+    public decimal Pph { get; set; }
+    public double DiscountRate { get; set; }
+    public OrderBasicDto Order { get; set; }
+    public InventoryDetailedDto Inventory { get; set; }
 }
 
 public interface IDeliveryService
@@ -32,6 +63,7 @@ public interface IDeliveryService
     Task<bool> DeleteDelivery(int id, CancellationToken cancellationToken = default);
 
     Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken);
+    Task<List<OrderItemDetailedDto>> GetOrders(CancellationToken cancellationToken);
 }
 
 
@@ -168,5 +200,15 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         }
 
         return true;
+    }
+
+    public async Task<List<OrderItemDetailedDto>> GetOrders(CancellationToken cancellationToken)
+    {
+        return await dbContext.OrderItems
+            .Include(oi => oi.Inventory)
+            .ThenInclude(i => i.Medication)
+            .Include(o => o.Order)
+            .ProjectToType<OrderItemDetailedDto>()
+            .ToListAsync(cancellationToken);
     }
 }
