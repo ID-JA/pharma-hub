@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API;
-using PharmaHub.API.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 {
+    QuestPDF.Settings.License = LicenseType.Community;
     // Add services to the container.
     builder.Services.AddMapster();
     builder.Services.AddControllers();
