@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Box,
   Button,
+  Drawer,
   Grid,
   Group,
   InputBase,
@@ -13,12 +14,15 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { Form, useForm, zodResolver } from '@mantine/form'
-import { useDebouncedState } from '@mantine/hooks'
+import { useDebouncedState, useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { useListOrdersModal } from '@renderer/components/Orders/ListOrdersModal'
-import { calculatePPH } from '@renderer/utils/functions'
+import {
+  calculatePPH,
+  calculatePriceAfterDiscount
+} from '@renderer/utils/functions'
 import { http } from '@renderer/utils/http'
-import { IconPlus, IconTrash } from '@tabler/icons-react'
+import { IconPlus, IconShoppingCart, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
@@ -43,6 +47,7 @@ const schema = z.object({
     .array(
       z.object({
         quantity: z.number(),
+        discount: z.number(),
         pph: z.number(),
         ppv: z.number(),
         inventoryId: z.number()
@@ -71,7 +76,8 @@ function useDeliveryForm() {
         inventoryId: item.inventory.id,
         quantity: 1,
         ppv: item.inventory.ppv,
-        pph: item.inventory.pph
+        pph: item.inventory.pph,
+        discount: 0
       })
     },
     [form]
@@ -115,14 +121,17 @@ export function NewDeliveryPage() {
   const [totals, setTotals] = useState<any>({
     totalPpv: 0,
     totalPphBrut: 0,
-    totalProducts: 0
+    totalPphTtc: 0,
+    totalProducts: 0,
+    totalQuantities: 0,
+    discountedPriceDN: 0
   })
   const { mutateAsync } = useMutation({
     mutationFn: async (data: Order) => {
       return (await http.post('/api/deliveries', data)).data
     },
-    onSuccess: (res) => {
-      toast.success('YEYYEYEYE!')
+    onSuccess: () => {
+      toast.success('Delivery validated with success!')
     }
   })
   useEffect(() => {
@@ -132,14 +141,38 @@ export function NewDeliveryPage() {
   }, [form.getValues().deliveryMedications])
 
   const recalculateTotals = () => {
+    const totalPphTtc = form
+      .getValues()
+      .deliveryMedications.reduce(
+        (acc, item) =>
+          acc +
+          calculatePriceAfterDiscount(item.pph, item.discount) * item.quantity,
+        0
+      )
+
+    const totalPphBrut = form
+      .getValues()
+      .deliveryMedications.reduce(
+        (acc, item) => acc + Number(item.pph) * item.quantity,
+        0
+      )
     setTotals({
       totalPpv: form
         .getValues()
-        .deliveryMedications.reduce((acc, item) => acc + Number(item.ppv), 0),
-      totalPphBrut: form
+        .deliveryMedications.reduce(
+          (acc, item) => acc + Number(item.ppv) * item.quantity,
+          0
+        ),
+      totalPphBrut,
+      totalPphTtc,
+      totalProducts: form.getValues().deliveryMedications.length,
+      totalQuantities: form
         .getValues()
-        .deliveryMedications.reduce((acc, item) => acc + Number(item.pph), 0),
-      totalProducts: form.getValues().deliveryMedications.length
+        .deliveryMedications.reduce(
+          (acc, item) => acc + Number(item.quantity),
+          0
+        ),
+      discountedPriceDN: totalPphBrut - totalPphTtc
     })
   }
   const [selectedPendingOrders, setSelectedPendingOrders] = useState<any[]>([])
@@ -179,187 +212,229 @@ export function NewDeliveryPage() {
     }
   }
 
+  const [opened, { close, open }] = useDisclosure(false)
+
   return (
     <Box p="lg">
-      {JSON.stringify(form.getValues())}
       <ListOrdersModal
         selectedRows={selectedPendingOrders}
         onRowSelect={handleRowSelect}
       />
-      <Grid>
-        <Grid.Col span={7}>
-          <Form
-            form={form}
-            onSubmit={(values) => {
+      <Inventories
+        handleAddItem={handleAdd}
+        items={deliveryItems}
+        onClose={close}
+        opened={opened}
+      />
+      <Form
+        form={form}
+        onSubmit={(values) => {
+          modals.openConfirmModal({
+            centered: true,
+            title: 'Please confirm your action',
+            children: (
+              <Text size="sm">
+                Are you sure you want to validate this delivery?
+              </Text>
+            ),
+            labels: { confirm: 'Validate Delivery', cancel: 'Cancel' },
+            onConfirm: async () => {
+              await mutateAsync(values, {
+                onSuccess: () => {
+                  form.reset()
+                  setDeliveryItems([])
+                  setTotals({
+                    totalPpv: 0,
+                    totalPphBrut: 0,
+                    totalProducts: 0
+                  })
+                }
+              })
+            }
+          })
+        }}
+      >
+        <Group mb="md" justify="space-between" align="center">
+          <Group>
+            <Select
+              label="Supplier"
+              data={[{ value: '1', label: 'Supplier 1' }]}
+              {...form.getInputProps('supplierId')}
+              key={form.key('supplierId')}
+            />
+            <InputBase
+              label="Delivery Number"
+              {...form.getInputProps('deliveryNumber')}
+              key={form.key('deliveryNumber')}
+            />
+            <DatePickerInput
+              label="Delivery Date"
+              {...form.getInputProps('deliveryDate')}
+              key={form.key('deliveryDate')}
+            />
+          </Group>
+          <Group>
+            <NumberInput
+              decimalScale={2}
+              fixedDecimalScale
+              w="130px"
+              hideControls
+              label="Total PPV"
+              readOnly
+              value={totals.totalPpv}
+            />
+            <NumberInput
+              hideControls
+              decimalScale={2}
+              fixedDecimalScale
+              w="130px"
+              label="Total PPH brut"
+              readOnly
+              defaultValue={0}
+              value={totals.totalPphBrut}
+            />
+            <NumberInput
+              hideControls
+              label="Total PPH Net TTC"
+              decimalScale={2}
+              defaultValue={0}
+              fixedDecimalScale
+              w="130px"
+              readOnly
+              value={totals.totalPphTtc}
+            />
+            <NumberInput
+              hideControls
+              label="Discount for DN "
+              readOnly
+              decimalScale={2}
+              defaultValue={0}
+              fixedDecimalScale
+              w="130px"
+              value={totals.discountedPriceDN}
+            />
+            <NumberInput
+              hideControls
+              label="Total Products"
+              defaultValue={0}
+              w="130px"
+              readOnly
+              value={totals.totalProducts}
+            />
+            <NumberInput
+              hideControls
+              label="Total Quantities"
+              defaultValue={0}
+              w="130px"
+              readOnly
+              value={totals.totalQuantities}
+            />
+          </Group>
+        </Group>
+        <ScrollArea h={550} type="never" mb="md">
+          <Table
+            verticalSpacing="md"
+            style={{
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th w="200px">Product Name</Table.Th>
+                <Table.Th ta="center">
+                  Quantity <br /> Ordered
+                </Table.Th>
+                <Table.Th ta="center">
+                  Quantity <br />
+                  Delivered
+                </Table.Th>
+                <Table.Th ta="center">PPV. Unit</Table.Th>
+                <Table.Th ta="center">PPH. Unit</Table.Th>
+                <Table.Th ta="center">Discount</Table.Th>
+                <Table.Th ta="center">TVA</Table.Th>
+                <Table.Th ta="center">Marge</Table.Th>
+                <Table.Th ta="center">Total PPH </Table.Th>
+                <Table.Th ta="center">
+                  Quantity <br /> Stock
+                </Table.Th>
+                <Table.Th ta="center"></Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {deliveryItems.length ? (
+                deliveryItemsMemo.map((item: any, index: any) => (
+                  <OrderItem
+                    key={item.inventory.id}
+                    form={form}
+                    item={item}
+                    index={index}
+                    handleRemove={() => {
+                      handleRemoveDeliveryItem(index)
+                      handleRemoveItem(index)
+                      recalculateTotals()
+
+                      setSelectedPendingOrders((prev) =>
+                        prev.filter(
+                          (item) =>
+                            `${item.order.id}-${item.inventory.id}` !==
+                            `${item.order.id}-${item.inventory.id}`
+                        )
+                      )
+                    }}
+                  />
+                ))
+              ) : (
+                <Table.Tr ta="center" td="underline" fw="500" fz="lg">
+                  <Table.Td colSpan={11}>
+                    <IconShoppingCart
+                      stroke={1.2}
+                      style={{ width: '90px', height: '90px' }}
+                    />
+                    <br />
+                    Select the Medications on right side by clicking on (+)
+                  </Table.Td>
+                </Table.Tr>
+              )}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+        <Group grow justify="center" w="50%" m="auto">
+          <Button onClick={open}>Add Medications</Button>
+          <Button
+            type="submit"
+            disabled={!form.getValues().deliveryMedications.length}
+          >
+            Validate Delivery
+          </Button>
+          <Button
+            onClick={() => {
               modals.openConfirmModal({
                 centered: true,
                 title: 'Please confirm your action',
                 children: (
                   <Text size="sm">
-                    Are you sure you want to validate this delivery?
+                    Are you sure you want to cancel this delivery?
                   </Text>
                 ),
-                labels: { confirm: 'Validate Delivery', cancel: 'Cancel' },
+                labels: { confirm: 'Yes', cancel: 'No' },
+                confirmProps: { color: 'red' },
                 onConfirm: async () => {
-                  await mutateAsync(values, {
-                    onSuccess: () => {
-                      form.reset()
-                      setDeliveryItems([])
-                      setTotals({
-                        totalPpv: 0,
-                        totalPphBrut: 0,
-                        totalProducts: 0
-                      })
-                    }
+                  form.reset()
+                  setDeliveryItems([])
+                  setTotals({
+                    totalPpv: 0,
+                    totalPphBrut: 0,
+                    totalProducts: 0
                   })
                 }
               })
             }}
           >
-            <Group grow mb="md">
-              <Select
-                label="Supplier"
-                data={[{ value: '1', label: 'Supplier 1' }]}
-                {...form.getInputProps('supplierId')}
-                key={form.key('supplierId')}
-              />
-              <InputBase
-                label="Delivery Number"
-                {...form.getInputProps('deliveryNumber')}
-                key={form.key('deliveryNumber')}
-              />
-              <DatePickerInput
-                label="Delivery Date"
-                {...form.getInputProps('deliveryDate')}
-                key={form.key('deliveryDate')}
-              />
-            </Group>
-            <ScrollArea h={400} type="never" mb="md">
-              <Table
-                verticalSpacing="md"
-                style={{
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th w="200px">Product Name</Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br /> Ordered
-                    </Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br />
-                      Delivered
-                    </Table.Th>
-                    <Table.Th ta="center">PPV. Unit</Table.Th>
-                    <Table.Th ta="center">PPH. Unit</Table.Th>
-                    <Table.Th ta="center">Discount</Table.Th>
-                    <Table.Th ta="center">Total PPH </Table.Th>
-                    <Table.Th ta="center">
-                      Quantity <br /> Stock
-                    </Table.Th>
-                    <Table.Th ta="center"></Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {deliveryItems.length ? (
-                    deliveryItemsMemo.map((item: any, index: any) => (
-                      <OrderItem
-                        key={item.inventory.id}
-                        form={form}
-                        item={item}
-                        index={index}
-                        handleRemove={() => {
-                          handleRemoveDeliveryItem(index)
-                          handleRemoveItem(index)
-                          recalculateTotals()
-
-                          setSelectedPendingOrders((prev) =>
-                            prev.filter(
-                              (item) =>
-                                `${item.order.id}-${item.inventory.id}` !==
-                                `${item.order.id}-${item.inventory.id}`
-                            )
-                          )
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <Table.Tr ta="center" td="underline" fw="500" fz="lg">
-                      <Table.Td colSpan={9}>
-                        Select the Medications on right side by clicking on (+)
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                </Table.Tbody>
-              </Table>
-            </ScrollArea>
-            <Group grow mb="md">
-              <NumberInput
-                hideControls
-                label="Total PPV"
-                readOnly
-                value={totals.totalPpv}
-              />
-              <NumberInput
-                hideControls
-                label="Total PPH brut"
-                readOnly
-                value={totals.totalPphBrut}
-              />
-              <NumberInput
-                hideControls
-                label="Total PPH Net TTC"
-                readOnly
-                value={totals.totalPphBrut}
-              />
-              <NumberInput hideControls label="Discount for DN " />
-              <NumberInput
-                hideControls
-                label="Total Products"
-                readOnly
-                value={totals.totalProducts}
-              />
-            </Group>
-            <Group grow>
-              <Button type="submit">Validate Delivery</Button>
-              <Button
-                onClick={() => {
-                  modals.openConfirmModal({
-                    centered: true,
-                    title: 'Please confirm your action',
-                    children: (
-                      <Text size="sm">
-                        Are you sure you want to cancel this delivery?
-                      </Text>
-                    ),
-                    labels: { confirm: 'Yes', cancel: 'No' },
-                    confirmProps: { color: 'red' },
-                    onConfirm: async () => {
-                      form.reset()
-                      setDeliveryItems([])
-                      setTotals({
-                        totalPpv: 0,
-                        totalPphBrut: 0,
-                        totalProducts: 0
-                      })
-                    }
-                  })
-                }}
-              >
-                Cancel
-              </Button>
-              <Button>Add Order</Button>
-              <Button onClick={() => setOpened(true)}>Load Orders</Button>
-            </Group>
-          </Form>
-        </Grid.Col>
-        <Grid.Col span={5}>
-          <div style={{ minHeight: 'calc(100% - 40px)' }}>
-            <Inventories handleAddItem={handleAdd} items={deliveryItems} />
-          </div>
-        </Grid.Col>
-      </Grid>
+            Cancel
+          </Button>
+          <Button onClick={() => setOpened(true)}>Load Orders</Button>
+        </Group>
+      </Form>
     </Box>
   )
 }
@@ -370,20 +445,15 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
   useEffect(() => {
     const deliveryMedications = form.getValues().deliveryMedications
     if (deliveryMedications && deliveryMedications[index]) {
-      const { pph, quantity } = deliveryMedications[index]
-      setTotalPph(pph * quantity)
+      const { pph, quantity, discount } = deliveryMedications[index]
+      setTotalPph(calculatePriceAfterDiscount(pph, discount) * quantity)
     }
   }, [form.getValues().deliveryMedications, index])
   return (
     <Table.Tr>
       <Table.Td>{item.medication.name}</Table.Td>
       <Table.Td ta="center" role-description="Quantity Ordered">
-        <NumberInput
-          hideControls
-          size="xs"
-          min={0}
-          defaultValue={item.quantity}
-        />
+        <NumberInput readOnly size="xs" defaultValue={item.quantity || 1} />
       </Table.Td>
       <Table.Td ta="center" role-description="Quantity Delivered">
         <NumberInput
@@ -395,16 +465,11 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
       <Table.Td ta="center" aria-roledescription="PPV">
         <NumberInput
           size="xs"
-          min={0}
+          readOnly
+          hideControls
           defaultValue={item.ppv}
           {...form.getInputProps(`deliveryMedications.${index}.ppv`)}
           key={form.key(`deliveryMedications.${index}.ppv`)}
-          onBlur={(event) => {
-            form.setFieldValue(
-              `deliveryMedications.${index}.pph`,
-              calculatePPH(Number(event.target.value), item.medication.marge)
-            )
-          }}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="PPH">
@@ -412,7 +477,6 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
           hideControls
           readOnly
           size="xs"
-          min={0}
           defaultValue={item.pph}
           key={form.key(`deliveryMedications.${index}.pph`)}
           {...form.getInputProps(`deliveryMedications.${index}.pph`)}
@@ -423,17 +487,30 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
           size="xs"
           min={0}
           max={99}
-          defaultValue={item.medication.discountRate}
+          defaultValue={0}
+          {...form.getInputProps(`deliveryMedications.${index}.discount`)}
         />
       </Table.Td>
+      <Table.Td ta="center" aria-roledescription="TVA">
+        <NumberInput size="xs" defaultValue={item.medication.tva} readOnly />
+      </Table.Td>
+
+      <Table.Td ta="center" aria-roledescription="Marge">
+        <NumberInput size="xs" readOnly defaultValue={item.medication.marge} />
+      </Table.Td>
       <Table.Td ta="center" aria-roledescription="Total PPH">
-        <NumberInput hideControls size="xs" min={0} readOnly value={totalPph} />
+        <NumberInput
+          hideControls
+          size="xs"
+          readOnly
+          value={totalPph}
+          decimalScale={2}
+        />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="Quantity in stock">
         <NumberInput
           hideControls
           size="xs"
-          min={0}
           readOnly
           value={item.inventory.quantity}
         />
@@ -454,10 +531,14 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
 
 export function Inventories({
   handleAddItem,
-  items
+  items,
+  onClose,
+  opened
 }: {
   handleAddItem?: any
   items?: any
+  onClose: () => void
+  opened: boolean
 }) {
   const [medicamentName, setMedicamentName] = useDebouncedState('', 500)
   // implement the infinity scroll
@@ -500,7 +581,11 @@ export function Inventories({
     )
   })
   return (
-    <div>
+    <Drawer
+      onClose={onClose}
+      opened={opened}
+      title="Select Medication's Inventory"
+    >
       <InputBase
         w="50%"
         label="Search for Medicaments"
@@ -522,6 +607,6 @@ export function Inventories({
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-    </div>
+    </Drawer>
   )
 }

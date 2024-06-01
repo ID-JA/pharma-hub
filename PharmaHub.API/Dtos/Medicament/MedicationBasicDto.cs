@@ -4,6 +4,7 @@ public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medication>
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    public double Tva { get; set; }
     public double Marge { get; set; }
     public double DiscountRate { get; set; }
     public string Dosage { get; set; }
@@ -15,6 +16,6 @@ public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medication>
     public override void AddCustomMappings()
     {
         SetCustomMappingsInverse()
-            .Map(src => src.Dci, dest=>dest.Dci);
+            .Map(src => src.Dci, dest => dest.Dci);
     }
 }
