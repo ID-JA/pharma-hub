@@ -1,3 +1,7 @@
-export function calculatePPH(ppv: number, marge: number) {
-  return Number((ppv * (1 - marge / 100)).toFixed(2))
-}
+export const calculatePPH = (ppv, marge) => ppv * (1 - marge / 100)
+
+export const calculatePriceAfterDiscount = (price, discountRate) =>
+  price * (1 - discountRate / 100)
+
+export const calculatePurchasePrice = (ppv, marge, quantity) =>
+  ppv * (1 - marge / 100) * quantity

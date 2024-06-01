@@ -6,8 +6,13 @@ import {
   useNavigate,
   useRouter
 } from '@tanstack/react-router'
-import { useElementSize } from '@mantine/hooks'
-import { IconArrowLeft, IconArrowRight, IconX } from '@tabler/icons-react'
+import { useDisclosure, useElementSize } from '@mantine/hooks'
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconMenu,
+  IconX
+} from '@tabler/icons-react'
 import AppNavbar from '@renderer/components/PortalNavbar/AppNavbar'
 
 export const Route = createFileRoute('/_portal')({
@@ -26,32 +31,26 @@ function PortalLayout() {
     router.history.forward()
   }
 
+  const [openedHeader, { toggle }] = useDisclosure(true)
+
   return (
-    <AppShell header={{ height: 60 }}>
-      <AppShell.Header>
+    <AppShell header={{ height: openedHeader ? 60 : 0 }}>
+      <AppShell.Header
+        style={{
+          transform: openedHeader ? 'translateY(0)' : 'translateY(-60px)'
+        }}
+      >
         <AppNavbar />
       </AppShell.Header>
       <AppShell.Main ref={ref} style={{ height: '100vh' }}>
         <Group style={{ position: 'fixed', zIndex: 100, right: 10, top: 10 }}>
-          <ActionIcon
-            component={Link}
-            to="/dashboard"
-            size="sm"
-            variant="default"
-            onClick={goBack}
-          >
+          <ActionIcon size="sm" variant="default" onClick={goBack}>
             <IconArrowLeft
               style={{ width: '70%', height: '70%' }}
               stroke={1.5}
             />
           </ActionIcon>
-          <ActionIcon
-            component={Link}
-            to="/dashboard"
-            size="sm"
-            variant="default"
-            onClick={goForward}
-          >
+          <ActionIcon size="sm" variant="default" onClick={goForward}>
             <IconArrowRight
               style={{ width: '70%', height: '70%' }}
               stroke={1.5}
@@ -66,6 +65,10 @@ function PortalLayout() {
             color="red"
           >
             <IconX style={{ width: '70%', height: '70%' }} stroke={1.5} />
+          </ActionIcon>
+
+          <ActionIcon onClick={toggle}>
+            <IconMenu style={{ width: '70%', height: '70%' }} stroke={1.5} />
           </ActionIcon>
         </Group>
         <ScrollArea h={height}>

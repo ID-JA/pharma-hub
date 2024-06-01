@@ -12,7 +12,7 @@ using PharmaHub.API.Database;
 namespace PharmaHub.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240529161126_InitialCreateDB")]
+    [Migration("20240601092441_InitialCreateDB")]
     partial class InitialCreateDB
     {
         /// <inheritdoc />
@@ -139,15 +139,41 @@ namespace PharmaHub.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BankName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("BillDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("BillNumber")
                         .HasColumnType("int");
+
+                    b.Property<string>("CheckNumber")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DisbursementDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EffectNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalPayment")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -187,6 +213,75 @@ namespace PharmaHub.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MedicationNames");
+                });
+
+            modelBuilder.Entity("PharmaHub.API.Models.Delivery", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BillId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Deliveries");
+                });
+
+            modelBuilder.Entity("PharmaHub.API.Models.DeliveryMedication", b =>
+                {
+                    b.Property<int>("DeliveryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InventoryId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Pph")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Ppv")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("DeliveryId", "InventoryId");
+
+                    b.HasIndex("InventoryId");
+
+                    b.ToTable("DeliveryMedications");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Family", b =>
@@ -423,7 +518,7 @@ namespace PharmaHub.API.Migrations
                     b.ToTable("Medications");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.Order", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Order.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -431,42 +526,30 @@ namespace PharmaHub.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("BillId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("OrderNumber")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SupplierId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalQuantity")
+                    b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("BillId");
-
                     b.HasIndex("SupplierId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.OrderMedication", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Order.OrderItem", b =>
                 {
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -474,22 +557,25 @@ namespace PharmaHub.API.Migrations
                     b.Property<int>("InventoryId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Pph")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<double>("DiscountRate")
+                        .HasColumnType("float");
 
-                    b.Property<decimal>("Ppv")
+                    b.Property<decimal>("Pph")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalPurchasePrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.HasKey("OrderId", "InventoryId");
 
                     b.HasIndex("InventoryId");
 
-                    b.ToTable("OrderMedications");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Role", b =>
@@ -860,6 +946,48 @@ namespace PharmaHub.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PharmaHub.API.Models.Delivery", b =>
+                {
+                    b.HasOne("PharmaHub.API.Models.Bill", "Bill")
+                        .WithMany("Deliveries")
+                        .HasForeignKey("BillId");
+
+                    b.HasOne("PharmaHub.API.Models.Supplier", "Supplier")
+                        .WithMany("Orders")
+                        .HasForeignKey("SupplierId");
+
+                    b.HasOne("PharmaHub.API.Models.User", "User")
+                        .WithMany("Deliveries")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bill");
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PharmaHub.API.Models.DeliveryMedication", b =>
+                {
+                    b.HasOne("PharmaHub.API.Models.Delivery", "Delivery")
+                        .WithMany("OrderMedications")
+                        .HasForeignKey("DeliveryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PharmaHub.API.Models.Inventory", "Inventory")
+                        .WithMany("OrderMedications")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Delivery");
+
+                    b.Navigation("Inventory");
+                });
+
             modelBuilder.Entity("PharmaHub.API.Models.Inventory", b =>
                 {
                     b.HasOne("PharmaHub.API.Models.Medication", "Medication")
@@ -879,7 +1007,7 @@ namespace PharmaHub.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PharmaHub.API.Models.Order", "Order")
+                    b.HasOne("PharmaHub.API.Models.Delivery", "Order")
                         .WithMany("InventoryHistories")
                         .HasForeignKey("OrderId");
 
@@ -894,39 +1022,27 @@ namespace PharmaHub.API.Migrations
                     b.Navigation("Sale");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.Order", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Order.Order", b =>
                 {
-                    b.HasOne("PharmaHub.API.Models.Bill", "Bill")
-                        .WithMany("Orders")
-                        .HasForeignKey("BillId");
-
                     b.HasOne("PharmaHub.API.Models.Supplier", "Supplier")
-                        .WithMany("Orders")
-                        .HasForeignKey("SupplierId");
-
-                    b.HasOne("PharmaHub.API.Models.User", "User")
-                        .WithMany("Orders")
-                        .HasForeignKey("UserId")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Bill");
-
                     b.Navigation("Supplier");
-
-                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.OrderMedication", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Order.OrderItem", b =>
                 {
                     b.HasOne("PharmaHub.API.Models.Inventory", "Inventory")
-                        .WithMany("OrderMedications")
+                        .WithMany("OrderItems")
                         .HasForeignKey("InventoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PharmaHub.API.Models.Order", "Order")
-                        .WithMany("OrderMedications")
+                    b.HasOne("PharmaHub.API.Models.Order.Order", "Order")
+                        .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -968,12 +1084,21 @@ namespace PharmaHub.API.Migrations
 
             modelBuilder.Entity("PharmaHub.API.Models.Bill", b =>
                 {
-                    b.Navigation("Orders");
+                    b.Navigation("Deliveries");
+                });
+
+            modelBuilder.Entity("PharmaHub.API.Models.Delivery", b =>
+                {
+                    b.Navigation("InventoryHistories");
+
+                    b.Navigation("OrderMedications");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Inventory", b =>
                 {
                     b.Navigation("InventoryHistories");
+
+                    b.Navigation("OrderItems");
 
                     b.Navigation("OrderMedications");
                 });
@@ -983,11 +1108,9 @@ namespace PharmaHub.API.Migrations
                     b.Navigation("Inventories");
                 });
 
-            modelBuilder.Entity("PharmaHub.API.Models.Order", b =>
+            modelBuilder.Entity("PharmaHub.API.Models.Order.Order", b =>
                 {
-                    b.Navigation("InventoryHistories");
-
-                    b.Navigation("OrderMedications");
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("PharmaHub.API.Models.Sale", b =>
@@ -1006,7 +1129,7 @@ namespace PharmaHub.API.Migrations
                 {
                     b.Navigation("Bills");
 
-                    b.Navigation("Orders");
+                    b.Navigation("Deliveries");
 
                     b.Navigation("Sales");
                 });

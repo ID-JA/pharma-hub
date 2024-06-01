@@ -17,5 +17,5 @@ public class Bill : BaseModel
     public string Status { get; set; }
     public int UserId { get; set; }
     public User User { get; set; }
-    public List<Delivery> Orders { get; set; }
+    public List<Delivery> Deliveries { get; set; }
 }
