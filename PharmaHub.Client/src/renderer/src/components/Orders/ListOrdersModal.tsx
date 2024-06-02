@@ -19,8 +19,8 @@ import { useCallback, useMemo, useState } from 'react'
 function ListOrdersModal({ selectedRows, onRowSelect }) {
   const [filterOptions, setFilterOptions] = useState<any>({
     status: 'Pending',
-    from: dayjs(),
-    to: dayjs(),
+    from: dayjs().subtract(7, 'days').toDate(),
+    to: dayjs().toDate(),
     supplier: null
   })
 
@@ -33,13 +33,6 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
       return response.data.data
     }
   })
-
-  const handleChangeDate = (value) => {
-    setFilterOptions((prev) => ({
-      ...prev,
-      from: value
-    }))
-  }
 
   const handleSelect = (value) => {
     setFilterOptions((prev) => ({
@@ -72,6 +65,7 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
         <DatePickerInput
           label="Select date range"
           type="range"
+          defaultValue={[filterOptions.from, filterOptions.to]}
           value={filterOptions.dates}
           onChange={handleChangeDateRange}
         />
@@ -118,7 +112,7 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
                   <Badge
                     color={order.status === 'Delivered' ? 'green' : 'orange'}
                   >
-                    {order.status}
+                    {orderItem.status}
                   </Badge>
                 </Table.Td>
               </Table.Tr>

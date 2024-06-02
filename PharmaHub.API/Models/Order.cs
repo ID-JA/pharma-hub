@@ -23,4 +23,6 @@ public class OrderItem
     public double DiscountRate { get; set; }
     public int InventoryId { get; set; }
     public Inventory Inventory { get; set; } = null!;
+    public string Status { get; set; }
+
 }

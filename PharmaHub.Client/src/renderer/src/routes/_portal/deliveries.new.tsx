@@ -50,7 +50,8 @@ const schema = z.object({
         discount: z.number(),
         pph: z.number(),
         ppv: z.number(),
-        inventoryId: z.number()
+        inventoryId: z.number(),
+        orderId: z.number().default(0)
       })
     )
     .default([])
@@ -77,7 +78,8 @@ function useDeliveryForm() {
         quantity: 1,
         ppv: item.inventory.ppv,
         pph: item.inventory.pph,
-        discount: 0
+        discount: 0,
+        orderId: 0
       })
     },
     [form]
@@ -177,6 +179,7 @@ export function NewDeliveryPage() {
   }
   const [selectedPendingOrders, setSelectedPendingOrders] = useState<any[]>([])
   const handleRowSelect = (orderItem, isSelected) => {
+    console.log({ orderItem })
     setSelectedPendingOrders((prevSelectedRows) =>
       isSelected
         ? [...prevSelectedRows, orderItem]
@@ -192,7 +195,9 @@ export function NewDeliveryPage() {
         inventoryId: orderItem.inventory.id,
         quantity: orderItem.quantity,
         ppv: orderItem.inventory.ppv,
-        pph: orderItem.inventory.pph
+        pph: orderItem.inventory.pph,
+        orderId: orderItem.order.id,
+        discount: 0
       })
       setDeliveryItems((prev) => [
         ...prev,
@@ -446,6 +451,7 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
     const deliveryMedications = form.getValues().deliveryMedications
     if (deliveryMedications && deliveryMedications[index]) {
       const { pph, quantity, discount } = deliveryMedications[index]
+      console.log({ pph, quantity })
       setTotalPph(calculatePriceAfterDiscount(pph, discount) * quantity)
     }
   }, [form.getValues().deliveryMedications, index])

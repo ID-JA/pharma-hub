@@ -25,6 +25,7 @@ import { zodResolver } from 'mantine-form-zod-resolver'
 import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { toast } from 'sonner'
+import { useDisclosure } from '@mantine/hooks'
 
 export const Route = createFileRoute('/_portal/orders/new')({
   component: NewOrder
@@ -271,11 +272,16 @@ function NewOrder() {
     )
   }
 
+  const [opened, { close, open }] = useDisclosure(false)
+
   return (
     <Box p="md">
-      <Box mih="330px">
-        <Inventories items={orderedItems} handleAddItem={handleAdd} />
-      </Box>
+      <Inventories
+        onClose={close}
+        opened={opened}
+        items={orderedItems}
+        handleAddItem={handleAdd}
+      />
 
       <Form form={form} onSubmit={(values) => mutate(values)}>
         <Group>
@@ -315,6 +321,7 @@ function NewOrder() {
           </Table>
         </ScrollArea>
         <Group justify="end" p="md">
+          <Button onClick={open}>Add Medications</Button>
           <Button
             type="submit"
             loading={isPending}

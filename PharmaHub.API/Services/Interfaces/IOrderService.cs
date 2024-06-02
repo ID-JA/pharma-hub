@@ -47,6 +47,7 @@ public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, Models.Order.Order
 public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 {
     public int Quantity { get; set; }
+    public string Status { get; set; }
     public decimal TotalPurchasePrice { get; set; }
     public decimal Pph { get; set; }
     public double DiscountRate { get; set; }
@@ -126,6 +127,36 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
                 Pph = item.Pph,
             };
             order.OrderMedications.Add(orderMedication);
+
+            // if the orderId > 0 we need to change status of the order
+            if (item.OrderId > 0)
+            {
+                var orderItem = await dbContext.OrderItems
+                    .FirstOrDefaultAsync(oi => oi.OrderId == item.OrderId && oi.InventoryId == item.InventoryId, cancellationToken);
+                if (orderItem is not null)
+                {
+                    orderItem.Status = "Processed";
+                    dbContext.OrderItems.Update(orderItem);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+
+                    // Check if all order items for this order have been processed
+                    bool allItemsProcessed = await dbContext.OrderItems
+                        .Where(oi => oi.OrderId == item.OrderId)
+                        .AllAsync(oi => oi.Status == "Processed", cancellationToken);
+
+                    if (allItemsProcessed)
+                    {
+                        var orderToUpdate = await dbContext.Orders
+                            .FirstOrDefaultAsync(o => o.Id == item.OrderId, cancellationToken);
+                        if (orderToUpdate is not null)
+                        {
+                            orderToUpdate.Status = "Processed";
+                            dbContext.Orders.Update(orderToUpdate);
+                        }
+                    }
+                }
+            }
+
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -192,6 +223,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
                     TotalPurchasePrice = OrderItem.TotalPurchasePrice,
                     Pph = OrderItem.Pph,
                     Quantity = OrderItem.Quantity,
+                    Status = "Pending",
                 };
 
                 dbContext.OrderItems.Add(orderItem);
@@ -213,7 +245,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         if (!string.IsNullOrEmpty(searchQuery.Status))
         {
-            query = query.Where(oi => oi.Order.Status == searchQuery.Status);
+            query = query.Where(oi => oi.Status == searchQuery.Status);
         }
 
         if (searchQuery.Supplier > 0)
