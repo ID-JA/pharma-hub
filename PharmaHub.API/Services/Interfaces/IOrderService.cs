@@ -63,7 +63,7 @@ public interface IDeliveryService
     Task<bool> DeleteDelivery(int id, CancellationToken cancellationToken = default);
 
     Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken);
-    Task<List<OrderItemDetailedDto>> GetOrders(CancellationToken cancellationToken);
+    Task<PaginatedResponse<OrderItemDetailedDto>> GetOrders(OrderSearchQuery searchQuery, CancellationToken cancellationToken);
 }
 
 
@@ -202,13 +202,35 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         return true;
     }
 
-    public async Task<List<OrderItemDetailedDto>> GetOrders(CancellationToken cancellationToken)
+    public async Task<PaginatedResponse<OrderItemDetailedDto>> GetOrders(OrderSearchQuery searchQuery, CancellationToken cancellationToken)
     {
-        return await dbContext.OrderItems
+        // Define the base query
+        var query = dbContext.OrderItems
             .Include(oi => oi.Inventory)
             .ThenInclude(i => i.Medication)
-            .Include(o => o.Order)
-            .ProjectToType<OrderItemDetailedDto>()
-            .ToListAsync(cancellationToken);
+            .Include(oi => oi.Order)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchQuery.Status))
+        {
+            query = query.Where(oi => oi.Order.Status == searchQuery.Status);
+        }
+
+        if (searchQuery.Supplier > 0)
+        {
+            query = query.Where(oi => oi.Order.SupplierId == searchQuery.Supplier);
+        }
+
+        query = query.Where(oi => oi.Order.OrderDate >= searchQuery.From && oi.Order.OrderDate <= searchQuery.To);
+
+        return await query.ProjectToType<OrderItemDetailedDto>().PaginatedListAsync(1, 1000);
     }
+}
+
+public class OrderSearchQuery
+{
+    public string Status { get; set; } = "";
+    public int Supplier { get; set; }
+    public DateTime From { get; set; } = DateTime.Now;
+    public DateTime To { get; set; } = DateTime.Now;
 }

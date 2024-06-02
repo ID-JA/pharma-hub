@@ -29,6 +29,7 @@ import { Route as PortalMedicamentsDciImport } from './routes/_portal/medicament
 import { Route as PortalMedicamentsConsultationImport } from './routes/_portal/medicaments_.consultation'
 import { Route as PortalMedicamentsMedicamentIdImport } from './routes/_portal/medicaments.$medicamentId'
 import { Route as PortalDeliveriesNewImport } from './routes/_portal/deliveries.new'
+import { Route as PortalDeliveriesConsultationImport } from './routes/_portal/deliveries.consultation'
 import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
 
 // Create/Update Routes
@@ -125,6 +126,12 @@ const PortalDeliveriesNewRoute = PortalDeliveriesNewImport.update({
   getParentRoute: () => PortalRoute,
 } as any)
 
+const PortalDeliveriesConsultationRoute =
+  PortalDeliveriesConsultationImport.update({
+    path: '/deliveries/consultation',
+    getParentRoute: () => PortalRoute,
+  } as any)
+
 const PortalMedicamentsMedicamentIdHistoryRoute =
   PortalMedicamentsMedicamentIdHistoryImport.update({
     path: '/history',
@@ -175,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof PortalSettingsImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/deliveries/consultation': {
+      id: '/_portal/deliveries/consultation'
+      path: '/deliveries/consultation'
+      fullPath: '/deliveries/consultation'
+      preLoaderRoute: typeof PortalDeliveriesConsultationImport
       parentRoute: typeof PortalImport
     }
     '/_portal/deliveries/new': {
@@ -289,6 +303,7 @@ export const routeTree = rootRoute.addChildren({
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
     }),
+    PortalDeliveriesConsultationRoute,
     PortalDeliveriesNewRoute,
     PortalMedicamentsConsultationRoute,
     PortalMedicamentsDciRoute,

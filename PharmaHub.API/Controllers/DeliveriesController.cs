@@ -51,9 +51,16 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
     }
 
     [HttpGet("orders")]
-    public async Task<ActionResult> GetOrders(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetOrders([FromQuery] string? status, [FromQuery] int supplier, [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken cancellationToken)
     {
-        return Ok(await deliveryService.GetOrders(cancellationToken));
+        OrderSearchQuery searchQuery = new()
+        {
+            Status = status,
+            Supplier = supplier,
+            From = from,
+            To = to,
+        };
+        return Ok(await deliveryService.GetOrders(searchQuery, cancellationToken));
     }
 
 }

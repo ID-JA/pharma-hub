@@ -135,7 +135,7 @@ function SaleMenu() {
 function OrderMenu() {
   return (
     <>
-      <Menu shadow="md" width={200}>
+      <Menu shadow="md">
         <Menu.Target>
           <ActionIcon size="50px" radius="100%" variant="default">
             <img
@@ -167,12 +167,22 @@ function OrderMenu() {
           </Menu.Item>
           <Menu.Item
             component={Link}
+            to="/deliveries/consultation"
+            leftSection={
+              <IconSettings style={{ width: rem(17), height: rem(17) }} />
+            }
+          >
+            Deliveries Consultation / Pending Orders
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item
+            component={Link}
             to="/orders/consultation"
             leftSection={
               <IconSettings style={{ width: rem(17), height: rem(17) }} />
             }
           >
-            Deliveries List
+            Create New Bill
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
