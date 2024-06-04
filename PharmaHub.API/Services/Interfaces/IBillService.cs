@@ -5,7 +5,7 @@ namespace PharmaHub.API.Services.Interfaces;
 
 public interface IBillService
 {
-  Task<bool> CreateBillAsync(CreateBillDto request, CancellationToken cancellationToken = default);
+  Task<bool> CreateBillAsync(BillCreateDto request, CancellationToken cancellationToken = default);
   Task<BillBasicDto?> GetBillAsync(int id, CancellationToken cancellationToken = default);
   Task<PaginatedResponse<BillBasicDto>> GetBillsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
   public Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
@@ -18,7 +18,7 @@ public interface IBillService
 public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IBillService
 {
 
-  public async Task<bool> CreateBillAsync(CreateBillDto request, CancellationToken cancellationToken = default)
+  public async Task<bool> CreateBillAsync(BillCreateDto request, CancellationToken cancellationToken = default)
   {
     var userId = currentUser.GetUserId();
     Bill bill = new()
@@ -36,6 +36,19 @@ public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUse
       Status = "Paid"
     };
     dbContext.Bills.Add(bill);
+    await dbContext.SaveChangesAsync(cancellationToken);
+
+    foreach (int deliveryId in request.DeliveryIds)
+    {
+      var delivery = await dbContext.Deliveries.FindAsync([deliveryId]);
+      // var delivery = await  dbContext.Deliveries.Where(d=>d.Id == deliveryId).FistOrDefaultAsync();
+
+      if (delivery is null) continue;
+
+      delivery.BillId = bill.Id;
+      dbContext.Deliveries.Update(delivery);
+    }
+
     await dbContext.SaveChangesAsync(cancellationToken);
     return true;
   }

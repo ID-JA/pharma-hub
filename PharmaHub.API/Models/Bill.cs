@@ -12,10 +12,22 @@ public class Bill : BaseModel
     public DateTime? DueDate { get; set; }
     public DateTime? DisbursementDate { get; set; }
     public string? BankName { get; set; }
+
+    [Precision(10, 2)]
+    public decimal TotalPph { get; set; }
+
+    [Precision(10, 2)]
+    public decimal TotalPphBrut { get; set; }
+
+    [Precision(10, 2)]
+    public decimal TotalPpv { get; set; }
+    [Precision(10, 2)]
+    public decimal TotalFreePpv { get; set; }
     [Precision(10, 2)]
     public decimal TotalPayment { get; set; }
     public string Status { get; set; }
     public int UserId { get; set; }
     public User User { get; set; }
     public List<Delivery> Deliveries { get; set; }
+
 }

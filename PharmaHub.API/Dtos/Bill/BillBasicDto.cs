@@ -12,4 +12,8 @@ public class BillBasicDto : BaseDto<BillBasicDto, Bill>
 
   public string? BankName { get; set; }
   public decimal TotalPayment { get; set; }
+  public decimal TotalPph { get; set; }
+  public decimal TotalPphBrut { get; set; }
+  public decimal TotalPpv { get; set; }
+  public decimal TotalFreePpv { get; set; }
 }

@@ -7,7 +7,7 @@ namespace PharmaHub.API.Controllers;
 public class BillsController(IBillService billService) : ControllerBase
 {
   [HttpPost]
-  public async Task<ActionResult> CreateBill([FromBody] CreateBillDto request, CancellationToken cancellationToken)
+  public async Task<ActionResult> CreateBill([FromBody] BillCreateDto request, CancellationToken cancellationToken)
   {
     await billService.CreateBillAsync(request, cancellationToken);
     return NoContent();
