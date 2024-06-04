@@ -5,6 +5,7 @@
 public class ClientsController(IClientService clientService) : ControllerBase
 {
   [HttpPost]
+
   public async Task<ActionResult> CreateClient([FromBody] ClientCreateDto request, CancellationToken cancellationToken)
   {
     await clientService.CreateClientAsync(request, cancellationToken);

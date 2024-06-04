@@ -56,6 +56,7 @@ public class ClientService(ApplicationDbContext dbContext, ICurrentUser currentU
     }
     return false;
   }
+
   public async Task<bool> UpdateClient(int id, ClientUpdateDto request, CancellationToken cancellationToken = default)
   {
     var client = await dbContext.Clients.FirstOrDefaultAsync(c => c.Id == id, cancellationToken: cancellationToken);

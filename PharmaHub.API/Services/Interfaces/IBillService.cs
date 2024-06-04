@@ -66,14 +66,20 @@ public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUse
   public async Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default)
   {
     var bill = await dbContext.Bills.FirstOrDefaultAsync(b => b.Id == id, cancellationToken: cancellationToken);
-
     if (bill is not null)
     {
+      var deliveries = await dbContext.Deliveries.Where(d => d.Id == id).ToListAsync(cancellationToken);
+      foreach (var item in deliveries)
+      {
+        item.BillId = null;
+        dbContext.Deliveries.Update(item);
+      }
       dbContext.Bills.Remove(bill);
       await dbContext.SaveChangesAsync(cancellationToken);
-      return true;
     }
-    return false;
+
+    return true;
+
   }
   public async Task<bool> UpdateBill(int id, BillUpdateDto request, CancellationToken cancellationToken = default)
   {
