@@ -179,7 +179,6 @@ export function NewDeliveryPage() {
   }
   const [selectedPendingOrders, setSelectedPendingOrders] = useState<any[]>([])
   const handleRowSelect = (orderItem, isSelected) => {
-    console.log({ orderItem })
     setSelectedPendingOrders((prevSelectedRows) =>
       isSelected
         ? [...prevSelectedRows, orderItem]
