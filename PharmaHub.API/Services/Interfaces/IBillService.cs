@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PharmaHub.API.Common.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
@@ -6,7 +7,10 @@ public interface IBillService
 {
   Task<bool> CreateBillAsync(CreateBillDto request, CancellationToken cancellationToken = default);
   Task<BillBasicDto?> GetBillAsync(int id, CancellationToken cancellationToken = default);
-  Task<List<BillBasicDto>> GetBillsAsync(CancellationToken cancellationToken = default);
+  Task<PaginatedResponse<BillBasicDto>> GetBillsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+  public Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
+  public Task<bool> UpdateBill(int id, BillUpdateDto request, CancellationToken cancellationToken = default);
+
   // Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
   // Task<bool> UpdateBill(int id, BillDto request, CancellationToken cancellationToken = default);
   // Task<PaginatedResponse<Bill>> GetBills(string name, CancellationToken cancellationToken);
@@ -42,8 +46,43 @@ public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUse
             .ProjectToType<BillBasicDto>()
             .FirstOrDefaultAsync(cancellationToken);
   }
-  public async Task<List<BillBasicDto>> GetBillsAsync(CancellationToken cancellationToken = default)
+  public async Task<PaginatedResponse<BillBasicDto>> GetBillsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
   {
-    return await dbContext.Bills.ProjectToType<BillBasicDto>().ToListAsync(cancellationToken);
+    return await dbContext.Bills.ProjectToType<BillBasicDto>().PaginatedListAsync(pageNumber, pageSize);
   }
+  public async Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default)
+  {
+    var bill = await dbContext.Bills.FirstOrDefaultAsync(b => b.Id == id, cancellationToken: cancellationToken);
+
+    if (bill is not null)
+    {
+      dbContext.Bills.Remove(bill);
+      await dbContext.SaveChangesAsync(cancellationToken);
+      return true;
+    }
+    return false;
+  }
+  public async Task<bool> UpdateBill(int id, BillUpdateDto request, CancellationToken cancellationToken = default)
+  {
+    var bill = await dbContext.Bills.FirstOrDefaultAsync(b => b.Id == id, cancellationToken: cancellationToken);
+
+    if (bill is not null)
+    {
+      bill.BillNumber = request.BillNumber;
+      bill.BillDate = request.BillDate;
+      bill.PaymentType = request.PaymentType;
+      bill.CheckNumber = request.CheckNumber;
+      bill.EffectNumber = request.EffectNumber;
+      bill.DueDate = request.DueDate;
+      bill.DisbursementDate = request.DisbursementDate;
+      bill.BankName = request.BankName;
+      bill.TotalPayment = request.TotalPayment;
+
+      dbContext.Bills.Update(bill);
+      await dbContext.SaveChangesAsync(cancellationToken);
+      return true;
+    }
+    return false;
+  }
+
 }

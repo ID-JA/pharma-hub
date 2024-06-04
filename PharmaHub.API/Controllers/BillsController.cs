@@ -22,9 +22,21 @@ public class BillsController(IBillService billService) : ControllerBase
   }
   [HttpGet]
 
-  public async Task<ActionResult> GetBillsAsync(CancellationToken cancellationToken)
+  public async Task<ActionResult> GetBillsAsync(CancellationToken cancellationToken, [FromQuery] int pageNumber, [FromQuery] int pageSize)
   {
-    return Ok(await billService.GetBillsAsync(cancellationToken));
+    return Ok(await billService.GetBillsAsync(pageNumber, pageSize, cancellationToken));
+  }
+  [HttpDelete("{id:int}")]
+  public async Task<ActionResult> DeleteBill([FromRoute] int id, CancellationToken cancellationToken)
+  {
+    var result = await billService.DeleteBill(id, cancellationToken);
+    return result ? Ok(result) : NotFound();
+  }
+  [HttpPut("{id:int}")]
+  public async Task<ActionResult> UpdateBill([FromRoute] int id, [FromBody] BillUpdateDto request, CancellationToken cancellationToken)
+  {
+    var result = await billService.UpdateBill(id, request, cancellationToken);
+    return result ? Ok(result) : NotFound();
   }
 }
 
