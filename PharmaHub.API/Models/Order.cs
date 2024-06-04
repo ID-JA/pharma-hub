@@ -24,5 +24,4 @@ public class OrderItem
     public int InventoryId { get; set; }
     public Inventory Inventory { get; set; } = null!;
     public string Status { get; set; }
-
 }

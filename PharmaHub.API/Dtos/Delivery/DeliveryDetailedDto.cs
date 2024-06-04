@@ -1,5 +1,4 @@
-﻿using PharmaHub.API.Dtos.StockHistory;
-using PharmaHub.API.Dtos.Supplier;
+﻿using PharmaHub.API.Dtos.Supplier;
 using PharmaHub.API.Dtos.User;
 
 namespace PharmaHub.API.Dtos.Delivery;
@@ -12,9 +11,7 @@ public class DeliveryDetailedDto : BaseDto<DeliveryDetailedDto, Models.Delivery>
     public DateTime OrderDate { get; set; }
     public UserBasicDto User { get; set; }
     public SupplierBasicDto? Supplier { get; set; }
-    public BillBasic? Bill { get; set; }
-    public List<StockHistoryBasicDto> InventoryHistories { get; set; }
-    public List<DeliveryMedicationDto> DeliveryMedications { get; set; }
+    public List<DeliveryMedicationBasicDto> OrderMedications { get; set; }
 }
 
 public class BillBasic : BaseDto<BillBasic, Models.Bill>

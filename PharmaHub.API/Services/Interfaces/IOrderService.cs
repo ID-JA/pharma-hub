@@ -57,7 +57,7 @@ public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 
 public interface IDeliveryService
 {
-    Task<PaginatedResponse<DeliveryBasicDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<DeliveryBasicDto?> GetDeliveryAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default);
     Task<bool> UpdateDelivery(int id, DeliveryUpdateDto request, CancellationToken cancellationToken = default);
@@ -77,18 +77,23 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     .ProjectToType<DeliveryBasicDto>()
     .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<PaginatedResponse<DeliveryBasicDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
-        if (supplier != 0)
+        var query = dbContext.Deliveries.AsNoTracking()
+            .Where(d => d.OrderDate >= from && d.OrderDate <= to);
+
+        if (supplier > 0)
         {
-            return await dbContext.Deliveries.Where(o => o.OrderDate >= from && o.OrderDate <= to && o.SupplierId == supplier).OrderBy(o => o.OrderDate)
-                    .Include(o => o.OrderMedications).ProjectToType<DeliveryBasicDto>().PaginatedListAsync(pageNumber, pageSize);
+            query = query.Where(d => d.SupplierId == supplier);
         }
-        else
-        {
-            return await dbContext.Deliveries.Where(o => o.OrderDate >= from && o.OrderDate <= to).OrderBy(o => o.OrderDate)
-                   .Include(o => o.OrderMedications).ProjectToType<DeliveryBasicDto>().PaginatedListAsync(pageNumber, pageSize);
-        }
+
+        var result = await query
+            .OrderBy(d => d.OrderDate)
+            .Include(d => d.OrderMedications)
+            .ProjectToType<DeliveryDetailedDto>()
+            .PaginatedListAsync(1, 1000);
+
+        return result;
     }
 
     public async Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)

@@ -177,7 +177,7 @@ function OrderMenu() {
           <Menu.Divider />
           <Menu.Item
             component={Link}
-            to="/orders/consultation"
+            to="/bills/new"
             leftSection={
               <IconSettings style={{ width: rem(17), height: rem(17) }} />
             }
