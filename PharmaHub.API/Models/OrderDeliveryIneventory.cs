@@ -1,17 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace PharmaHub.API.Models;
 
-public class DeliveryMedication
+public class OrderDeliveryInventory : BaseModel
 {
-    public int DeliveryId { get; set; }
-    public Delivery Delivery { get; set; } = null!;
-
-    public int OrderId { get; set; }
-    public Order Order { get; set; } = null!;
-
     public int InventoryId { get; set; }
     public Inventory Inventory { get; set; } = null!;
+
+    public int? DeliveryId { get; set; }
+    public Delivery Delivery { get; set; } = null!;
+
+    public int? OrderId { get; set; }
+    public Order Order { get; set; } = null!;
 
     public int OrderedQuantity { get; set; }
 

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace PharmaHub.API.Models.Order;
+namespace PharmaHub.API.Models;
 
 public class Order : BaseModel
 {
@@ -8,7 +8,7 @@ public class Order : BaseModel
     public string Status { get; set; }
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; }
-    public List<OrderItem> OrderItems { get; set; }
+    public List<OrderDeliveryInventory> OrderDeliveryInventories { get; set; }
 }
 
 public class OrderItem

@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Box,
   Button,
+  Divider,
   Drawer,
   Grid,
   Group,
@@ -9,6 +10,7 @@ import {
   NumberInput,
   ScrollArea,
   Select,
+  Stack,
   Table,
   Text
 } from '@mantine/core'
@@ -17,6 +19,7 @@ import { Form, useForm, zodResolver } from '@mantine/form'
 import { useDebouncedState, useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { useListOrdersModal } from '@renderer/components/Orders/ListOrdersModal'
+import { useDeliveryItems, useOrdersAction } from '@renderer/store/order.store'
 import {
   calculatePPH,
   calculatePriceAfterDiscount
@@ -26,7 +29,7 @@ import { IconPlus, IconShoppingCart, IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -46,11 +49,10 @@ const schema = z.object({
   deliveryMedications: z
     .array(
       z.object({
-        quantity: z.number(),
+        deliveredQuantity: z.number(),
         discount: z.number(),
-        pph: z.number(),
-        ppv: z.number(),
         inventoryId: z.number(),
+        totalFreeUnits: z.number().default(0),
         orderId: z.number().default(0)
       })
     )
@@ -60,7 +62,7 @@ const schema = z.object({
 type Order = z.infer<typeof schema>
 
 function useDeliveryForm() {
-  const form = useForm<Order>({
+  return useForm<Order>({
     initialValues: {
       totalQuantity: 0,
       supplierId: '',
@@ -70,55 +72,16 @@ function useDeliveryForm() {
     },
     validate: zodResolver(schema)
   })
-
-  const handleAddItem = useCallback(
-    (item: any) => {
-      form.insertListItem('deliveryMedications', {
-        inventoryId: item.inventory.id,
-        quantity: 1,
-        ppv: item.inventory.ppv,
-        pph: item.inventory.pph,
-        discount: 0,
-        orderId: 0
-      })
-    },
-    [form]
-  )
-
-  const handleRemoveItem = useCallback(
-    (index) => {
-      form.removeListItem('deliveryMedications', index)
-    },
-    [form]
-  )
-
-  return {
-    form,
-    handleAddItem,
-    handleRemoveItem
-  }
 }
 
+const MemoizedNumberInput = memo((props: any) => <NumberInput {...props} />)
+
 export function NewDeliveryPage() {
-  const [deliveryItems, setDeliveryItems] = useState<any[]>([])
-  const { ListOrdersModal, setOpened } = useListOrdersModal()
-  const { form, handleAddItem, handleRemoveItem } = useDeliveryForm()
+  const { ListOrdersModal, ListOrdersModalButton } = useListOrdersModal()
+  const selectedPendingOrders = useDeliveryItems()
+  const form = useDeliveryForm()
 
-  const deliveryItemsMemo = useMemo(() => {
-    return deliveryItems
-  }, [deliveryItems])
-
-  const handleRemoveDeliveryItem = useCallback(
-    (index) => {
-      setDeliveryItems((prev) => prev.filter((_, i) => i !== index))
-    },
-    [setDeliveryItems]
-  )
-
-  const handleAdd = (item) => {
-    handleAddItem(item)
-    setDeliveryItems((prev) => [...prev, item])
-  }
+  const [opened, { close, open }] = useDisclosure(false)
 
   const [totals, setTotals] = useState<any>({
     totalPpv: 0,
@@ -128,137 +91,49 @@ export function NewDeliveryPage() {
     totalQuantities: 0,
     discountedPriceDN: 0
   })
-  const { mutateAsync } = useMutation({
-    mutationFn: async (data: Order) => {
-      return (await http.post('/api/deliveries', data)).data
-    },
-    onSuccess: () => {
-      toast.success('Delivery validated with success!')
-    }
-  })
-  useEffect(() => {
-    if (form.getValues().deliveryMedications?.length) {
-      recalculateTotals()
-    }
-  }, [form.getValues().deliveryMedications])
 
-  const recalculateTotals = () => {
-    const totalPphTtc = form
-      .getValues()
-      .deliveryMedications.reduce(
-        (acc, item) =>
-          acc +
-          calculatePriceAfterDiscount(item.pph, item.discount) * item.quantity,
-        0
-      )
-
-    const totalPphBrut = form
-      .getValues()
-      .deliveryMedications.reduce(
-        (acc, item) => acc + Number(item.pph) * item.quantity,
-        0
-      )
-    setTotals({
-      totalPpv: form
-        .getValues()
-        .deliveryMedications.reduce(
-          (acc, item) => acc + Number(item.ppv) * item.quantity,
-          0
-        ),
-      totalPphBrut,
-      totalPphTtc,
-      totalProducts: form.getValues().deliveryMedications.length,
-      totalQuantities: form
-        .getValues()
-        .deliveryMedications.reduce(
-          (acc, item) => acc + Number(item.quantity),
-          0
-        ),
-      discountedPriceDN: totalPphBrut - totalPphTtc
-    })
-  }
-  const [selectedPendingOrders, setSelectedPendingOrders] = useState<any[]>([])
-  const handleRowSelect = (orderItem, isSelected) => {
-    setSelectedPendingOrders((prevSelectedRows) =>
-      isSelected
-        ? [...prevSelectedRows, orderItem]
-        : prevSelectedRows.filter(
-            (item) =>
-              `${item.order.id}-${item.inventory.id}` !==
-              `${orderItem.order.id}-${orderItem.inventory.id}`
-          )
+  const calculateTotals = () => {
+    const totalPphTtc = selectedPendingOrders.reduce(
+      (acc, item) =>
+        acc +
+        calculatePriceAfterDiscount(item.inventory.pph, item.discountRate) *
+          item.deliveredQuantity,
+      0
+    )
+    const totalPphBrut = selectedPendingOrders.reduce(
+      (acc, item) => acc + Number(item.inventory.pph) * item.deliveredQuantity,
+      0
+    )
+    const totalPpv = selectedPendingOrders.reduce(
+      (acc, item) => acc + Number(item.inventory.ppv) * item.deliveredQuantity,
+      0
+    )
+    const totalQuantities = selectedPendingOrders.reduce(
+      (acc, item) => acc + Number(item.deliveredQuantity),
+      0
     )
 
-    if (isSelected) {
-      form.insertListItem('deliveryMedications', {
-        inventoryId: orderItem.inventory.id,
-        quantity: orderItem.quantity,
-        ppv: orderItem.inventory.ppv,
-        pph: orderItem.inventory.pph,
-        orderId: orderItem.order.id,
-        discount: 0
-      })
-      setDeliveryItems((prev) => [
-        ...prev,
-        { medication: orderItem.inventory.medication, ...orderItem }
-      ])
-    } else {
-      const index = form
-        .getValues()
-        .deliveryMedications.findIndex(
-          (item) => item.inventoryId === orderItem.inventory.id
-        )
-      if (index !== -1) {
-        form.removeListItem('deliveryMedications', index)
-        setDeliveryItems((prev) => prev.filter((_, i) => i !== index))
-        recalculateTotals()
-      }
-    }
+    setTotals({
+      totalPpv,
+      totalPphBrut,
+      totalPphTtc,
+      totalQuantities,
+      discountedPriceDN: totalPphBrut - totalPphTtc,
+      totalProducts: selectedPendingOrders.length
+    })
   }
 
-  const [opened, { close, open }] = useDisclosure(false)
+  useEffect(() => {
+    form.setFieldValue('deliveryMedications', selectedPendingOrders)
+    calculateTotals()
+  }, [selectedPendingOrders])
 
+  const itemCount = selectedPendingOrders.length
   return (
     <Box p="lg">
-      <ListOrdersModal
-        selectedRows={selectedPendingOrders}
-        onRowSelect={handleRowSelect}
-      />
-      <Inventories
-        handleAddItem={handleAdd}
-        items={deliveryItems}
-        onClose={close}
-        opened={opened}
-      />
-      <Form
-        form={form}
-        onSubmit={(values) => {
-          modals.openConfirmModal({
-            centered: true,
-            title: 'Please confirm your action',
-            children: (
-              <Text size="sm">
-                Are you sure you want to validate this delivery?
-              </Text>
-            ),
-            labels: { confirm: 'Validate Delivery', cancel: 'Cancel' },
-            onConfirm: async () => {
-              await mutateAsync(values, {
-                onSuccess: () => {
-                  form.reset()
-                  setDeliveryItems([])
-                  setTotals({
-                    totalPpv: 0,
-                    totalPphBrut: 0,
-                    totalProducts: 0
-                  })
-                }
-              })
-            }
-          })
-        }}
-      >
-        <Group mb="md" justify="space-between" align="center">
+      <ListOrdersModal />
+      <Group justify="space-between" align="center">
+        <Stack>
           <Group>
             <Select
               label="Supplier"
@@ -270,6 +145,7 @@ export function NewDeliveryPage() {
               label="Delivery Number"
               {...form.getInputProps('deliveryNumber')}
               key={form.key('deliveryNumber')}
+              onBlur={() => {}}
             />
             <DatePickerInput
               label="Delivery Date"
@@ -277,114 +153,106 @@ export function NewDeliveryPage() {
               key={form.key('deliveryDate')}
             />
           </Group>
+          <div>
+            <ListOrdersModalButton />
+            <Button onClick={open}>Add Medications</Button>
+          </div>
+        </Stack>
+        <Stack>
           <Group>
-            <NumberInput
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               decimalScale={2}
               fixedDecimalScale
-              w="130px"
               hideControls
               label="Total PPV"
               readOnly
               value={totals.totalPpv}
             />
-            <NumberInput
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               hideControls
               decimalScale={2}
               fixedDecimalScale
-              w="130px"
               label="Total PPH brut"
               readOnly
               defaultValue={0}
               value={totals.totalPphBrut}
             />
-            <NumberInput
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               hideControls
               label="Total PPH Net TTC"
               decimalScale={2}
               defaultValue={0}
               fixedDecimalScale
-              w="130px"
               readOnly
               value={totals.totalPphTtc}
             />
-            <NumberInput
+          </Group>
+          <Group>
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               hideControls
-              label="Discount for DN "
+              label="Discount Price"
               readOnly
               decimalScale={2}
               defaultValue={0}
               fixedDecimalScale
-              w="130px"
               value={totals.discountedPriceDN}
             />
-            <NumberInput
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               hideControls
               label="Total Products"
               defaultValue={0}
-              w="130px"
               readOnly
               value={totals.totalProducts}
             />
-            <NumberInput
+            <MemoizedNumberInput
+              size="xl"
+              w="170px"
               hideControls
               label="Total Quantities"
               defaultValue={0}
-              w="130px"
               readOnly
               value={totals.totalQuantities}
             />
           </Group>
-        </Group>
-        <ScrollArea h={550} type="never" mb="md">
-          <Table
-            verticalSpacing="md"
-            style={{
-              whiteSpace: 'nowrap'
-            }}
-          >
+        </Stack>
+      </Group>
+      <Divider my="md" />
+      <Form form={form}>
+        <ScrollArea h={350} type="never" mb="md">
+          <Table verticalSpacing="md" style={{ whiteSpace: 'nowrap' }}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th w="200px">Product Name</Table.Th>
-                <Table.Th ta="center">
-                  Quantity <br /> Ordered
-                </Table.Th>
-                <Table.Th ta="center">
-                  Quantity <br />
-                  Delivered
-                </Table.Th>
+                <Table.Th ta="center">Quantity Ordered</Table.Th>
+                <Table.Th ta="center">Quantity Delivered</Table.Th>
                 <Table.Th ta="center">PPV. Unit</Table.Th>
                 <Table.Th ta="center">PPH. Unit</Table.Th>
                 <Table.Th ta="center">Discount</Table.Th>
                 <Table.Th ta="center">TVA</Table.Th>
                 <Table.Th ta="center">Marge</Table.Th>
-                <Table.Th ta="center">Total PPH </Table.Th>
-                <Table.Th ta="center">
-                  Quantity <br /> Stock
-                </Table.Th>
+                <Table.Th ta="center">Total PPH</Table.Th>
+                <Table.Th ta="center">Quantity Stock</Table.Th>
                 <Table.Th ta="center"></Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {deliveryItems.length ? (
-                deliveryItemsMemo.map((item: any, index: any) => (
+              {itemCount > 0 ? (
+                selectedPendingOrders.map((item, index) => (
                   <OrderItem
-                    key={item.inventory.id}
+                    key={index}
                     form={form}
                     item={item}
                     index={index}
-                    handleRemove={() => {
-                      handleRemoveDeliveryItem(index)
-                      handleRemoveItem(index)
-                      recalculateTotals()
-
-                      setSelectedPendingOrders((prev) =>
-                        prev.filter(
-                          (item) =>
-                            `${item.order.id}-${item.inventory.id}` !==
-                            `${item.order.id}-${item.inventory.id}`
-                        )
-                      )
-                    }}
                   />
                 ))
               ) : (
@@ -402,118 +270,101 @@ export function NewDeliveryPage() {
             </Table.Tbody>
           </Table>
         </ScrollArea>
-        <Group grow justify="center" w="50%" m="auto">
-          <Button onClick={open}>Add Medications</Button>
-          <Button
-            type="submit"
-            disabled={!form.getValues().deliveryMedications.length}
-          >
-            Validate Delivery
-          </Button>
-          <Button
-            onClick={() => {
-              modals.openConfirmModal({
-                centered: true,
-                title: 'Please confirm your action',
-                children: (
-                  <Text size="sm">
-                    Are you sure you want to cancel this delivery?
-                  </Text>
-                ),
-                labels: { confirm: 'Yes', cancel: 'No' },
-                confirmProps: { color: 'red' },
-                onConfirm: async () => {
-                  form.reset()
-                  setDeliveryItems([])
-                  setTotals({
-                    totalPpv: 0,
-                    totalPphBrut: 0,
-                    totalProducts: 0
-                  })
-                }
-              })
-            }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={() => setOpened(true)}>Load Orders</Button>
-        </Group>
       </Form>
     </Box>
   )
 }
 
-const OrderItem = ({ form, item, index, handleRemove }) => {
+const OrderItem = memo(({ form, item, index }: any) => {
   const [totalPph, setTotalPph] = useState(item.pph * item.quantity)
+  const { removeDeliveryItem } = useOrdersAction()
 
-  useEffect(() => {
+  const calculateTotalPph = useCallback(() => {
     const deliveryMedications = form.getValues().deliveryMedications
     if (deliveryMedications && deliveryMedications[index]) {
       const { pph, quantity, discount } = deliveryMedications[index]
-      console.log({ pph, quantity })
       setTotalPph(calculatePriceAfterDiscount(pph, discount) * quantity)
     }
-  }, [form.getValues().deliveryMedications, index])
+  }, [form, index])
+
+  useEffect(() => {
+    calculateTotalPph()
+  }, [calculateTotalPph])
+
   return (
-    <Table.Tr>
+    <Table.Tr key={index}>
       <Table.Td>{item.medication.name}</Table.Td>
       <Table.Td ta="center" role-description="Quantity Ordered">
-        <NumberInput readOnly size="xs" defaultValue={item.quantity || 1} />
+        <MemoizedNumberInput
+          readOnly
+          size="xs"
+          defaultValue={item.orderedQuantity || 0}
+        />
       </Table.Td>
       <Table.Td ta="center" role-description="Quantity Delivered">
-        <NumberInput
+        <MemoizedNumberInput
           size="xs"
           min={0}
-          {...form.getInputProps(`deliveryMedications.${index}.quantity`)}
+          {...form.getInputProps(
+            `deliveryMedications.${index}.orderedQuantity`
+          )}
+          key={form.key(`deliveryMedications.${index}.orderedQuantity`)}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="PPV">
-        <NumberInput
+        <MemoizedNumberInput
           size="xs"
           readOnly
           hideControls
-          defaultValue={item.ppv}
+          defaultValue={item.inventory.ppv}
           {...form.getInputProps(`deliveryMedications.${index}.ppv`)}
           key={form.key(`deliveryMedications.${index}.ppv`)}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="PPH">
-        <NumberInput
+        <MemoizedNumberInput
           hideControls
           readOnly
           size="xs"
-          defaultValue={item.pph}
+          defaultValue={item.inventory.pph}
           key={form.key(`deliveryMedications.${index}.pph`)}
           {...form.getInputProps(`deliveryMedications.${index}.pph`)}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="Discount Rate">
-        <NumberInput
+        <MemoizedNumberInput
           size="xs"
           min={0}
           max={99}
           defaultValue={0}
-          {...form.getInputProps(`deliveryMedications.${index}.discount`)}
+          {...form.getInputProps(`deliveryMedications.${index}.discountRate`)}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="TVA">
-        <NumberInput size="xs" defaultValue={item.medication.tva} readOnly />
+        <MemoizedNumberInput
+          size="xs"
+          defaultValue={item.medication.tva}
+          readOnly
+        />
       </Table.Td>
-
       <Table.Td ta="center" aria-roledescription="Marge">
-        <NumberInput size="xs" readOnly defaultValue={item.medication.marge} />
+        <MemoizedNumberInput
+          size="xs"
+          readOnly
+          defaultValue={item.medication.marge}
+        />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="Total PPH">
-        <NumberInput
+        <MemoizedNumberInput
           hideControls
           size="xs"
           readOnly
-          value={totalPph}
           decimalScale={2}
+          value={totalPph}
         />
       </Table.Td>
       <Table.Td ta="center" aria-roledescription="Quantity in stock">
-        <NumberInput
+        <MemoizedNumberInput
           hideControls
           size="xs"
           readOnly
@@ -525,93 +376,11 @@ const OrderItem = ({ form, item, index, handleRemove }) => {
           color="red"
           variant="light"
           size="sm"
-          onClick={handleRemove}
+          onClick={() => removeDeliveryItem(item.inventory.id)}
         >
           <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
         </ActionIcon>
       </Table.Td>
     </Table.Tr>
   )
-}
-
-export function Inventories({
-  handleAddItem,
-  items,
-  onClose,
-  opened
-}: {
-  handleAddItem?: any
-  items?: any
-  onClose: () => void
-  opened: boolean
-}) {
-  const [medicamentName, setMedicamentName] = useDebouncedState('', 500)
-  // implement the infinity scroll
-  const { data } = useQuery({
-    queryKey: ['inventories', medicamentName],
-    queryFn: async () => {
-      return (
-        await http.get('/api/inventories', {
-          params: {
-            medicament: medicamentName ? medicamentName : undefined
-          }
-        })
-      ).data.data
-    }
-  })
-
-  function isItemAdded(idToCheck) {
-    return items.some((item) => item.inventory.id === idToCheck)
-  }
-  const rows = data?.map((item) => {
-    return (
-      <Table.Tr key={item.inventory.id}>
-        <Table.Td>{item.medication.name}</Table.Td>
-        <Table.Td ta="center">{item.inventory.quantity}</Table.Td>
-        <Table.Td ta="center">{item.inventory.ppv}</Table.Td>
-        <Table.Td ta="center">{item.inventory.pph}</Table.Td>
-        <Table.Td ta="center">
-          {dayjs(item.inventory.expirationDate).format('DD/MM/YYYY')}
-        </Table.Td>
-        <Table.Td ta="center">
-          <ActionIcon
-            variant="default"
-            onClick={() => handleAddItem(item)}
-            disabled={isItemAdded(item.inventory.id)}
-          >
-            <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.7} />
-          </ActionIcon>
-        </Table.Td>
-      </Table.Tr>
-    )
-  })
-  return (
-    <Drawer
-      onClose={onClose}
-      opened={opened}
-      title="Select Medication's Inventory"
-    >
-      <InputBase
-        w="50%"
-        label="Search for Medicaments"
-        defaultValue={medicamentName}
-        onChange={(event) => setMedicamentName(event.target.value)}
-        placeholder="Medicament Name"
-        mb="md"
-      />
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th ta="center">Quantity</Table.Th>
-            <Table.Th ta="center">PPV</Table.Th>
-            <Table.Th ta="center">PPH</Table.Th>
-            <Table.Th ta="center">Expiration Date</Table.Th>
-            <Table.Th ta="center"></Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
-    </Drawer>
-  )
-}
+})

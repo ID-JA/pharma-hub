@@ -7,4 +7,4 @@ public class DeliveryMedicationCreateDto : BaseDto<DeliveryMedicationCreateDto, 
     public decimal Pph { get; set; }
     public int InventoryId { get; set; }
     public int OrderId { get; set; } // we use this to change the orders status's to processed
-}
+}   
