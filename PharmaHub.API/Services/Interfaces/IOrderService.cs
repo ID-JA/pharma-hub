@@ -18,7 +18,7 @@ public class OrderCreateDto : BaseDto<OrderCreateDto, Order>
 public class OrderBasicDto : BaseDto<OrderBasicDto, Order>
 {
     public int Id { get; set; }
-    public DateTime DeliveryDate { get; set; }
+    public DateTime OrderDate { get; set; }
     public string Status { get; set; }
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; }
@@ -45,6 +45,7 @@ public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, OrderItem>
 
 public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 {
+    public int Id { get; set; }
     public int OrderedQuantity { get; set; }
     public string Status { get; set; }
     public decimal TotalPurchasePrice { get; set; }
