@@ -12,10 +12,12 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm, zodResolver } from '@mantine/form'
+import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
 import { usePendingOrdersSelectorModal } from '@renderer/components/Orders/PendingOrdersSelectorModal'
 import { IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { memo, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_portal/deliveries/new')({
@@ -72,16 +74,19 @@ export function NewDeliveryPage() {
   const [selectedDeliveryItems, setSelectedDeliveryItems] = useState<any>([])
   const form = useDeliveryForm()
 
-  const isOrderItemSelected = (orderId) => {
-    return selectedDeliveryItems.some((item) => item.orderId === orderId)
+  const isAdded = (key) => {
+    return selectedDeliveryItems.some((item) => item.key === key)
   }
+
   const { PendingOrdersSelector, PendingOrdersSelectorButton } =
     usePendingOrdersSelectorModal({
       onAddOrderItem(orderItem) {
-        if (!isOrderItemSelected(orderItem.id)) {
+        const key = `${orderItem.id}-${orderItem.inventory.id}`
+        if (!isAdded(key)) {
           setSelectedDeliveryItems((prev) => [
             ...prev,
             {
+              key,
               orderId: orderItem.id,
               orderedQuantity: orderItem.orderedQuantity,
               deliveredQuantity: orderItem.orderedQuantity,
@@ -105,21 +110,60 @@ export function NewDeliveryPage() {
             inventoryId: orderItem.inventory.id,
             totalFreeUnits: 0
           })
+        } else {
+          toast.warning('Item already added')
         }
-      },
-      isOrderItemSelected
+      }
+    })
+
+  const { open: openInventories, InventorySelectorDrawer } =
+    useInventorySelector({
+      onAddInventory({ inventory, medication }) {
+        const key = `0-${inventory.id}`
+        if (!isAdded(key)) {
+          setSelectedDeliveryItems((prev) => [
+            ...prev,
+            {
+              key,
+              orderId: null,
+              orderedQuantity: 0,
+              deliveredQuantity: 1,
+              inventoryId: inventory.id,
+              discountRate: 0,
+              medicationName: medication.name,
+              marge: medication.marge,
+              expirationDate: inventory.expirationDate,
+              ppv: inventory.ppv,
+              tva: medication.tva,
+              pph: inventory.pph,
+              quantityInStock: inventory.quantity,
+              totalFreeUnits: 0,
+              totalPpv: inventory.ppv * 1,
+              totalPph: inventory.pph * 1
+            }
+          ])
+          form.insertListItem('deliveryMedications', {
+            deliveredQuantity: 1,
+            discountRate: 0,
+            inventoryId: inventory.id,
+            totalFreeUnits: 0
+          })
+        } else {
+          toast.warning('Item already added')
+        }
+      }
     })
 
   const rows = selectedDeliveryItems?.map((item, index) => {
     return (
-      <Table.Tr key={item.orderId}>
+      <Table.Tr key={item.key}>
         <Table.Td>
           <ActionIcon
             variant="light"
             color="red"
             onClick={() => {
               setSelectedDeliveryItems((prev) =>
-                prev.filter((item) => item.orderId !== item.orderId)
+                prev.filter((i) => item.key !== i.key)
               )
               form.removeListItem('deliveryMedications', index)
             }}
@@ -248,7 +292,7 @@ export function NewDeliveryPage() {
   return (
     <Box p="lg">
       <PendingOrdersSelector />
-      {JSON.stringify(form.getValues())}
+      <InventorySelectorDrawer />
       <Group justify="space-between" mb="md">
         <Group>
           <Select
@@ -268,7 +312,7 @@ export function NewDeliveryPage() {
 
         <div>
           <PendingOrdersSelectorButton />
-          <Button variant="light" ml="md">
+          <Button variant="light" ml="md" onClick={openInventories}>
             Ajouter Produit
           </Button>
         </div>

@@ -13,11 +13,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 
 export function InventorySelectorDrawer({
-  onAddInventory,
-  isInventorySelected
+  onAddInventory
 }: {
   onAddInventory: (inventory: any) => void
-  isInventorySelected: (inventoryId: any) => boolean
 }) {
   const [medicamentName, setMedicamentName] = useDebouncedState('', 500)
 
@@ -35,7 +33,6 @@ export function InventorySelectorDrawer({
   })
 
   const rows = data?.map((item) => {
-    const isAdded = isInventorySelected(item.inventory.id)
     return (
       <Table.Tr key={item.inventory.id}>
         <Table.Td>{item.medication.name}</Table.Td>
@@ -46,11 +43,7 @@ export function InventorySelectorDrawer({
           {new Date(item.inventory.expirationDate).toDateString()}
         </Table.Td>
         <Table.Td ta="center">
-          <ActionIcon
-            variant="default"
-            onClick={() => onAddInventory(item)}
-            disabled={isAdded}
-          >
+          <ActionIcon variant="default" onClick={() => onAddInventory(item)}>
             <IconPlus style={{ width: '70%', height: '70%' }} stroke={1.7} />
           </ActionIcon>
         </Table.Td>
@@ -85,11 +78,9 @@ export function InventorySelectorDrawer({
 }
 
 export const useInventorySelector = ({
-  onAddInventory,
-  isInventorySelected
+  onAddInventory
 }: {
   onAddInventory: (inventory: any) => void
-  isInventorySelected: (inventoryId: any) => boolean
 }) => {
   const [opened, { close, open }] = useDisclosure(false)
   const InventorySelectorDrawerCallback = useCallback(() => {
@@ -104,13 +95,10 @@ export const useInventorySelector = ({
           </Text>
         }
       >
-        <InventorySelectorDrawer
-          onAddInventory={onAddInventory}
-          isInventorySelected={isInventorySelected}
-        />
+        <InventorySelectorDrawer onAddInventory={onAddInventory} />
       </Drawer>
     )
-  }, [opened, close, onAddInventory, isInventorySelected])
+  }, [opened, close, onAddInventory])
 
   const InventorySelectorDrawerButtonCallback = useCallback(() => {
     return (

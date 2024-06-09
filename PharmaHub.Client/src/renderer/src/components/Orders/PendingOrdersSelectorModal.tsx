@@ -19,11 +19,11 @@ import dayjs from 'dayjs'
 import { useCallback, useMemo, useState } from 'react'
 
 function PendingOrdersSelectorModal({
-  onAddOrderItem,
-  isOrderItemSelected
+  onAddOrderItem
+  // isOrderItemSelected
 }: {
   onAddOrderItem: (orderItem: any) => void
-  isOrderItemSelected: (orderItemId: any) => boolean
+  // isOrderItemSelected: (orderItemId: any) => boolean
 }) {
   const [filterOptions, setFilterOptions] = useState<any>({
     status: 'Pending',
@@ -43,7 +43,7 @@ function PendingOrdersSelectorModal({
   })
 
   const rows = data?.map((item) => {
-    const isAdded = isOrderItemSelected(item.id)
+    // const isAdded = isOrderItemSelected(item.key)
     return (
       <Table.Tr key={item.id}>
         <Table.Td>
@@ -57,7 +57,7 @@ function PendingOrdersSelectorModal({
         </Table.Td>
         <Table.Td>
           <ActionIcon
-            disabled={isAdded}
+            // disabled={isAdded}
             size="sm"
             variant="default"
             onClick={() => onAddOrderItem(item)}
@@ -89,11 +89,11 @@ function PendingOrdersSelectorModal({
 }
 
 export const usePendingOrdersSelectorModal = ({
-  onAddOrderItem,
-  isOrderItemSelected
+  onAddOrderItem
+  // isOrderItemSelected
 }: {
   onAddOrderItem: (orderItem: any) => void
-  isOrderItemSelected: (orderItemId: any) => boolean
+  // isOrderItemSelected: (orderItemId: any) => boolean
 }) => {
   const [opened, { open, close }] = useDisclosure(false)
   const PendingOrdersSelectorModalCallback = useCallback(() => {
@@ -112,11 +112,11 @@ export const usePendingOrdersSelectorModal = ({
       >
         <PendingOrdersSelectorModal
           onAddOrderItem={onAddOrderItem}
-          isOrderItemSelected={isOrderItemSelected}
+          // isOrderItemSelected={isOrderItemSelected}
         />
       </Modal>
     )
-  }, [opened, close, onAddOrderItem, isOrderItemSelected])
+  }, [opened, close, onAddOrderItem])
 
   const PendingOrdersSelectorModalButtonCallback = useCallback(() => {
     return (
