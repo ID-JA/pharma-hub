@@ -1,9 +1,8 @@
-﻿using Mapster;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Common.Models;
 using PharmaHub.API.Dtos.Delivery;
 using PharmaHub.API.Dtos.Inventory;
-using PharmaHub.API.Dtos.Medicament;
+using PharmaHub.API.Models;
 
 namespace PharmaHub.API.Services.Interfaces;
 
@@ -116,7 +115,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         {
             var inventory = await dbContext.Inventories.FindAsync([item.InventoryId], cancellationToken);
 
-            
+
 
             // update order items if the order item id is > 0 else we create it
             if (item.OrderItemId > 0)
@@ -177,30 +176,105 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     }
     public async Task<bool> UpdateDelivery(int id, DeliveryUpdateDto request, CancellationToken cancellationToken = default)
     {
-        // var order = await dbContext.Deliveries
-        //     .Include(o => o.DeliveryMedications)
-        //     .FirstOrDefaultAsync(s => s.Id == id, cancellationToken: cancellationToken);
+        var existingDelivery = await dbContext.Deliveries
+            .Include(d => d.OrderDeliveryInventories)
+            .ThenInclude(odi => odi.Inventory)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
-        // if (order is null) return false;
+        if (existingDelivery is null) return false;
 
-        // order.TotalQuantity = request.DeliveryMedicaments.Sum(or => or.Quantity);
-        // order.SupplierId = request.SupplierId;
-        // order.DeliveryMedications.Clear();
+        var requestItemIds = request.DeliveryMedications.Select(dm => dm.OrderItemId).ToList();
 
-        // foreach (var orderMedicament in request.DeliveryMedicaments.Select(item => new DeliveryMedication
-        // {
-        //     DeliveryId = order.Id,
-        //     InventoryId = item.InventoryId,
-        //     Pph = item.Pph,
-        //     Ppv = item.Ppv,
-        //     Quantity = item.Quantity
-        // }))
-        // {
-        //     order.DeliveryMedications.Add(orderMedicament);
-        // }
+        // Find deleted items
+        var deletedItems = existingDelivery.OrderDeliveryInventories
+            .Where(oldItem => !requestItemIds.Contains(oldItem.Id))
+            .ToList();
 
-        // dbContext.Deliveries.Update(order);
-        // await dbContext.SaveChangesAsync(cancellationToken);
+        // Cache inventory updates to minimize DB calls
+        var inventoryUpdates = new Dictionary<int, int>();
+
+        // Process deleted items
+        foreach (var item in deletedItems)
+        {
+            if (!inventoryUpdates.ContainsKey(item.InventoryId))
+            {
+                inventoryUpdates[item.InventoryId] = 0;
+            }
+            inventoryUpdates[item.InventoryId] -= item.DeliveredQuantity + item.TotalFreeUnits;
+            dbContext.OrderDeliveryInventories.Remove(item);
+        }
+
+        // Process updated and new items
+        foreach (var item in request.DeliveryMedications)
+        {
+            var deliveryItem = existingDelivery.OrderDeliveryInventories
+                .FirstOrDefault(odi => odi.Id == item.OrderItemId);
+
+            if (deliveryItem == null)
+            {
+                // New delivery item
+                deliveryItem = new OrderDeliveryInventory
+                {
+                    InventoryId = item.InventoryId,
+                    DeliveredQuantity = item.DeliveredQuantity,
+                    DeliveryId = id,
+                    DiscountRate = item.DiscountRate,
+                    OrderedQuantity = item.OrderedQuantity,
+                    Status = "Delivered",
+                    TotalFreeUnits = item.TotalFreeUnits,
+                    PurchasePriceUnit = item.Pph,
+                    TotalPurchasePrice = item.Pph * item.DeliveredQuantity,
+                };
+                dbContext.OrderDeliveryInventories.Add(deliveryItem);
+            }
+            else
+            {
+                // Adjust inventory quantity for the old item values
+                if (!inventoryUpdates.ContainsKey(deliveryItem.InventoryId))
+                {
+                    inventoryUpdates[deliveryItem.InventoryId] = 0;
+                }
+                inventoryUpdates[deliveryItem.InventoryId] -= deliveryItem.DeliveredQuantity + deliveryItem.TotalFreeUnits;
+
+                // Update existing delivery item
+                deliveryItem.DeliveredQuantity = item.DeliveredQuantity;
+                deliveryItem.DiscountRate = item.DiscountRate;
+                deliveryItem.OrderedQuantity = item.OrderedQuantity;
+                deliveryItem.Status = "Delivered";
+                deliveryItem.TotalFreeUnits = item.TotalFreeUnits;
+                deliveryItem.PurchasePriceUnit = item.Pph;
+                deliveryItem.TotalPurchasePrice = item.Pph * item.DeliveredQuantity;
+
+                dbContext.OrderDeliveryInventories.Update(deliveryItem);
+            }
+
+            // Update inventory quantity for the new item values
+            if (!inventoryUpdates.ContainsKey(item.InventoryId))
+            {
+                inventoryUpdates[item.InventoryId] = 0;
+            }
+            inventoryUpdates[item.InventoryId] += item.DeliveredQuantity + item.TotalFreeUnits;
+        }
+
+        // Apply inventory updates
+        var inventoryIds = inventoryUpdates.Keys.ToList();
+        var inventories = await dbContext.Inventories
+            .Where(inv => inventoryIds.Contains(inv.Id))
+            .ToListAsync(cancellationToken);
+
+        foreach (var inventory in inventories)
+        {
+            inventory.Quantity += inventoryUpdates[inventory.Id];
+            dbContext.Inventories.Update(inventory);
+        }
+
+        // Update the total quantity in the delivery
+        existingDelivery.TotalQuantity = request.DeliveryMedications.Sum(item => item.DeliveredQuantity + item.TotalFreeUnits);
+        dbContext.Deliveries.Update(existingDelivery);
+
+        // Save changes
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         return true;
     }
 
@@ -276,6 +350,38 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             .Include(d => d.OrderDeliveryInventories)
             .ProjectToType<DeliveryDetailedDto>().AsNoTracking().FirstOrDefaultAsync(cancellationToken: cancellationToken);
         return result;
+    }
+
+    // DON'T DELETE IT: we could use this function in the future
+    public async Task RollBackQuantityAsync(int itemId)
+    {
+        using (var transaction = await dbContext.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                var item = await dbContext.OrderDeliveryInventories.FindAsync([itemId]);
+
+                if (item is null) return;
+
+                var inventory = await dbContext.Inventories.FindAsync([item.InventoryId]);
+
+                if (inventory != null)
+                {
+                    inventory.Quantity -= item.DeliveredQuantity + item.TotalFreeUnits;
+                    dbContext.Inventories.Update(inventory);
+                }
+
+                dbContext.OrderDeliveryInventories.Remove(item);
+                await dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }
 

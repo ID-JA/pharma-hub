@@ -1,17 +1,13 @@
 import {
   ActionIcon,
-  Badge,
   Box,
   Button,
-  Group,
+  ButtonProps,
   Modal,
-  Select,
   Table,
   Text
 } from '@mantine/core'
-import { DatePickerInput } from '@mantine/dates'
 import { useDisclosure } from '@mantine/hooks'
-import { useOrdersAction, useDeliveryItems } from '@renderer/store/order.store'
 import { http } from '@renderer/utils/http'
 import { IconPlus } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
@@ -23,7 +19,6 @@ function PendingOrdersSelectorModal({
   // isOrderItemSelected
 }: {
   onAddOrderItem: (orderItem: any) => void
-  // isOrderItemSelected: (orderItemId: any) => boolean
 }) {
   const [filterOptions, setFilterOptions] = useState<any>({
     status: 'Pending',
@@ -43,7 +38,6 @@ function PendingOrdersSelectorModal({
   })
 
   const rows = data?.map((item) => {
-    // const isAdded = isOrderItemSelected(item.key)
     return (
       <Table.Tr key={item.id}>
         <Table.Td>
@@ -89,11 +83,11 @@ function PendingOrdersSelectorModal({
 }
 
 export const usePendingOrdersSelectorModal = ({
-  onAddOrderItem
-  // isOrderItemSelected
+  onAddOrderItem,
+  buttonProps
 }: {
   onAddOrderItem: (orderItem: any) => void
-  // isOrderItemSelected: (orderItemId: any) => boolean
+  buttonProps?: ButtonProps
 }) => {
   const [opened, { open, close }] = useDisclosure(false)
   const PendingOrdersSelectorModalCallback = useCallback(() => {
@@ -120,11 +114,11 @@ export const usePendingOrdersSelectorModal = ({
 
   const PendingOrdersSelectorModalButtonCallback = useCallback(() => {
     return (
-      <Button onClick={open} variant="light">
-        Les Commandes
+      <Button onClick={open} {...buttonProps}>
+        Ajouter Commands
       </Button>
     )
-  }, [open])
+  }, [open, buttonProps])
 
   return useMemo(
     () => ({

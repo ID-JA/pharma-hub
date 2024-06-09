@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Alert,
   Box,
   Button,
   Group,
@@ -30,6 +31,7 @@ export const Route = createFileRoute('/_portal/deliveries/new')({
 
 const schema = z.object({
   totalQuantity: z.number(),
+  deliveryId: z.number().default(0),
   supplierId: z.string().min(1, {
     message: 'Required'
   }),
@@ -44,7 +46,9 @@ const schema = z.object({
         discountRate: z.number(),
         inventoryId: z.number(),
         totalFreeUnits: z.number().default(0),
-        orderItemId: z.number().nullable()
+        orderItemId: z.number().default(0),
+        pph: z.number().default(0),
+        ppv: z.number().default(0)
       })
     )
     .default([])
@@ -55,6 +59,7 @@ type Order = z.infer<typeof schema>
 function useDeliveryForm() {
   return useForm<Order>({
     initialValues: {
+      deliveryId: 0,
       totalQuantity: 0,
       supplierId: '',
       deliveryNumber: '',
@@ -66,6 +71,7 @@ function useDeliveryForm() {
 }
 
 export function NewDeliveryPage() {
+  const [isDeliveryValidated, setIsDeliveryValidated] = useState(false)
   const [totals, setTotals] = useState({
     totalPpv: 0,
     gratPpv: 0,
@@ -85,6 +91,7 @@ export function NewDeliveryPage() {
   const { PendingOrdersSelector, PendingOrdersSelectorButton } =
     usePendingOrdersSelectorModal({
       onAddOrderItem(orderItem) {
+        console.log(orderItem)
         const key = `${orderItem.id}-${orderItem.inventory.id}`
         if (!isAdded(key)) {
           setSelectedDeliveryItems((prev) => [
@@ -113,11 +120,17 @@ export function NewDeliveryPage() {
             discountRate: 0,
             inventoryId: orderItem.inventory.id,
             totalFreeUnits: 0,
-            orderItemId: orderItem.id
+            orderItemId: orderItem.id,
+            pph: orderItem.inventory.pph,
+            ppv: orderItem.inventory.ppv
           })
         } else {
           toast.warning('Item already added')
         }
+      },
+      buttonProps: {
+        variant: 'light',
+        disabled: form.getValues().deliveryNumber.length < 1
       }
     })
 
@@ -152,7 +165,9 @@ export function NewDeliveryPage() {
             discountRate: 0,
             inventoryId: inventory.id,
             totalFreeUnits: 0,
-            orderItemId: 0
+            orderItemId: 0,
+            pph: inventory.pph,
+            ppv: inventory.ppv
           })
         } else {
           toast.warning('Item already added')
@@ -298,39 +313,82 @@ export function NewDeliveryPage() {
   const { refetch } = useQuery({
     queryKey: ['existedDelivery', form.getValues().deliveryNumber],
     queryFn: async () => {
-      const res = await http.get('api/deliveries/search', {
-        params: {
-          deliveryNumber: form.getValues().deliveryNumber
-        }
-      })
-      if (res.status === 200) {
-        modals.openConfirmModal({
-          title: 'Message de Confirmation',
-          children: (
-            <Text>
-              This Delivery {form.getValues().deliveryNumber} is Already
-              validated. Do you want to modify it?
-            </Text>
-          ),
-          labels: { confirm: 'Oui', cancel: 'Non' },
-          onCancel: () => form.setFieldValue('deliveryNumber', ''),
-          onConfirm: () => {
-            // form.setValues({
-            //   supplierId: res.data.supplier.id.toString(),
-            //   totalQuantity: res.data.totalQuantity,
-            //   deliveryDate: new Date(res.data.deliveryDate),
-            //   deliveryMedications: res.data.deliveryMedications.map((item) => ({
-            //     inventoryId: item.inventory.id,
-            //     quantity: item.quantity,
-            //     ppv: item.ppv,
-            //     pph: item.pph,
-            //     discount: 0,
-            //     orderId: 0
-            //   }))
-            // })
+      try {
+        const res = await http.get('api/deliveries/search', {
+          params: {
+            deliveryNumber: form.getValues().deliveryNumber
           }
         })
-        return res.data
+        if (res.status === 200) {
+          modals.openConfirmModal({
+            title: 'Message de Confirmation',
+            children: (
+              <Text>
+                This Delivery {form.getValues().deliveryNumber} is Already
+                validated. Do you want to modify it?
+              </Text>
+            ),
+            labels: { confirm: 'Oui', cancel: 'Non' },
+            onCancel: () => form.setFieldValue('deliveryNumber', ''),
+            onConfirm: () => {
+              setIsDeliveryValidated(true)
+              setSelectedDeliveryItems(
+                res.data.orderDeliveryInventories.map((item) => {
+                  const key = `${item.id}-${item.inventory.id}`
+                  return {
+                    key,
+                    orderItemId: item.id,
+                    orderedQuantity: item.orderedQuantity,
+                    deliveredQuantity: item.deliveredQuantity,
+                    inventoryId: item.inventory.id,
+                    discountRate: item.discountRate,
+                    medicationName: item.inventory.medication.name,
+                    marge: item.inventory.medication.marge,
+                    expirationDate: item.inventory.expirationDate,
+                    ppv: item.inventory.ppv,
+                    tva: item.inventory.medication.tva,
+                    pph: item.inventory.pph,
+                    quantityInStock:
+                      item.inventory.quantity -
+                      item.deliveredQuantity -
+                      item.totalFreeUnits,
+                    totalFreeUnits: item.totalFreeUnits,
+                    totalPpv: item.inventory.ppv * item.deliveredQuantity,
+                    totalPph: item.inventory.pph * item.deliveredQuantity
+                  }
+                })
+              )
+              form.setValues({
+                deliveryId: res.data.id,
+                supplierId: res.data.supplier.id.toString(),
+                totalQuantity: res.data.totalQuantity,
+                deliveryNumber: res.data.deliveryNumber.toString(),
+                deliveryDate: new Date(res.data.deliveryDate),
+                deliveryMedications: res.data.orderDeliveryInventories.map(
+                  (item) => ({
+                    deliveredQuantity: item.deliveredQuantity,
+                    discountRate: item.discountRate,
+                    inventoryId: item.inventory.id,
+                    totalFreeUnits: item.totalFreeUnits,
+                    orderItemId: item.id,
+                    pph: item.inventory.pph,
+                    ppv: item.inventory.ppv
+                  })
+                )
+              })
+            }
+          })
+          return res.data
+        }
+      } catch (error) {
+        setIsDeliveryValidated(false)
+        setSelectedDeliveryItems([])
+        form.setValues({
+          supplierId: undefined,
+          totalQuantity: 0,
+          deliveryDate: new Date(),
+          deliveryMedications: []
+        })
       }
       return null
     },
@@ -338,29 +396,71 @@ export function NewDeliveryPage() {
     enabled: false
   })
 
-  const { mutate } = useMutation({
+  const { mutate: createDelivery } = useMutation({
     mutationFn: async (values: any) => {
       const res = await http.post('/api/deliveries', values)
       return res.data
     }
   })
 
+  const { mutate: updateDelivery } = useMutation({
+    mutationFn: async (values: any) => {
+      const res = await http.put(`/api/deliveries/${values.deliveryId}`, values)
+      return res.data
+    }
+  })
+
   return (
-    <Box p="lg">
+    <Box px="lg" py="md">
+      {isDeliveryValidated && (
+        <Alert
+          style={{
+            position: 'fixed',
+            zIndex: 9999,
+            top: '0px',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          }}
+          title="Cette Bon de Livraison est déjà valide"
+          color="green"
+          variant="filled"
+        />
+      )}
       <PendingOrdersSelector />
       <InventorySelectorDrawer />
       <form
         onSubmit={form.onSubmit((values) => {
-          mutate(values, {
-            onSuccess: () => {
-              toast.success('Delivery has been created successfully')
-              form.reset()
-              setSelectedDeliveryItems([])
-            },
-            onError: () => {
-              toast.error('something bad has been occurred')
-            }
-          })
+          if (!isDeliveryValidated) {
+            createDelivery(values, {
+              onSuccess: () => {
+                toast.success('La livraison a été mise à jour avec succès.')
+                form.reset()
+                setSelectedDeliveryItems([])
+              },
+              onError: () => {
+                toast.error("Quelque chose de grave s'est produit.")
+              }
+            })
+          } else {
+            modals.openConfirmModal({
+              title: 'Message de Confirmation',
+              children: (
+                <Text>Voulez-vous mettre à jour cette livraison ?</Text>
+              ),
+              labels: { confirm: 'Oui', cancel: 'Non' },
+              onConfirm: () =>
+                updateDelivery(values, {
+                  onSuccess: () => {
+                    toast.success('La livraison a été mise à jour avec succès.')
+                    form.reset()
+                    setSelectedDeliveryItems([])
+                  },
+                  onError: () => {
+                    toast.error("Quelque chose de grave s'est produit.")
+                  }
+                })
+            })
+          }
         })}
       >
         <Group justify="space-between" mb="md">
@@ -391,17 +491,18 @@ export function NewDeliveryPage() {
 
           <div>
             <PendingOrdersSelectorButton />
-            <Button variant="light" ml="md" onClick={openInventories}>
-              Ajouter Produit
-            </Button>
-            <Button variant="light" ml="md" type="submit">
-              Validate Livraison
+            <Button
+              variant="light"
+              ml="md"
+              onClick={openInventories}
+              disabled={form.getValues().deliveryNumber.length < 1}
+            >
+              Ajouter Produits
             </Button>
           </div>
         </Group>
         <ScrollArea
-          h={520}
-          mb="md"
+          h={490}
           style={{
             display: 'block',
             overflowX: 'auto',
@@ -472,6 +573,18 @@ export function NewDeliveryPage() {
           hideControls
           value={totals.totalQuantities}
         />
+      </Group>
+      <Group justify="space-between" mt="md">
+        <Button
+          mr="md"
+          type="submit"
+          disabled={form.getValues().deliveryMedications.length < 1}
+        >
+          Validate Livraison
+        </Button>
+        <Button ml="md" color="red" disabled={!isDeliveryValidated}>
+          Annuler Livraison
+        </Button>
       </Group>
     </Box>
   )
