@@ -262,7 +262,15 @@ function NewOrder() {
           </div>
         </Group>
 
-        <ScrollArea h={520} type="never" my="md">
+        <ScrollArea
+          h={520}
+          mb="md"
+          style={{
+            display: 'block',
+            overflowX: 'auto',
+            whiteSpace: 'nowrap'
+          }}
+        >
           <Table verticalSpacing="md" style={{ whiteSpace: 'nowrap' }}>
             <TableHeader />
             <Table.Tbody>
@@ -395,7 +403,7 @@ function NewOrder() {
       <Group grow>
         <NumberInput
           label="Total Products"
-          size="xl"
+          size="lg"
           decimalScale={2}
           readOnly
           hideControls
@@ -403,7 +411,7 @@ function NewOrder() {
         />
         <NumberInput
           label="Total Quantity"
-          size="xl"
+          size="lg"
           decimalScale={2}
           readOnly
           hideControls
@@ -411,7 +419,7 @@ function NewOrder() {
         />
         <NumberInput
           label="Total PPV"
-          size="xl"
+          size="lg"
           decimalScale={2}
           readOnly
           hideControls
@@ -419,7 +427,7 @@ function NewOrder() {
         />
         <NumberInput
           label="Purchase Price"
-          size="xl"
+          size="lg"
           decimalScale={2}
           readOnly
           hideControls
@@ -427,7 +435,7 @@ function NewOrder() {
         />
         <NumberInput
           label="Discounted Price"
-          size="xl"
+          size="lg"
           decimalScale={2}
           readOnly
           hideControls

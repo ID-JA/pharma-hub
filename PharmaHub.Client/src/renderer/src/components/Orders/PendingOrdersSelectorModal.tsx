@@ -39,8 +39,7 @@ function PendingOrdersSelectorModal({
         params: filterOptions
       })
       return response.data.data
-    },
-    staleTime: Infinity
+    }
   })
 
   const rows = data?.map((item) => {
@@ -69,6 +68,7 @@ function PendingOrdersSelectorModal({
       </Table.Tr>
     )
   })
+
   return (
     <Box mih="400px">
       <Table>
@@ -116,12 +116,12 @@ export const usePendingOrdersSelectorModal = ({
         />
       </Modal>
     )
-  }, [opened, close])
+  }, [opened, close, onAddOrderItem, isOrderItemSelected])
 
   const PendingOrdersSelectorModalButtonCallback = useCallback(() => {
     return (
       <Button onClick={open} variant="light">
-        Load Pending Orders
+        Les Commandes
       </Button>
     )
   }, [open])

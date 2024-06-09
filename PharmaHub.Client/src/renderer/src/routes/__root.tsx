@@ -42,7 +42,7 @@ export const Route = createRootRouteWithContext<{
   component: () => (
     <>
       <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} forceColorScheme="dark">
+        <MantineProvider theme={theme}>
           <ModalsProvider>
             <Toaster position="top-right" />
             <Outlet />

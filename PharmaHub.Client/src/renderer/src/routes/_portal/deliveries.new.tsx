@@ -2,35 +2,20 @@ import {
   ActionIcon,
   Box,
   Button,
-  Divider,
-  Drawer,
-  Grid,
   Group,
+  Input,
   InputBase,
   NumberInput,
   ScrollArea,
   Select,
-  Stack,
-  Table,
-  Text
+  Table
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
-import { Form, useForm, zodResolver } from '@mantine/form'
-import { useDebouncedState, useDisclosure } from '@mantine/hooks'
-import { modals } from '@mantine/modals'
-import { useListOrdersModal } from '@renderer/components/Orders/ListOrdersModal'
-import { useDeliveryItems, useOrdersAction } from '@renderer/store/order.store'
-import {
-  calculatePPH,
-  calculatePriceAfterDiscount
-} from '@renderer/utils/functions'
-import { http } from '@renderer/utils/http'
-import { IconPlus, IconShoppingCart, IconTrash } from '@tabler/icons-react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useForm, zodResolver } from '@mantine/form'
+import { usePendingOrdersSelectorModal } from '@renderer/components/Orders/PendingOrdersSelectorModal'
+import { IconTrash } from '@tabler/icons-react'
 import { createFileRoute } from '@tanstack/react-router'
-import dayjs from 'dayjs'
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { memo, useEffect, useState } from 'react'
 import { z } from 'zod'
 
 export const Route = createFileRoute('/_portal/deliveries/new')({
@@ -50,7 +35,7 @@ const schema = z.object({
     .array(
       z.object({
         deliveredQuantity: z.number(),
-        discount: z.number(),
+        discountRate: z.number(),
         inventoryId: z.number(),
         totalFreeUnits: z.number().default(0),
         orderId: z.number().default(0)
@@ -74,313 +59,315 @@ function useDeliveryForm() {
   })
 }
 
-const MemoizedNumberInput = memo((props: any) => <NumberInput {...props} />)
-
 export function NewDeliveryPage() {
-  const { ListOrdersModal, ListOrdersModalButton } = useListOrdersModal()
-  const selectedPendingOrders = useDeliveryItems()
+  const [totals, setTotals] = useState({
+    totalPpv: 0,
+    gratPpv: 0,
+    totalPphBrut: 0,
+    totalPphNet: 0,
+    totalProducts: 0,
+    discountedPrice: 0,
+    totalQuantities: 0
+  })
+  const [selectedDeliveryItems, setSelectedDeliveryItems] = useState<any>([])
   const form = useDeliveryForm()
 
-  const [opened, { close, open }] = useDisclosure(false)
+  const isOrderItemSelected = (orderId) => {
+    return selectedDeliveryItems.some((item) => item.orderId === orderId)
+  }
+  const { PendingOrdersSelector, PendingOrdersSelectorButton } =
+    usePendingOrdersSelectorModal({
+      onAddOrderItem(orderItem) {
+        if (!isOrderItemSelected(orderItem.id)) {
+          setSelectedDeliveryItems((prev) => [
+            ...prev,
+            {
+              orderId: orderItem.id,
+              orderedQuantity: orderItem.orderedQuantity,
+              deliveredQuantity: orderItem.orderedQuantity,
+              inventoryId: orderItem.inventory.id,
+              discountRate: 0,
+              medicationName: orderItem.inventory.medication.name,
+              marge: orderItem.inventory.medication.marge,
+              expirationDate: orderItem.inventory.expirationDate,
+              ppv: orderItem.inventory.ppv,
+              tva: orderItem.inventory.medication.tva,
+              pph: orderItem.inventory.pph,
+              quantityInStock: orderItem.inventory.quantity,
+              totalFreeUnits: 0,
+              totalPpv: orderItem.inventory.ppv * orderItem.orderedQuantity,
+              totalPph: orderItem.inventory.pph * orderItem.orderedQuantity
+            }
+          ])
+          form.insertListItem('deliveryMedications', {
+            deliveredQuantity: orderItem.orderedQuantity,
+            discountRate: 0,
+            inventoryId: orderItem.inventory.id,
+            totalFreeUnits: 0
+          })
+        }
+      },
+      isOrderItemSelected
+    })
 
-  const [totals, setTotals] = useState<any>({
-    totalPpv: 0,
-    totalPphBrut: 0,
-    totalPphTtc: 0,
-    totalProducts: 0,
-    totalQuantities: 0,
-    discountedPriceDN: 0
+  const rows = selectedDeliveryItems?.map((item, index) => {
+    return (
+      <Table.Tr key={item.orderId}>
+        <Table.Td>
+          <ActionIcon
+            variant="light"
+            color="red"
+            onClick={() => {
+              setSelectedDeliveryItems((prev) =>
+                prev.filter((item) => item.orderId !== item.orderId)
+              )
+              form.removeListItem('deliveryMedications', index)
+            }}
+          >
+            <IconTrash />
+          </ActionIcon>
+        </Table.Td>
+        <Table.Td>{item.medicationName}</Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.orderedQuantity} />
+        </Table.Td>
+        <Table.Td>
+          <NumberInput
+            w="80px"
+            min={0}
+            {...form.getInputProps(
+              `deliveryMedications.${index}.deliveredQuantity`
+            )}
+            onBlur={(event) => {
+              setSelectedDeliveryItems((prev) => {
+                prev[index].totalPph =
+                  prev[index].pph *
+                  (1 - prev[index].discountRate / 100) *
+                  Number(event.target.value)
+                prev[index].deliveredQuantity = Number(event.target.value)
+                return [...prev]
+              })
+            }}
+          />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.ppv} />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.pph} />
+        </Table.Td>
+        <Table.Td>
+          <NumberInput
+            w="80px"
+            min={0}
+            max={100}
+            {...form.getInputProps(`deliveryMedications.${index}.discountRate`)}
+            onBlur={(event) => {
+              setSelectedDeliveryItems((prev) => {
+                prev[index].totalPph =
+                  prev[index].pph *
+                  (1 - Number(event.target.value) / 100) *
+                  prev[index].deliveredQuantity
+                prev[index].discountRate = Number(event.target.value)
+                return [...prev]
+              })
+            }}
+          />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly value={item.totalPph.toFixed(2)} />
+        </Table.Td>
+        <Table.Td>
+          {new Date(item.expirationDate).toLocaleDateString()}
+        </Table.Td>
+        <Table.Td>
+          <NumberInput
+            w="80px"
+            min={0}
+            defaultValue={item.totalFreeUnits}
+            {...form.getInputProps(
+              `deliveryMedications.${index}.totalFreeUnits`
+            )}
+          />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly value={item.totalPpv} />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.quantityInStock} />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.tva} />
+        </Table.Td>
+        <Table.Td>
+          <Input w="80px" readOnly defaultValue={item.marge} />
+        </Table.Td>
+      </Table.Tr>
+    )
   })
 
-  const calculateTotals = () => {
-    const totalPphTtc = selectedPendingOrders.reduce(
-      (acc, item) =>
-        acc +
-        calculatePriceAfterDiscount(item.inventory.pph, item.discountRate) *
-          item.deliveredQuantity,
-      0
-    )
-    const totalPphBrut = selectedPendingOrders.reduce(
-      (acc, item) => acc + Number(item.inventory.pph) * item.deliveredQuantity,
-      0
-    )
-    const totalPpv = selectedPendingOrders.reduce(
-      (acc, item) => acc + Number(item.inventory.ppv) * item.deliveredQuantity,
-      0
-    )
-    const totalQuantities = selectedPendingOrders.reduce(
-      (acc, item) => acc + Number(item.deliveredQuantity),
-      0
+  useEffect(() => {
+    const deliveryMedications = form.getValues().deliveryMedications
+
+    const totals = selectedDeliveryItems.reduce(
+      (acc, item, index) => {
+        const deliveredQuantity =
+          deliveryMedications[index]?.deliveredQuantity || 0
+        const totalFreeUnits = deliveryMedications[index]?.totalFreeUnits || 0
+        const discountRate = deliveryMedications[index]?.discountRate || 0
+
+        acc.totalQuantities += deliveredQuantity
+        acc.gratPpv += totalFreeUnits * item.ppv
+        acc.totalPpv += item.ppv * deliveredQuantity
+        acc.totalPphBrut += item.pph * deliveredQuantity
+        acc.totalPphNet +=
+          item.pph * (1 - discountRate / 100) * deliveredQuantity
+
+        return acc
+      },
+      {
+        totalQuantities: 0,
+        gratPpv: 0,
+        totalPpv: 0,
+        totalPphBrut: 0,
+        totalPphNet: 0
+      }
     )
 
     setTotals({
-      totalPpv,
-      totalPphBrut,
-      totalPphTtc,
-      totalQuantities,
-      discountedPriceDN: totalPphBrut - totalPphTtc,
-      totalProducts: selectedPendingOrders.length
+      totalProducts: selectedDeliveryItems.length,
+      totalQuantities: totals.totalQuantities,
+      gratPpv: totals.gratPpv,
+      totalPpv: totals.totalPpv,
+      totalPphBrut: totals.totalPphBrut,
+      totalPphNet: totals.totalPphNet,
+      discountedPrice: totals.totalPphBrut - totals.totalPphNet
     })
-  }
+  }, [selectedDeliveryItems, form.getValues().deliveryMedications])
 
-  useEffect(() => {
-    form.setFieldValue('deliveryMedications', selectedPendingOrders)
-    calculateTotals()
-  }, [selectedPendingOrders])
-
-  const itemCount = selectedPendingOrders.length
   return (
     <Box p="lg">
-      <ListOrdersModal />
-      <Group justify="space-between" align="center">
-        <Stack>
-          <Group>
-            <Select
-              label="Supplier"
-              data={[{ value: '1', label: 'Supplier 1' }]}
-              {...form.getInputProps('supplierId')}
-              key={form.key('supplierId')}
-            />
-            <InputBase
-              label="Delivery Number"
-              {...form.getInputProps('deliveryNumber')}
-              key={form.key('deliveryNumber')}
-              onBlur={() => {}}
-            />
-            <DatePickerInput
-              label="Delivery Date"
-              {...form.getInputProps('deliveryDate')}
-              key={form.key('deliveryDate')}
-            />
-          </Group>
-          <div>
-            <ListOrdersModalButton />
-            <Button onClick={open}>Add Medications</Button>
-          </div>
-        </Stack>
-        <Stack>
-          <Group>
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              decimalScale={2}
-              fixedDecimalScale
-              hideControls
-              label="Total PPV"
-              readOnly
-              value={totals.totalPpv}
-            />
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              hideControls
-              decimalScale={2}
-              fixedDecimalScale
-              label="Total PPH brut"
-              readOnly
-              defaultValue={0}
-              value={totals.totalPphBrut}
-            />
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              hideControls
-              label="Total PPH Net TTC"
-              decimalScale={2}
-              defaultValue={0}
-              fixedDecimalScale
-              readOnly
-              value={totals.totalPphTtc}
-            />
-          </Group>
-          <Group>
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              hideControls
-              label="Discount Price"
-              readOnly
-              decimalScale={2}
-              defaultValue={0}
-              fixedDecimalScale
-              value={totals.discountedPriceDN}
-            />
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              hideControls
-              label="Total Products"
-              defaultValue={0}
-              readOnly
-              value={totals.totalProducts}
-            />
-            <MemoizedNumberInput
-              size="xl"
-              w="170px"
-              hideControls
-              label="Total Quantities"
-              defaultValue={0}
-              readOnly
-              value={totals.totalQuantities}
-            />
-          </Group>
-        </Stack>
+      <PendingOrdersSelector />
+      {JSON.stringify(form.getValues())}
+      <Group justify="space-between" mb="md">
+        <Group>
+          <Select
+            label="Selection Fournisseur"
+            {...form.getInputProps('supplierId')}
+          />
+          <InputBase
+            label="N° du Bon de Livraison"
+            {...form.getInputProps('deliveryNumber')}
+          />
+          <DatePickerInput
+            label="Date deLivraison"
+            w="180px"
+            {...form.getInputProps('deliveryDate')}
+          />
+        </Group>
+
+        <div>
+          <PendingOrdersSelectorButton />
+          <Button variant="light" ml="md">
+            Ajouter Produit
+          </Button>
+        </div>
       </Group>
-      <Divider my="md" />
-      <Form form={form}>
-        <ScrollArea h={350} type="never" mb="md">
-          <Table verticalSpacing="md" style={{ whiteSpace: 'nowrap' }}>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th w="200px">Product Name</Table.Th>
-                <Table.Th ta="center">Quantity Ordered</Table.Th>
-                <Table.Th ta="center">Quantity Delivered</Table.Th>
-                <Table.Th ta="center">PPV. Unit</Table.Th>
-                <Table.Th ta="center">PPH. Unit</Table.Th>
-                <Table.Th ta="center">Discount</Table.Th>
-                <Table.Th ta="center">TVA</Table.Th>
-                <Table.Th ta="center">Marge</Table.Th>
-                <Table.Th ta="center">Total PPH</Table.Th>
-                <Table.Th ta="center">Quantity Stock</Table.Th>
-                <Table.Th ta="center"></Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {itemCount > 0 ? (
-                selectedPendingOrders.map((item, index) => (
-                  <OrderItem
-                    key={index}
-                    form={form}
-                    item={item}
-                    index={index}
-                  />
-                ))
-              ) : (
-                <Table.Tr ta="center" td="underline" fw="500" fz="lg">
-                  <Table.Td colSpan={11}>
-                    <IconShoppingCart
-                      stroke={1.2}
-                      style={{ width: '90px', height: '90px' }}
-                    />
-                    <br />
-                    Select the Medications on right side by clicking on (+)
-                  </Table.Td>
-                </Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-        </ScrollArea>
-      </Form>
+      <ScrollArea
+        h={520}
+        mb="md"
+        style={{
+          display: 'block',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        <Table verticalSpacing="md">
+          <TableHeader />
+          <Table.Tbody>{rows}</Table.Tbody>
+        </Table>
+      </ScrollArea>
+      <Group grow>
+        <NumberInput
+          label="TOTAL PPV"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.totalPpv}
+        />
+        <NumberInput
+          label="GRAT.(PPV)"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.gratPpv}
+        />
+        <NumberInput
+          label="TOTAL PPH BRUT"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.totalPphBrut}
+        />
+        <NumberInput
+          label="TOTAL PPH NET TTC"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.totalPphNet}
+        />
+        <NumberInput
+          label="REMISE SUR BL"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.discountedPrice}
+        />
+        <NumberInput
+          label="NOMBRE PRODUITS"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.totalProducts}
+        />
+        <NumberInput
+          label="TOTAL QUANTITIES"
+          decimalScale={2}
+          size="lg"
+          readOnly
+          hideControls
+          value={totals.totalQuantities}
+        />
+      </Group>
     </Box>
   )
 }
 
-const OrderItem = memo(({ form, item, index }: any) => {
-  const [totalPph, setTotalPph] = useState(item.pph * item.quantity)
-  const { removeDeliveryItem } = useOrdersAction()
-
-  const calculateTotalPph = useCallback(() => {
-    const deliveryMedications = form.getValues().deliveryMedications
-    if (deliveryMedications && deliveryMedications[index]) {
-      const { pph, quantity, discount } = deliveryMedications[index]
-      setTotalPph(calculatePriceAfterDiscount(pph, discount) * quantity)
-    }
-  }, [form, index])
-
-  useEffect(() => {
-    calculateTotalPph()
-  }, [calculateTotalPph])
-
+const TableHeader = memo(() => {
   return (
-    <Table.Tr key={index}>
-      <Table.Td>{item.medication.name}</Table.Td>
-      <Table.Td ta="center" role-description="Quantity Ordered">
-        <MemoizedNumberInput
-          readOnly
-          size="xs"
-          defaultValue={item.orderedQuantity || 0}
-        />
-      </Table.Td>
-      <Table.Td ta="center" role-description="Quantity Delivered">
-        <MemoizedNumberInput
-          size="xs"
-          min={0}
-          {...form.getInputProps(
-            `deliveryMedications.${index}.orderedQuantity`
-          )}
-          key={form.key(`deliveryMedications.${index}.orderedQuantity`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="PPV">
-        <MemoizedNumberInput
-          size="xs"
-          readOnly
-          hideControls
-          defaultValue={item.inventory.ppv}
-          {...form.getInputProps(`deliveryMedications.${index}.ppv`)}
-          key={form.key(`deliveryMedications.${index}.ppv`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="PPH">
-        <MemoizedNumberInput
-          hideControls
-          readOnly
-          size="xs"
-          defaultValue={item.inventory.pph}
-          key={form.key(`deliveryMedications.${index}.pph`)}
-          {...form.getInputProps(`deliveryMedications.${index}.pph`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="Discount Rate">
-        <MemoizedNumberInput
-          size="xs"
-          min={0}
-          max={99}
-          defaultValue={0}
-          {...form.getInputProps(`deliveryMedications.${index}.discountRate`)}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="TVA">
-        <MemoizedNumberInput
-          size="xs"
-          defaultValue={item.medication.tva}
-          readOnly
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="Marge">
-        <MemoizedNumberInput
-          size="xs"
-          readOnly
-          defaultValue={item.medication.marge}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="Total PPH">
-        <MemoizedNumberInput
-          hideControls
-          size="xs"
-          readOnly
-          decimalScale={2}
-          value={totalPph}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="Quantity in stock">
-        <MemoizedNumberInput
-          hideControls
-          size="xs"
-          readOnly
-          value={item.inventory.quantity}
-        />
-      </Table.Td>
-      <Table.Td ta="center" aria-roledescription="Actions">
-        <ActionIcon
-          color="red"
-          variant="light"
-          size="sm"
-          onClick={() => removeDeliveryItem(item.inventory.id)}
-        >
-          <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
-        </ActionIcon>
-      </Table.Td>
-    </Table.Tr>
+    <Table.Thead>
+      <Table.Tr>
+        <Table.Th></Table.Th>
+        <Table.Th w="200px">Produit</Table.Th>
+        <Table.Th>Qté Cmd</Table.Th>
+        <Table.Th>Qté Livrée</Table.Th>
+        <Table.Th>PPV. Unit</Table.Th>
+        <Table.Th>PPH. Unit</Table.Th>
+        <Table.Th>Remise %</Table.Th>
+        <Table.Th>Total PPh</Table.Th>
+        <Table.Th>Périmé</Table.Th>
+        <Table.Th>U. Gratuit</Table.Th>
+        <Table.Th>Total PPV</Table.Th>
+        <Table.Th>Qté Stock</Table.Th>
+        <Table.Th>TVA %</Table.Th>
+        <Table.Th>Marge %</Table.Th>
+      </Table.Tr>
+    </Table.Thead>
   )
 })
