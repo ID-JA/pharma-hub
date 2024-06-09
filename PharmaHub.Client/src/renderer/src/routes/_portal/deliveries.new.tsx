@@ -8,13 +8,17 @@ import {
   NumberInput,
   ScrollArea,
   Select,
-  Table
+  Table,
+  Text
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import { useForm, zodResolver } from '@mantine/form'
+import { modals } from '@mantine/modals'
 import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
 import { usePendingOrdersSelectorModal } from '@renderer/components/Orders/PendingOrdersSelectorModal'
+import { http } from '@renderer/utils/http'
 import { IconTrash } from '@tabler/icons-react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { memo, useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -40,7 +44,7 @@ const schema = z.object({
         discountRate: z.number(),
         inventoryId: z.number(),
         totalFreeUnits: z.number().default(0),
-        orderId: z.number().default(0)
+        orderItemId: z.number().nullable()
       })
     )
     .default([])
@@ -87,7 +91,7 @@ export function NewDeliveryPage() {
             ...prev,
             {
               key,
-              orderId: orderItem.id,
+              orderItemId: orderItem.id,
               orderedQuantity: orderItem.orderedQuantity,
               deliveredQuantity: orderItem.orderedQuantity,
               inventoryId: orderItem.inventory.id,
@@ -108,7 +112,8 @@ export function NewDeliveryPage() {
             deliveredQuantity: orderItem.orderedQuantity,
             discountRate: 0,
             inventoryId: orderItem.inventory.id,
-            totalFreeUnits: 0
+            totalFreeUnits: 0,
+            orderItemId: orderItem.id
           })
         } else {
           toast.warning('Item already added')
@@ -125,7 +130,7 @@ export function NewDeliveryPage() {
             ...prev,
             {
               key,
-              orderId: null,
+              orderItemId: 0,
               orderedQuantity: 0,
               deliveredQuantity: 1,
               inventoryId: inventory.id,
@@ -146,7 +151,8 @@ export function NewDeliveryPage() {
             deliveredQuantity: 1,
             discountRate: 0,
             inventoryId: inventory.id,
-            totalFreeUnits: 0
+            totalFreeUnits: 0,
+            orderItemId: 0
           })
         } else {
           toast.warning('Item already added')
@@ -289,48 +295,126 @@ export function NewDeliveryPage() {
     })
   }, [selectedDeliveryItems, form.getValues().deliveryMedications])
 
+  const { refetch } = useQuery({
+    queryKey: ['existedDelivery', form.getValues().deliveryNumber],
+    queryFn: async () => {
+      const res = await http.get('api/deliveries/search', {
+        params: {
+          deliveryNumber: form.getValues().deliveryNumber
+        }
+      })
+      if (res.status === 200) {
+        modals.openConfirmModal({
+          title: 'Message de Confirmation',
+          children: (
+            <Text>
+              This Delivery {form.getValues().deliveryNumber} is Already
+              validated. Do you want to modify it?
+            </Text>
+          ),
+          labels: { confirm: 'Oui', cancel: 'Non' },
+          onCancel: () => form.setFieldValue('deliveryNumber', ''),
+          onConfirm: () => {
+            // form.setValues({
+            //   supplierId: res.data.supplier.id.toString(),
+            //   totalQuantity: res.data.totalQuantity,
+            //   deliveryDate: new Date(res.data.deliveryDate),
+            //   deliveryMedications: res.data.deliveryMedications.map((item) => ({
+            //     inventoryId: item.inventory.id,
+            //     quantity: item.quantity,
+            //     ppv: item.ppv,
+            //     pph: item.pph,
+            //     discount: 0,
+            //     orderId: 0
+            //   }))
+            // })
+          }
+        })
+        return res.data
+      }
+      return null
+    },
+    retry: false,
+    enabled: false
+  })
+
+  const { mutate } = useMutation({
+    mutationFn: async (values: any) => {
+      const res = await http.post('/api/deliveries', values)
+      return res.data
+    }
+  })
+
   return (
     <Box p="lg">
       <PendingOrdersSelector />
       <InventorySelectorDrawer />
-      <Group justify="space-between" mb="md">
-        <Group>
-          <Select
-            label="Selection Fournisseur"
-            {...form.getInputProps('supplierId')}
-          />
-          <InputBase
-            label="N° du Bon de Livraison"
-            {...form.getInputProps('deliveryNumber')}
-          />
-          <DatePickerInput
-            label="Date deLivraison"
-            w="180px"
-            {...form.getInputProps('deliveryDate')}
-          />
-        </Group>
-
-        <div>
-          <PendingOrdersSelectorButton />
-          <Button variant="light" ml="md" onClick={openInventories}>
-            Ajouter Produit
-          </Button>
-        </div>
-      </Group>
-      <ScrollArea
-        h={520}
-        mb="md"
-        style={{
-          display: 'block',
-          overflowX: 'auto',
-          whiteSpace: 'nowrap'
-        }}
+      <form
+        onSubmit={form.onSubmit((values) => {
+          mutate(values, {
+            onSuccess: () => {
+              toast.success('Delivery has been created successfully')
+              form.reset()
+              setSelectedDeliveryItems([])
+            },
+            onError: () => {
+              toast.error('something bad has been occurred')
+            }
+          })
+        })}
       >
-        <Table verticalSpacing="md">
-          <TableHeader />
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
-      </ScrollArea>
+        <Group justify="space-between" mb="md">
+          <Group>
+            <Select
+              data={[
+                {
+                  label: 'Supplier 1',
+                  value: '1'
+                }
+              ]}
+              label="Selection Fournisseur"
+              {...form.getInputProps('supplierId')}
+            />
+            <InputBase
+              label="N° du Bon de Livraison"
+              {...form.getInputProps('deliveryNumber')}
+              onBlur={() => {
+                refetch()
+              }}
+            />
+            <DatePickerInput
+              label="Date deLivraison"
+              w="180px"
+              {...form.getInputProps('deliveryDate')}
+            />
+          </Group>
+
+          <div>
+            <PendingOrdersSelectorButton />
+            <Button variant="light" ml="md" onClick={openInventories}>
+              Ajouter Produit
+            </Button>
+            <Button variant="light" ml="md" type="submit">
+              Validate Livraison
+            </Button>
+          </div>
+        </Group>
+        <ScrollArea
+          h={520}
+          mb="md"
+          style={{
+            display: 'block',
+            overflowX: 'auto',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <Table verticalSpacing="md">
+            <TableHeader />
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+        </ScrollArea>
+      </form>
+
       <Group grow>
         <NumberInput
           label="TOTAL PPV"
