@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PharmaHub.API.Models.Order;
 
 namespace PharmaHub.API.Models;
 
@@ -18,7 +17,6 @@ public class Inventory : BaseModel
     [Precision(10, 2)]
     public decimal Pph { get; set; }
 
-    public List<DeliveryMedication> OrderMedications { get; set; } = [];
-    public List<OrderItem> OrderItems { get; set; } = [];
+    public List<OrderDeliveryInventory> OrderDeliveryInventories { get; set; } = [];
     public List<InventoryHistory> InventoryHistories { get; set; } = [];
 }

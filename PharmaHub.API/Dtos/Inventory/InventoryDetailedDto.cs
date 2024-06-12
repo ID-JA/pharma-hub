@@ -2,7 +2,7 @@
 
 namespace PharmaHub.API.Dtos.Inventory;
 
-public class InventoryDetailedDto : BaseDto<InventoryDetailedDto, Models.Inventory>    
+public class InventoryDetailedDto : BaseDto<InventoryDetailedDto, Models.Inventory>
 {
     public int Id { get; set; }
 

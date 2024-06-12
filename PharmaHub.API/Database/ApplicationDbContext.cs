@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using PharmaHub.API.Models.Order;
 
 namespace PharmaHub.API.Database;
 
@@ -25,38 +24,38 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<OrderItem>(entity =>
-        {
-            entity.HasKey(e => new { e.OrderId, e.InventoryId });
+        // builder.Entity<OrderItem>(entity =>
+        // {
+        //     entity.HasKey(e => new { e.OrderId, e.InventoryId });
 
-            entity.HasOne(e => e.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(e => e.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+        //     entity.HasOne(e => e.Order)
+        //         .WithMany(o => o.OrderItems)
+        //         .HasForeignKey(e => e.OrderId)
+        //         .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Inventory)
-                .WithMany(i => i.OrderItems)
-                .HasForeignKey(e => e.InventoryId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
+        //     entity.HasOne(e => e.Inventory)
+        //         .WithMany(i => i.OrderItems)
+        //         .HasForeignKey(e => e.InventoryId)
+        //         .OnDelete(DeleteBehavior.Restrict);
+        // });
 
-        builder.Entity<DeliveryMedication>(entity =>
-        {
-            entity.HasKey(e => new { e.DeliveryId, e.InventoryId });
+        // builder.Entity<DeliveryMedication>(entity =>
+        // {
+        //     entity.HasKey(e => new { e.DeliveryId, e.InventoryId });
 
-            entity.HasOne(e => e.Delivery)
-                .WithMany(o => o.OrderMedications)
-                .HasForeignKey(e => e.DeliveryId)
-                .OnDelete(DeleteBehavior.Cascade);
+        //     entity.HasOne(e => e.Delivery)
+        //         .WithMany(o => o.DeliveryMedications)
+        //         .HasForeignKey(e => e.DeliveryId)
+        //         .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Inventory)
-                .WithMany(i => i.OrderMedications)
-                .HasForeignKey(e => e.InventoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+        //     entity.HasOne(e => e.Inventory)
+        //         .WithMany(i => i.OrderDeliveryInventor)
+        //         .HasForeignKey(e => e.InventoryId)
+        //         .OnDelete(DeleteBehavior.Restrict);
 
-            entity.Property(e => e.Ppv).HasPrecision(10, 2);
-            entity.Property(e => e.Pph).HasPrecision(10, 2);
-        });
+        //     entity.Property(e => e.Ppv).HasPrecision(10, 2);
+        //     entity.Property(e => e.Pph).HasPrecision(10, 2);
+        // });
 
         base.OnModelCreating(builder);
     }
@@ -72,10 +71,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Sale> Sales { get; set; }
     public DbSet<Delivery> Deliveries { get; set; }
     public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderDeliveryInventory> OrderDeliveryInventories { get; set; }
+    // public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<SaleMedications> SaleMedications { get; set; }
-    public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
+    // public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }
     public DbSet<Client> Clients { get; set; }

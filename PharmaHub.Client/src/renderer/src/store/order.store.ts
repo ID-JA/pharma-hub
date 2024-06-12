@@ -5,101 +5,88 @@ type OrderItem = {
     id: string
     orderDate: string
     status: string
+    supplierId: string
   }
   inventory: {
     id: string
     medication: { name: string }
     ppv: string
   }
-  quantity: number
-  status: string
-  pph: string
+  medication: any
+  orderId: any
+  inventoryId: any
+  supplierId: any
+  status: any
+  totalPurchasePrice: any
+  purchasePriceUnit: any
+  discountRate: any
+  orderedQuantity: any
+  deliveredQuantity: any
 }
 
 type OrderStore = {
-  pendingOrders: OrderItem[]
-  selectedPendingOrders: any[]
   deliveryItems: any[]
   actions: {
-    addPendingOrder: (order: OrderItem) => void
-    removePendingOrder: (orderId: string) => void
-    toggleSelectedRow: (orderItem: OrderItem) => void
+    addDeliveryItem: (order: any) => void
+    removeDeliveryItem: (orderId: string) => void
   }
 }
 const useOrderStore = create<OrderStore>((set) => ({
-  pendingOrders: [],
-  selectedPendingOrders: [],
   deliveryItems: [],
   actions: {
-    addPendingOrder: (order) =>
-      set((state) => ({
-        pendingOrders: [...state.pendingOrders, order]
-      })),
-
-    removePendingOrder: (orderId) =>
-      set((state) => ({
-        pendingOrders: state.pendingOrders.filter(
-          (order) => order.order.id !== orderId
-        )
-      })),
-    // toggleSelectedRow: (orderItem) =>
-    //   set((state) => {
-    //     const position = `${orderItem.order.id}-${orderItem.inventory.id}`
-    //     const isSelected = state.selectedPendingOrders.some(
-    //       (item) => `${item.order.id}-${item.inventory.id}` === position
-    //     )
-
-    //     return {
-    //       selectedPendingOrders: isSelected
-    //         ? state.selectedPendingOrders.filter(
-    //             (item) => `${item.order.id}-${item.inventory.id}` !== position
-    //           )
-    //         : [...state.selectedPendingOrders, orderItem]
-    //     }
-    //   })
-    toggleSelectedRow: (orderItem) =>
-      set((state) => {
-        const position = `${orderItem.order.id}-${orderItem.inventory.id}`
-        const isSelected = state.selectedPendingOrders.some(
-          (item) => `${item.orderId}-${item.inventoryId}` === position
-        )
-
-        if (isSelected) {
-          return {
-            selectedPendingOrders: state.selectedPendingOrders.filter(
-              (item) => `${item.orderId}-${item.inventoryId}` !== position
-            )
-            // deliveryItems: state.deliveryItems.filter(
-            //   (item) => `${item.orderId}-${item.inventoryId}` !== position
-            // )
-          }
-        } else {
-          return {
-            selectedPendingOrders: [
-              ...state.selectedPendingOrders,
-              {
-                inventoryId: orderItem.inventory.id,
-                quantity: orderItem.quantity,
-                ppv: orderItem.inventory.ppv,
-                pph: orderItem.pph,
-                orderId: orderItem.order.id,
-                discount: 0
-              }
-            ]
-            // deliveryItems: [
-            //   ...state.deliveryItems,
-            //   { medication: orderItem.inventory.medication, ...orderItem }
-            // ]
-          }
-        }
+    addDeliveryItem: ({
+      orderId,
+      inventoryId,
+      supplierId,
+      status,
+      totalPurchasePrice,
+      purchasePriceUnit,
+      discountRate,
+      orderedQuantity,
+      deliveredQuantity,
+      inventory,
+      medication
+    }: any) => {
+      console.log({
+        orderId,
+        inventoryId,
+        supplierId,
+        status,
+        totalPurchasePrice,
+        purchasePriceUnit,
+        discountRate,
+        orderedQuantity,
+        deliveredQuantity,
+        inventory,
+        medication
       })
+      set((state) => ({
+        deliveryItems: [
+          ...state.deliveryItems,
+          {
+            orderId,
+            inventoryId,
+            supplierId,
+            status,
+            totalPurchasePrice,
+            purchasePriceUnit,
+            discountRate,
+            orderedQuantity,
+            deliveredQuantity,
+            inventory,
+            medication
+          }
+        ]
+      }))
+    },
+    removeDeliveryItem: (inventoryId) =>
+      set((state) => ({
+        deliveryItems: state.deliveryItems.filter(
+          (orderItem) => orderItem.inventoryId !== inventoryId
+        )
+      }))
   }
 }))
-
-export const usePendingOrders = () =>
-  useOrderStore((state) => state.pendingOrders)
-export const useSelectedPendingOrders = () =>
-  useOrderStore((state) => state.selectedPendingOrders)
 
 export const useDeliveryItems = () =>
   useOrderStore((state) => state.deliveryItems)

@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using PharmaHub.API.Dtos.Inventory;
 using PharmaHub.API.Dtos.Medicament;
 
@@ -8,7 +10,7 @@ public class DeliveryMedicationDto : BaseDto<DeliveryMedicationDto, Models.Deliv
     public int Quantity { get; set; }
     public decimal Ppv { get; set; }
     public decimal Pph { get; set; }
-    public InventoryBasicDto Inventory { get; set; }
+    public InventoryDetailedDto Inventory { get; set; }
 }
 
 

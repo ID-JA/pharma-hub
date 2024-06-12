@@ -71,9 +71,9 @@ function PortalLayout() {
             <IconMenu style={{ width: '70%', height: '70%' }} stroke={1.5} />
           </ActionIcon>
         </Group>
-        <ScrollArea h={height}>
-          <Outlet />
-        </ScrollArea>
+        {/* <ScrollArea h={height}> */}
+        <Outlet />
+        {/* </ScrollArea> */}
       </AppShell.Main>
     </AppShell>
   )

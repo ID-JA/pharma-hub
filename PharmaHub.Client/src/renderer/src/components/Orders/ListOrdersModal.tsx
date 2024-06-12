@@ -1,22 +1,25 @@
 import {
+  ActionIcon,
   Badge,
   Box,
   Button,
-  Checkbox,
   Group,
   Modal,
   Select,
   Table,
-  Text,
-  Title
+  Text
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
+import { useOrdersAction, useDeliveryItems } from '@renderer/store/order.store'
 import { http } from '@renderer/utils/http'
+import { IconPlus } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useCallback, useMemo, useState } from 'react'
 
-function ListOrdersModal({ selectedRows, onRowSelect }) {
+function ListOrdersModal() {
+  const { addDeliveryItem } = useOrdersAction()
+  const deliveryItems = useDeliveryItems()
   const [filterOptions, setFilterOptions] = useState<any>({
     status: 'Pending',
     from: dayjs().subtract(7, 'days').toDate(),
@@ -31,29 +34,25 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
         params: filterOptions
       })
       return response.data.data
-    }
+    },
+    staleTime: Infinity
   })
 
-  const handleSelect = (value) => {
-    setFilterOptions((prev) => ({
-      ...prev,
-      supplier: value
-    }))
+  const isSelected = (inventoryId) => {
+    return deliveryItems.some((item) => item.inventoryId === inventoryId)
   }
 
-  const handleChangeDateRange = (value) => {
-    setFilterOptions((prev) => ({
-      ...prev,
-      from: value[0],
-      to: value[1]
-    }))
-  }
   return (
     <Box mih="400px">
       <Group mb="md" grow>
         <Select
           label="Supplier"
-          onChange={handleSelect}
+          onChange={(value) =>
+            setFilterOptions((prev) => ({
+              ...prev,
+              supplier: value
+            }))
+          }
           value={filterOptions.supplier}
           data={[
             {
@@ -67,7 +66,13 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
           type="range"
           defaultValue={[filterOptions.from, filterOptions.to]}
           value={filterOptions.dates}
-          onChange={handleChangeDateRange}
+          onChange={(value) =>
+            setFilterOptions((prev) => ({
+              ...prev,
+              from: value[0],
+              to: value[1]
+            }))
+          }
         />
       </Group>
       <Table>
@@ -84,23 +89,40 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
         <Table.Tbody>
           {data?.map((orderItem) => {
             const { order, inventory } = orderItem
-            const position = `${order.id}-${inventory.id}`
-            const isSelected = selectedRows.some(
-              (item) => `${item.order.id}-${item.inventory.id}` === position
-            )
             return (
               <Table.Tr
-                key={position}
-                bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}
+                key={`${order.id}-${inventory.id}`}
+                bg={
+                  isSelected(orderItem)
+                    ? 'var(--mantine-color-blue-light)'
+                    : undefined
+                }
               >
                 <Table.Td>
-                  <Checkbox
-                    aria-label="Select row"
-                    checked={isSelected}
-                    onChange={(event) =>
-                      onRowSelect(orderItem, event.currentTarget.checked)
-                    }
-                  />
+                  <ActionIcon
+                    variant="default"
+                    onClick={() => {
+                      addDeliveryItem({
+                        orderId: orderItem.order.id,
+                        inventoryId: orderItem.inventory.id,
+                        supplierId: orderItem.supplierId,
+                        status: orderItem.status,
+                        totalPurchasePrice: orderItem.totalPurchasePrice,
+                        purchasePriceUnit: orderItem.purchasePriceUnit,
+                        discountRate: orderItem.discountRate,
+                        orderedQuantity: orderItem.orderedQuantity,
+                        deliveredQuantity: orderItem.orderedQuantity,
+                        inventory: orderItem.inventory,
+                        medication: orderItem.inventory.medication
+                      })
+                    }}
+                    disabled={isSelected(orderItem.inventory.id)}
+                  >
+                    <IconPlus
+                      style={{ width: '70%', height: '70%' }}
+                      stroke={1.7}
+                    />
+                  </ActionIcon>
                 </Table.Td>
                 <Table.Td>
                   {`${dayjs(order.orderDate).format('DD/MM/YYYY')} - ${dayjs(order.orderDate).format('HH:mm')}`}
@@ -126,34 +148,22 @@ function ListOrdersModal({ selectedRows, onRowSelect }) {
 
 export const useListOrdersModal = () => {
   const [opened, setOpened] = useState(false)
-  const ListOrdersModalModalCallback = useCallback(
-    ({
-      selectedRows,
-      onRowSelect
-    }: {
-      selectedRows: any[]
-      onRowSelect: (orderItem: any, isSelected: boolean) => void
-    }) => {
-      return (
-        <Modal
-          size="xl"
-          onClose={() => setOpened(false)}
-          opened={opened}
-          title={
-            <Text fw="600" td="underline">
-              Pending orders from the same selected supplier
-            </Text>
-          }
-        >
-          <ListOrdersModal
-            selectedRows={selectedRows}
-            onRowSelect={onRowSelect}
-          />
-        </Modal>
-      )
-    },
-    [opened, setOpened]
-  )
+  const ListOrdersModalModalCallback = useCallback(() => {
+    return (
+      <Modal
+        size="xl"
+        onClose={() => setOpened(false)}
+        opened={opened}
+        title={
+          <Text fw="600" td="underline">
+            Pending orders from the same selected supplier
+          </Text>
+        }
+      >
+        <ListOrdersModal />
+      </Modal>
+    )
+  }, [opened, setOpened])
 
   const ListOrdersModalButtonCallback = useCallback(() => {
     return (
@@ -163,7 +173,7 @@ export const useListOrdersModal = () => {
         }}
         variant="light"
       >
-        Add New Inventory
+        Load Pending Orders
       </Button>
     )
   }, [setOpened])
