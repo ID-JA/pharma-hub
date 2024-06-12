@@ -50,7 +50,9 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             Tva = request.Tva,
             Marge = request.Marge,
             Pbr = request.Pbr,
-            Status = "Out of stock", 
+            MinQuantity = request.MinQuantity,
+            MaxQuantity = request.MaxQuantity,
+            Status = "Out of stock",
             DiscountRate = 0, // request.DiscountRate, this should be deleted because it belongs to inventory
             OrderSystem = request.OrderSystem,
             WithPrescription = request.WithPrescription,

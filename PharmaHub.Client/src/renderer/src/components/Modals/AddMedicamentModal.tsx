@@ -40,6 +40,8 @@ const schema = z.object({
   laboratory: z.string(),
   section: z.string(),
   orderSystem: z.string(),
+  maxQuantity: z.number().default(0),
+  minQuantity: z.number().default(0),
   usedBy: z
     .array(z.string(), {
       required_error: 'UsedBy is required'
@@ -79,16 +81,22 @@ export function AddMedicamentForm({ setOpened }) {
   return (
     <form
       onSubmit={form.onSubmit((values) => {
-        mutate({
-          ...values,
-          inventory: {
-            quantity: 0,
-            expirationDate: values.expirationDate,
-            ppv: values.ppv,
-            pph: values.pph
+        mutate(
+          {
+            ...values,
+            inventory: {
+              quantity: 0,
+              expirationDate: values.expirationDate,
+              ppv: values.ppv,
+              pph: values.pph
+            }
+          },
+          {
+            onSuccess: () => {
+              setOpened(false)
+            }
           }
-        })
-        setOpened(false)
+        )
       })}
     >
       <Stack>
@@ -152,10 +160,34 @@ export function AddMedicamentForm({ setOpened }) {
         </Checkbox.Group>
         <Group grow>
           <Select
-            label="Order System"
-            data={['Manual']}
+            label="Système de commande"
+            data={[
+              'MANUEL',
+              'STOCK MINIMUM ET STOCK MAXIMUM',
+              'COMMANDE=VENTES DE LA JOURNÉE',
+              'COUVERTURE DE STOCK'
+            ]}
             {...form.getInputProps('orderSystem')}
           />
+          {form.getValues().orderSystem ===
+            'STOCK MINIMUM ET STOCK MAXIMUM' && (
+            <div>
+              <NumberInput
+                w="100px"
+                min={0}
+                decimalScale={0}
+                label="Min Quantity"
+                {...form.getInputProps('minQuantity')}
+              />
+              <NumberInput
+                min={form.getValues().minQuantity}
+                decimalScale={0}
+                w="100px"
+                label="Max Quantity"
+                {...form.getInputProps('maxQuantity')}
+              />
+            </div>
+          )}
           <Select
             label="Laboratory"
             data={['ABC Laboratory']}
@@ -185,6 +217,7 @@ export function AddMedicamentForm({ setOpened }) {
             label="PPV"
             {...form.getInputProps('ppv')}
             min={0}
+            decimalScale={2}
             onChange={(value) => {
               form.setFieldValue('ppv', value as number)
               form.setFieldValue(
@@ -193,8 +226,18 @@ export function AddMedicamentForm({ setOpened }) {
               )
             }}
           />
-          <NumberInput label="PBR" {...form.getInputProps('pbr')} min={0} />
-          <NumberInput label="PPH" readOnly {...form.getInputProps('pph')} />
+          <NumberInput
+            label="PBR"
+            {...form.getInputProps('pbr')}
+            min={0}
+            decimalScale={2}
+          />
+          <NumberInput
+            label="PPH"
+            readOnly
+            {...form.getInputProps('pph')}
+            decimalScale={2}
+          />
         </Group>
         <Group grow>
           <SearchField

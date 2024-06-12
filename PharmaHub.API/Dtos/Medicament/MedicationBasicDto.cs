@@ -4,6 +4,8 @@ public class MedicationBasicDto : BaseDto<MedicationBasicDto, Models.Medication>
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    public int MaxQuantity { get; set; }
+    public int MinQuantity { get; set; }
     public double Tva { get; set; }
     public double Marge { get; set; }
     public double DiscountRate { get; set; }
