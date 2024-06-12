@@ -62,9 +62,9 @@ function StockDetail() {
   })
 
   return (
-    <Container size="xl">
+    <>
       <Group grow mb="xl">
-        <SearchMedicament setValue={setMedicamentId} />
+        <SearchMedicament label="Nom de produit" setValue={setMedicamentId} />
         <TextInput
           label="Code Bar"
           leftSection={<IconBarcode />}
@@ -186,6 +186,6 @@ function StockDetail() {
           <Textarea label="Dosage" readOnly defaultValue={data.dosage} />
         </Stack>
       </Group>
-    </Container>
+    </>
   )
 }

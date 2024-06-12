@@ -1,26 +1,14 @@
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Flex,
-  Group,
-  InputBase,
-  Modal,
-  Paper,
-  Table,
-  Text,
-  Tooltip
-} from '@mantine/core'
+import { createFileRoute } from '@tanstack/react-router'
+import { ActionIcon, Button, Flex, Group, InputBase, Text } from '@mantine/core'
 import dayjs from 'dayjs'
-import { useCallback, useMemo, useState } from 'react'
-import SearchMedicament from '../Medicaments/SearchMedicament'
+import { useMemo, useState } from 'react'
 import {
   useCreateInventory,
   useDeleteInventory,
   useMedicamentInventories,
   useUpdateInventory
 } from '@renderer/services/medicaments.service'
-import { IconEdit, IconTrash, IconX } from '@tabler/icons-react'
+import { IconEdit, IconTrash } from '@tabler/icons-react'
 import {
   MRT_ColumnDef,
   MRT_Row,
@@ -30,6 +18,7 @@ import {
 } from 'mantine-react-table'
 import { modals } from '@mantine/modals'
 import { calculatePPH } from '@renderer/utils/functions'
+import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
 
 type Inventory = {
   id: number
@@ -40,7 +29,11 @@ type Inventory = {
   createdAt: Date
 }
 
-export function AddInventoryModal({ setOpened }) {
+export const Route = createFileRoute('/_portal/medications/inventory/new')({
+  component: NewInventoryPage
+})
+
+function NewInventoryPage() {
   const [medicamentId, setMedicamentId] = useState()
   const { data } = useMedicamentInventories(medicamentId)
   const { mutate: createInventory } = useCreateInventory(medicamentId)
@@ -251,44 +244,5 @@ export function AddInventoryModal({ setOpened }) {
       </Group>
       <MantineReactTable table={table} />
     </>
-  )
-}
-
-export const useAddInventoryModal = () => {
-  const [opened, setOpened] = useState(false)
-  const AddInventoryModalCallback = useCallback(() => {
-    return (
-      <Modal
-        size="xl"
-        onClose={() => setOpened(false)}
-        opened={opened}
-        title="Add New Inventory"
-      >
-        <AddInventoryModal setOpened={setOpened} />
-      </Modal>
-    )
-  }, [opened, setOpened])
-
-  const AddInventoryButtonCallback = useCallback(() => {
-    return (
-      <Button
-        onClick={() => {
-          setOpened(true)
-        }}
-        variant="light"
-      >
-        Add New Inventory
-      </Button>
-    )
-  }, [setOpened])
-
-  return useMemo(
-    () => ({
-      opened,
-      setOpened,
-      AddInventoryModal: AddInventoryModalCallback,
-      AddMedicamentButton: AddInventoryButtonCallback
-    }),
-    [opened, setOpened, AddInventoryModalCallback, AddInventoryButtonCallback]
   )
 }

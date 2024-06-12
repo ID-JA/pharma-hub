@@ -16,17 +16,27 @@ export function LinksGroup({
 
   const items = useMemo(() => {
     return hasLinks
-      ? links.map((subLink) => (
-          <Link
-            key={subLink.label}
-            to={subLink.to}
-            className={classes.link}
-            activeOptions={{ exact: subLink.exact }}
-            activeProps={{ className: classes.activeLink }}
-          >
-            {subLink.label}
-          </Link>
-        ))
+      ? links.map((subLink) =>
+          subLink.to ? (
+            <Link
+              key={subLink.label}
+              to={subLink.to}
+              className={classes.link}
+              activeOptions={{ exact: subLink.exact }}
+              activeProps={{ className: classes.activeLink }}
+            >
+              {subLink.label}
+            </Link>
+          ) : (
+            <UnstyledButton
+              component="a"
+              className={classes.link}
+              onClick={subLink.onClick}
+            >
+              {subLink.label}
+            </UnstyledButton>
+          )
+        )
       : []
   }, [hasLinks, links])
 
@@ -41,7 +51,7 @@ export function LinksGroup({
           <UnstyledButton onClick={handleToggle} className={classes.control}>
             <Group justify="space-between" gap={0}>
               <Box style={{ display: 'flex', alignItems: 'center' }}>
-                <Icon className={classes.linkIcon} stroke={1.5} />
+                {Icon}
                 <Box ml="md">{label}</Box>
               </Box>
               {hasLinks && (
