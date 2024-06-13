@@ -2,6 +2,7 @@
 
 public class TypeDto : BaseDto<TypeDto, Models.Tax>
 {
+  public int Id { get; set; }
   public string Name { get; set; }
   public string Code { get; set; }
   public float Marge { get; set; }

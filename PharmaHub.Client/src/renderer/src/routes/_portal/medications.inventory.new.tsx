@@ -191,18 +191,18 @@ function NewInventoryPage() {
       <Flex gap="md">
         <ActionIcon
           onClick={() => table.setEditingRow(row)}
-          size="md"
+          size="sm"
           variant="light"
         >
-          <IconEdit style={{ height: '80%', width: '80%' }} stroke={1.2} />
+          <IconEdit style={{ height: '50%', width: '50%' }} stroke={1.2} />
         </ActionIcon>
         <ActionIcon
           color="red"
           onClick={() => openDeleteConfirmModal(row)}
-          size="md"
+          size="sm"
           variant="light"
         >
-          <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
+          <IconTrash style={{ height: '50%', width: '50%' }} stroke={1.2} />
         </ActionIcon>
       </Flex>
     ),

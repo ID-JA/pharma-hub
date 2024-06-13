@@ -70,6 +70,30 @@ const moackData = [
       },
       { label: 'Règlement factures', to: '/', exact: true }
     ]
+  },
+  {
+    icon: (
+      <img
+        height={28}
+        width={28}
+        src="data:image/png;base64,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"
+      />
+    ),
+    label: 'Paramétrage',
+    links: [
+      { label: 'Types', to: '/settings/types', exact: true },
+      {
+        label: 'Forms',
+        to: '/deliveries/new',
+        exact: true
+      },
+      {
+        label: 'Rayon',
+        to: '/deliveries/consultation',
+        exact: true
+      },
+      { label: 'Familles Thérapeutiques', to: '/', exact: true }
+    ]
   }
 ]
 

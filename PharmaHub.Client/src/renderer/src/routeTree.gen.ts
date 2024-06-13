@@ -19,7 +19,9 @@ import { Route as PortalMedicamentsImport } from './routes/_portal/medicaments'
 import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
 import { Route as PortalSettingsIndexImport } from './routes/_portal/settings/index'
 import { Route as PortalMedicamentsIndexImport } from './routes/_portal/medicaments.index'
+import { Route as PortalSettingsTypesImport } from './routes/_portal/settings_.types'
 import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
+import { Route as PortalSettingsFormsImport } from './routes/_portal/settings.forms'
 import { Route as PortalSalesNewImport } from './routes/_portal/sales_.new'
 import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
 import { Route as PortalOrdersNewImport } from './routes/_portal/orders.new'
@@ -77,8 +79,18 @@ const PortalMedicamentsIndexRoute = PortalMedicamentsIndexImport.update({
   getParentRoute: () => PortalMedicamentsRoute,
 } as any)
 
+const PortalSettingsTypesRoute = PortalSettingsTypesImport.update({
+  path: '/settings/types',
+  getParentRoute: () => PortalRoute,
+} as any)
+
 const PortalSettingsUsersRoute = PortalSettingsUsersImport.update({
   path: '/users',
+  getParentRoute: () => PortalSettingsRoute,
+} as any)
+
+const PortalSettingsFormsRoute = PortalSettingsFormsImport.update({
+  path: '/forms',
   getParentRoute: () => PortalSettingsRoute,
 } as any)
 
@@ -287,12 +299,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSalesNewImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/settings/forms': {
+      id: '/_portal/settings/forms'
+      path: '/forms'
+      fullPath: '/settings/forms'
+      preLoaderRoute: typeof PortalSettingsFormsImport
+      parentRoute: typeof PortalSettingsImport
+    }
     '/_portal/settings/users': {
       id: '/_portal/settings/users'
       path: '/users'
       fullPath: '/settings/users'
       preLoaderRoute: typeof PortalSettingsUsersImport
       parentRoute: typeof PortalSettingsImport
+    }
+    '/_portal/settings/types': {
+      id: '/_portal/settings/types'
+      path: '/settings/types'
+      fullPath: '/settings/types'
+      preLoaderRoute: typeof PortalSettingsTypesImport
+      parentRoute: typeof PortalImport
     }
     '/_portal/medicaments/': {
       id: '/_portal/medicaments/'
@@ -340,6 +366,7 @@ export const routeTree = rootRoute.addChildren({
     }),
     PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
     PortalSettingsRoute: PortalSettingsRoute.addChildren({
+      PortalSettingsFormsRoute,
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
     }),
@@ -353,6 +380,7 @@ export const routeTree = rootRoute.addChildren({
     PortalOrdersConsultationRoute,
     PortalOrdersNewRoute,
     PortalSalesNewRoute,
+    PortalSettingsTypesRoute,
     PortalMedicationsInventoryNewRoute,
   }),
 })
