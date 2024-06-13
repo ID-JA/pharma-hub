@@ -1,8 +1,8 @@
+import { createFileRoute } from '@tanstack/react-router'
 import {
   Button,
   Checkbox,
   Group,
-  Modal,
   NumberInput,
   Select,
   Stack,
@@ -17,10 +17,13 @@ import {
   useTaxesQuery
 } from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { z } from 'zod'
-import SearchField from '../SearchField'
 import { calculatePPH } from '@renderer/utils/functions'
+import SearchField from '@renderer/components/SearchField'
+export const Route = createFileRoute('/_portal/medications/new')({
+  component: NewMedicationPage
+})
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -52,7 +55,7 @@ const schema = z.object({
 
 type Medicament = z.infer<typeof schema>
 
-export function AddMedicamentForm({ setOpened }) {
+function NewMedicationPage() {
   const form = useForm<Medicament>({
     validate: zodResolver(schema)
   })
@@ -93,7 +96,7 @@ export function AddMedicamentForm({ setOpened }) {
           },
           {
             onSuccess: () => {
-              setOpened(false)
+              form.reset()
             }
           }
         )
@@ -263,44 +266,5 @@ export function AddMedicamentForm({ setOpened }) {
         </Group>
       </Stack>
     </form>
-  )
-}
-
-export const useAddMedicamentModal = () => {
-  const [opened, setOpened] = useState(false)
-  const AddMedicamentModalCallback = useCallback(() => {
-    return (
-      <Modal
-        size="xl"
-        onClose={() => setOpened(false)}
-        opened={opened}
-        title="Add New Medicament"
-      >
-        <AddMedicamentForm setOpened={setOpened} />
-      </Modal>
-    )
-  }, [opened, setOpened])
-
-  const AddMedicamentButtonCallback = useCallback(() => {
-    return (
-      <Button
-        onClick={() => {
-          setOpened(true)
-        }}
-        variant="light"
-      >
-        New Medicament
-      </Button>
-    )
-  }, [setOpened])
-
-  return useMemo(
-    () => ({
-      opened,
-      setOpened,
-      AddMedicamentModal: AddMedicamentModalCallback,
-      AddMedicamentButton: AddMedicamentButtonCallback
-    }),
-    [opened, setOpened, AddMedicamentModalCallback, AddMedicamentButtonCallback]
   )
 }

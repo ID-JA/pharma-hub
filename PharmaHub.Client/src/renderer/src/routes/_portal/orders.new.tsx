@@ -6,7 +6,8 @@ import {
   NumberInput,
   ScrollArea,
   Select,
-  Table
+  Table,
+  Text
 } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 import { DatePickerInput, TimeInput } from '@mantine/dates'
@@ -20,6 +21,7 @@ import { zodResolver } from 'mantine-form-zod-resolver'
 import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
+import { modals } from '@mantine/modals'
 
 export const Route = createFileRoute('/_portal/orders/new')({
   component: NewOrder
@@ -152,6 +154,7 @@ function NewOrder() {
   const { InventorySelectorDrawer, InventorySelectorDrawerButton } =
     useInventorySelector({
       onAddInventory: (item) => {
+        console.log({ item })
         if (!isInventorySelected(item.inventory.id)) {
           setSelectedInventories((prev) => [
             ...prev,
@@ -168,7 +171,9 @@ function NewOrder() {
               ppv: item.inventory.ppv,
               tva: item.inventory.tva,
               pph: item.inventory.pph,
-              quantityInStock: item.inventory.quantity
+              quantityInStock: item.inventory.quantity,
+              maxQuantity: item.medication.maxQuantity,
+              minQuantity: item.medication.minQuantity
             }
           ])
 
@@ -183,8 +188,7 @@ function NewOrder() {
             discountedPPH: item.inventory.ppv * (1 - 0 / 100)
           })
         }
-      },
-      isInventorySelected
+      }
     })
 
   useEffect(() => {
@@ -275,6 +279,9 @@ function NewOrder() {
             <TableHeader />
             <Table.Tbody>
               {selectedInventories.map((item, index) => {
+                console.log({
+                  item
+                })
                 return (
                   <Table.Tr key={item.inventoryId}>
                     <Table.Th miw="50px">
@@ -314,6 +321,39 @@ function NewOrder() {
                         key={form.key(`orderItems.${index}.orderedQuantity`)}
                         onBlur={(event) => {
                           const value = Number(event.target.value)
+
+                          if (value > item.maxQuantity) {
+                            modals.open({
+                              title: 'Warning',
+                              modalId: 'warning',
+                              centered: true,
+                              withCloseButton: false,
+                              children: (
+                                <>
+                                  <Text size="sm" mb="md">
+                                    quantité doit être inférieure ou égale à
+                                    quantité maximale de{' '}
+                                    <b>{item.maxQuantity}</b>
+                                  </Text>
+                                  <Button
+                                    fullWidth
+                                    onClick={() => {
+                                      modals.close('warning')
+                                      event.target.focus()
+                                    }}
+                                  >
+                                    Compris?
+                                  </Button>
+                                </>
+                              )
+                            })
+                            form.setFieldError(
+                              `orderItems.${index}.orderedQuantity`,
+                              ' '
+                            )
+                            return
+                          }
+
                           form.setFieldValue(
                             `orderItems.${index}.totalPurchasePrice`,
                             calculatePPH(item.ppv, item.marge) * value

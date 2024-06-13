@@ -11,4 +11,10 @@ public class InventoriesController(IInventoryService inventoryService) : Control
     {
         return Ok(await inventoryService.SearchInventoryAsync(medicament, cancellationToken));
     }
+
+    [HttpGet("search")]
+    public async Task<ActionResult> InventoriesByType([FromQuery] string? type, CancellationToken cancellationToken)
+    {
+        return Ok(await inventoryService.InventoriesByType(type, cancellationToken));
+    }
 }
