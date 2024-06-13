@@ -78,4 +78,5 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }
+    public DbSet<Client> Clients { get; set; }
 }
