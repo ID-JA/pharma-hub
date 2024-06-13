@@ -1,8 +1,12 @@
 import {
   ActionIcon,
+  Badge,
   Box,
   Button,
   Flex,
+  Group,
+  Select,
+  Stack,
   Table,
   Tabs,
   Text,
@@ -11,14 +15,14 @@ import {
 import { modals } from '@mantine/modals'
 import { http } from '@renderer/utils/http'
 import { IconEdit, IconTrash } from '@tabler/icons-react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   MRT_ColumnDef,
   MantineReactTable,
   useMantineReactTable
 } from 'mantine-react-table'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 export const Route = createFileRoute('/_portal/settings/types')({
   component: MedicationTypesPage
@@ -39,7 +43,9 @@ function MedicationTypesPage() {
         <MedicationTypes />
       </Tabs.Panel>
 
-      <Tabs.Panel value="messages">Messages tab content</Tabs.Panel>
+      <Tabs.Panel value="messages">
+        <MedicationsByType />
+      </Tabs.Panel>
 
       <Tabs.Panel value="settings">Settings tab content</Tabs.Panel>
     </Tabs>
@@ -261,5 +267,128 @@ function MedicationTypes() {
     <Box mt="md">
       <MantineReactTable table={table} />
     </Box>
+  )
+}
+
+function MedicationsByType() {
+  const queryClient = useQueryClient()
+  const [selectedType, setSelectedType] = useState<string>(
+    'MEDICAMENTS TVA 20%'
+  )
+  const cachedMedicationsTypes: any =
+    queryClient.getQueryData(['medication-types']) || []
+  const { data = [] } = useQuery({
+    queryKey: ['medication-by-type', selectedType],
+    queryFn: async () => {
+      const res = await http.get('/api/inventories/search', {
+        params: {
+          type: selectedType
+        }
+      })
+      return res.data?.data
+    }
+  })
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.medication.name}</>
+        },
+        size: 300
+      },
+      {
+        accessorKey: 'laboratory',
+        header: 'Laboratoire',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.medication.laboratory}</>
+        }
+      },
+      {
+        accessorKey: 'section',
+        header: 'Rayon',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.medication.section}</>
+        }
+      },
+      {
+        accessorKey: 'dci',
+        header: 'Famille Thérapeutique',
+        Cell: ({ row }) => {
+          const dcis = row.original.medication.dci.map((item, index) => (
+            <Badge size="sm" key={index} mx="4px">
+              {item}
+            </Badge>
+          ))
+
+          return <>{dcis}</>
+        }
+      },
+      {
+        header: 'Marge (%)',
+        accessorKey: 'marge',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.medication.marge}</>
+        }
+      },
+      {
+        header: 'TVA',
+        accessorKey: 'tva',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.medication.marge}</>
+        }
+      },
+
+      {
+        header: 'Quantité Stock',
+        accessorKey: 'quantity',
+        Cell: ({ cell }) => {
+          return <>{cell.row.original.inventory.quantity}</>
+        }
+      }
+    ],
+    []
+  )
+
+  const table = useMantineReactTable({
+    columns,
+    data,
+    enableGlobalFilter: false,
+    enableHiding: false,
+    enableSorting: false,
+    enableFilters: false,
+    enableDensityToggle: false,
+    enableFullScreenToggle: false,
+    enableColumnActions: false,
+    state: {
+      density: 'xs'
+    },
+    mantineTableProps: {},
+    mantineTableBodyCellProps: {
+      style: {
+        whiteSpace: 'nowrap'
+      }
+    }
+  })
+
+  return (
+    <div>
+      <Select
+        my="lg"
+        w="300px"
+        value={selectedType}
+        defaultValue={selectedType}
+        onChange={(value) => setSelectedType(value || '')}
+        label="Type de Medicament"
+        data={cachedMedicationsTypes.map((item) => ({
+          label: item.name,
+          value: item.name
+        }))}
+      />
+      <Box mt="md">
+        <MantineReactTable table={table} />
+      </Box>
+    </div>
   )
 }
