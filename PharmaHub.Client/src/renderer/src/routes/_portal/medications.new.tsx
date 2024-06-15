@@ -176,7 +176,6 @@ function NewMedicationPage() {
             'STOCK MINIMUM ET STOCK MAXIMUM' && (
             <div>
               <NumberInput
-                w="100px"
                 min={0}
                 decimalScale={0}
                 label="Min Quantity"
@@ -185,7 +184,6 @@ function NewMedicationPage() {
               <NumberInput
                 min={form.getValues().minQuantity}
                 decimalScale={0}
-                w="100px"
                 label="Max Quantity"
                 {...form.getInputProps('maxQuantity')}
               />

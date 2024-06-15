@@ -7,12 +7,13 @@ import {
   Radio,
   InputBase,
   Stack,
-  Checkbox
+  Checkbox,
+  Table
 } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { IconBarcode, IconCategory } from '@tabler/icons-react'
 import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
 
@@ -60,6 +61,20 @@ function StockDetail() {
     initialData: DEFAULT_VALUE,
     enabled: medicamentId ? true : false
   })
+
+  const { data: inventories = [] } = useQuery({
+    queryKey: ['medication-inventories', medicamentId],
+    queryFn: async () => {
+      const res = await http.get(`/api/medicaments/${medicamentId}/inventories`)
+      return res.data.inventories
+    },
+    enabled: !!medicamentId
+  })
+
+  const totalQuantity = useMemo(
+    () => inventories.reduce((acc, item) => acc + item.quantity, 0),
+    [inventories]
+  )
 
   return (
     <>
@@ -181,8 +196,42 @@ function StockDetail() {
           </Fieldset>
         </Stack>
         <Stack>
-          <h4>Render Total Quantity & Total Quantity Last month</h4>
-          <h4>Render Medicament Inventories</h4>
+          {/* <h4>Render Total Quantity & Total Quantity Last month</h4> */}
+          <Group grow>
+            <InputBase
+              label="Quantité totale disponible"
+              readOnly
+              value={totalQuantity}
+            />
+            <InputBase
+              label="Medicament Name"
+              readOnly
+              defaultValue={data.name}
+            />
+          </Group>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Td>Quantité Stock</Table.Td>
+                <Table.Td>PPV</Table.Td>
+                <Table.Td>PPH</Table.Td>
+                <Table.Td>Péremption</Table.Td>
+              </Table.Tr>
+            </Table.Thead>
+
+            <Table.Tbody>
+              {inventories.map((item) => (
+                <Table.Tr key={item.id}>
+                  <Table.Td>{item.quantity}</Table.Td>
+                  <Table.Td>{item.ppv}</Table.Td>
+                  <Table.Td>{item.pph}</Table.Td>
+                  <Table.Td>
+                    {new Date(item.expirationDate).toLocaleDateString()}
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
           <Textarea label="Dosage" readOnly defaultValue={data.dosage} />
         </Stack>
       </Group>

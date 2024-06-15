@@ -1,5 +1,6 @@
 import classes from './NewNavbar.module.css'
 import { LinksGroup } from './LinksGroup'
+import { ScrollArea } from '@mantine/core'
 
 const moackData = [
   {
@@ -104,9 +105,9 @@ export function NewNavbar() {
 
   return (
     <>
-      <div className={classes.section}>
+      <ScrollArea className={classes.section}>
         <div className={classes.mainLinks}>{links}</div>
-      </div>
+      </ScrollArea>
     </>
   )
 }
