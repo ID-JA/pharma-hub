@@ -430,6 +430,7 @@ export function NewDeliveryPage() {
       <InventorySelectorDrawer />
       <form
         onSubmit={form.onSubmit((values) => {
+          console.log(values)
           if (!isDeliveryValidated) {
             createDelivery(values, {
               onSuccess: () => {
@@ -488,7 +489,6 @@ export function NewDeliveryPage() {
               {...form.getInputProps('deliveryDate')}
             />
           </Group>
-
           <div>
             <PendingOrdersSelectorButton />
             <Button
@@ -514,78 +514,77 @@ export function NewDeliveryPage() {
             <Table.Tbody>{rows}</Table.Tbody>
           </Table>
         </ScrollArea>
+        <Group grow>
+          <NumberInput
+            label="TOTAL PPV"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.totalPpv}
+          />
+          <NumberInput
+            label="GRAT.(PPV)"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.gratPpv}
+          />
+          <NumberInput
+            label="TOTAL PPH BRUT"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.totalPphBrut}
+          />
+          <NumberInput
+            label="TOTAL PPH NET TTC"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.totalPphNet}
+          />
+          <NumberInput
+            label="REMISE SUR BL"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.discountedPrice}
+          />
+          <NumberInput
+            label="NOMBRE PRODUITS"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.totalProducts}
+          />
+          <NumberInput
+            label="TOTAL QUANTITIES"
+            decimalScale={2}
+            size="lg"
+            readOnly
+            hideControls
+            value={totals.totalQuantities}
+          />
+        </Group>
+        <Group justify="space-between" mt="md">
+          <Button
+            mr="md"
+            type="submit"
+            disabled={form.getValues().deliveryMedications.length < 1}
+          >
+            Validate Livraison
+          </Button>
+          <Button ml="md" color="red" disabled={!isDeliveryValidated}>
+            Annuler Livraison
+          </Button>
+        </Group>
       </form>
-
-      <Group grow>
-        <NumberInput
-          label="TOTAL PPV"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.totalPpv}
-        />
-        <NumberInput
-          label="GRAT.(PPV)"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.gratPpv}
-        />
-        <NumberInput
-          label="TOTAL PPH BRUT"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.totalPphBrut}
-        />
-        <NumberInput
-          label="TOTAL PPH NET TTC"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.totalPphNet}
-        />
-        <NumberInput
-          label="REMISE SUR BL"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.discountedPrice}
-        />
-        <NumberInput
-          label="NOMBRE PRODUITS"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.totalProducts}
-        />
-        <NumberInput
-          label="TOTAL QUANTITIES"
-          decimalScale={2}
-          size="lg"
-          readOnly
-          hideControls
-          value={totals.totalQuantities}
-        />
-      </Group>
-      <Group justify="space-between" mt="md">
-        <Button
-          mr="md"
-          type="submit"
-          disabled={form.getValues().deliveryMedications.length < 1}
-        >
-          Validate Livraison
-        </Button>
-        <Button ml="md" color="red" disabled={!isDeliveryValidated}>
-          Annuler Livraison
-        </Button>
-      </Group>
     </Box>
   )
 }
