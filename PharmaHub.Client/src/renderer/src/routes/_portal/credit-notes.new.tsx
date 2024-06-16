@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Box,
+  Button,
   Divider,
   Group,
   Input,
@@ -15,6 +16,7 @@ import {
   rem
 } from '@mantine/core'
 import { DateInput } from '@mantine/dates'
+import { useForm } from '@mantine/form'
 import { useDebouncedState } from '@mantine/hooks'
 // import SearchField from '@renderer/components/SearchField'
 import { useMedicaments } from '@renderer/services/medicaments.service'
@@ -63,6 +65,14 @@ function CreateCreditNotePage() {
   const [searchFieldName, setSearchFieldName] = useState('name')
   const [searchValue, setSearchValue] = useDebouncedState('', 1000)
   const [selectedInventories, setSelectedInventories] = useState<any[]>([])
+  const form = useForm({
+    initialValues: {
+      supplierId: '',
+      creditNoteDate: new Date(),
+      creditNoteNumber: '',
+      creditNoteMedications: []
+    }
+  })
 
   const { data = [] } = useQuery({
     queryKey: [
@@ -95,7 +105,7 @@ function CreateCreditNotePage() {
       ...prev,
       {
         inventoryId: inventory.id,
-        quantityIssued: 0,
+        quantityIssued: 1,
         name: medication.name,
         barcode: medication.barcode,
         id: inventory.id,
@@ -105,6 +115,12 @@ function CreateCreditNotePage() {
         expirationDate: inventory.expirationDate
       }
     ])
+
+    form.insertListItem('creditNoteMedications', {
+      inventoryId: inventory.id,
+      quantityIssued: 1,
+      reason: ''
+    })
   }
 
   const handleRemoveInventory = (inventoryId) => {
@@ -151,120 +167,152 @@ function CreateCreditNotePage() {
               rightSectionWidth={95}
             />
           </Box>
-          <div>
+          <ScrollArea h={200}>
+            <Table>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Nom</Table.Th>
+                  <Table.Th>Barcode</Table.Th>
+                  <Table.Th>PPV</Table.Th>
+                  <Table.Th>Quantité</Table.Th>
+                  <Table.Th>Péremption</Table.Th>
+                  <Table.Th ta="center">Action</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data.map((medication) => {
+                  return medication.inventories.map((inventory) => (
+                    <Table.Tr key={inventory.id}>
+                      <Table.Td>{medication.name}</Table.Td>
+                      <Table.Td>{medication.barcode}</Table.Td>
+                      <Table.Td>{inventory.ppv}</Table.Td>
+                      <Table.Td>{inventory.quantity}</Table.Td>
+                      <Table.Td>
+                        {new Date(
+                          inventory.expirationDate
+                        ).toLocaleDateString()}
+                      </Table.Td>
+                      <Table.Td ta="center">
+                        <ActionIcon
+                          disabled={inventory.quantity <= 0}
+                          size="sm"
+                          onClick={() =>
+                            handleAddInventory({ medication, inventory })
+                          }
+                        >
+                          <IconPlus />
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))
+                })}
+              </Table.Tbody>
+            </Table>
+          </ScrollArea>
+          <Divider my="xl" />
+          <form onSubmit={form.onSubmit((values) => console.log(values))}>
+            <Group mb="lg" justify="space-between" align="center">
+              <Group>
+                <Select
+                  required
+                  label="Fournisseur"
+                  data={suppliersMemo}
+                  {...form.getInputProps('supplierId')}
+                />
+                <InputBase
+                  required
+                  label="Numero d'Avoir"
+                  type="number"
+                  {...form.getInputProps('creditNoteNumber')}
+                />
+                <DateInput
+                  defaultValue={new Date()}
+                  label="Date émission"
+                  readOnly
+                />
+              </Group>
+              <Button type="submit">Valider Avoir</Button>
+            </Group>
             <ScrollArea h={200}>
-              <Table>
+              <Table
+                style={{
+                  whiteSpace: 'nowrap'
+                }}
+              >
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Nom</Table.Th>
                     <Table.Th>Barcode</Table.Th>
                     <Table.Th>PPV</Table.Th>
-                    <Table.Th>Quantité</Table.Th>
+                    <Table.Th>Quantité Emission</Table.Th>
+                    <Table.Th>Total PPV</Table.Th>
+                    <Table.Th>Total PPH</Table.Th>
                     <Table.Th>Péremption</Table.Th>
+                    <Table.Th>Motif</Table.Th>
                     <Table.Th ta="center">Action</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {data.map((medication) => {
-                    return medication.inventories.map((inventory) => (
+                  {selectedInventories.map((inventory: any, index) => {
+                    return (
                       <Table.Tr key={inventory.id}>
-                        <Table.Td>{medication.name}</Table.Td>
-                        <Table.Td>{medication.barcode}</Table.Td>
+                        <Table.Td>{inventory.name}</Table.Td>
+                        <Table.Td>{inventory.barcode}</Table.Td>
                         <Table.Td>{inventory.ppv}</Table.Td>
-                        <Table.Td>{inventory.quantity}</Table.Td>
+                        <Table.Td>
+                          <NumberInput
+                            max={inventory.quantity}
+                            min={1}
+                            {...form.getInputProps(
+                              `creditNoteMedications.${index}.quantityIssued`
+                            )}
+                          />
+                        </Table.Td>
+                        <Table.Td>
+                          {(
+                            form.getInputProps(
+                              `creditNoteMedications.${index}.quantityIssued`
+                            ).value * inventory.ppv
+                          ).toFixed(2)}
+                        </Table.Td>
+                        <Table.Td>
+                          {(
+                            form.getInputProps(
+                              `creditNoteMedications.${index}.quantityIssued`
+                            ).value * inventory.pph
+                          ).toFixed(2)}
+                        </Table.Td>
                         <Table.Td>
                           {new Date(
                             inventory.expirationDate
                           ).toLocaleDateString()}
                         </Table.Td>
-                        <Table.Td ta="center">
-                          <ActionIcon
-                            size="sm"
-                            onClick={() =>
-                              handleAddInventory({ medication, inventory })
-                            }
-                          >
-                            <IconPlus />
+                        <Table.Td>
+                          <Input
+                            w="250px"
+                            {...form.getInputProps(
+                              `createNoteMedications.${index}.reason`
+                            )}
+                          />
+                        </Table.Td>
+
+                        <Table.Td
+                          ta="center"
+                          onClick={() => {
+                            handleRemoveInventory(inventory.id)
+                          }}
+                        >
+                          <ActionIcon variant="light" color="red" size="sm">
+                            <IconTrash />
                           </ActionIcon>
                         </Table.Td>
                       </Table.Tr>
-                    ))
+                    )
                   })}
                 </Table.Tbody>
               </Table>
             </ScrollArea>
-            <Divider my="xl" />
-            <Group mb="lg">
-              <Select label="Fournisseur" data={suppliersMemo} />
-              <DateInput
-                defaultValue={new Date()}
-                label="Date émission"
-                readOnly
-              />
-            </Group>
-            <div>
-              <ScrollArea h={200}>
-                <Table
-                  style={{
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Nom</Table.Th>
-                      <Table.Th>Barcode</Table.Th>
-                      <Table.Th>PPV</Table.Th>
-                      <Table.Th>Quantité</Table.Th>
-                      <Table.Th>Total PPV</Table.Th>
-                      <Table.Th>Total PPH</Table.Th>
-                      <Table.Th>Péremption</Table.Th>
-                      <Table.Th>Motif</Table.Th>
-                      <Table.Th ta="center">Action</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {selectedInventories.map((inventory: any) => {
-                      return (
-                        <Table.Tr key={inventory.id}>
-                          <Table.Td>{inventory.name}</Table.Td>
-                          <Table.Td>{inventory.barcode}</Table.Td>
-                          <Table.Td>{inventory.ppv}</Table.Td>
-                          <Table.Td>
-                            <NumberInput />
-                          </Table.Td>
-                          <Table.Td>
-                            <NumberInput />
-                          </Table.Td>
-                          <Table.Td>
-                            <NumberInput />
-                          </Table.Td>
-                          <Table.Td>
-                            {new Date(
-                              inventory.expirationDate
-                            ).toLocaleDateString()}
-                          </Table.Td>
-                          <Table.Td>
-                            <Input w="250px" />
-                          </Table.Td>
-
-                          <Table.Td
-                            ta="center"
-                            onClick={() => {
-                              handleRemoveInventory(inventory.id)
-                            }}
-                          >
-                            <ActionIcon variant="light" color="red" size="sm">
-                              <IconTrash />
-                            </ActionIcon>
-                          </Table.Td>
-                        </Table.Tr>
-                      )
-                    })}
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
-            </div>
-          </div>
+          </form>
         </Tabs.Panel>
         <Tabs.Panel value="view">Consultation Avoirs</Tabs.Panel>
       </Tabs>
