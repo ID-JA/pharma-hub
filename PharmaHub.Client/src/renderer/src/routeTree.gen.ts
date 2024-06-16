@@ -33,6 +33,7 @@ import { Route as PortalMedicamentsConsultationImport } from './routes/_portal/m
 import { Route as PortalMedicamentsMedicamentIdImport } from './routes/_portal/medicaments.$medicamentId'
 import { Route as PortalDeliveriesNewImport } from './routes/_portal/deliveries.new'
 import { Route as PortalDeliveriesConsultationImport } from './routes/_portal/deliveries.consultation'
+import { Route as PortalCreditNotesNewImport } from './routes/_portal/credit-notes.new'
 import { Route as PortalBillsNewImport } from './routes/_portal/bills.new'
 import { Route as PortalMedicationsInventoryNewImport } from './routes/_portal/medications.inventory.new'
 import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
@@ -152,6 +153,11 @@ const PortalDeliveriesConsultationRoute =
     getParentRoute: () => PortalRoute,
   } as any)
 
+const PortalCreditNotesNewRoute = PortalCreditNotesNewImport.update({
+  path: '/credit-notes/new',
+  getParentRoute: () => PortalRoute,
+} as any)
+
 const PortalBillsNewRoute = PortalBillsNewImport.update({
   path: '/bills/new',
   getParentRoute: () => PortalRoute,
@@ -220,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/bills/new'
       fullPath: '/bills/new'
       preLoaderRoute: typeof PortalBillsNewImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/credit-notes/new': {
+      id: '/_portal/credit-notes/new'
+      path: '/credit-notes/new'
+      fullPath: '/credit-notes/new'
+      preLoaderRoute: typeof PortalCreditNotesNewImport
       parentRoute: typeof PortalImport
     }
     '/_portal/deliveries/consultation': {
@@ -371,6 +384,7 @@ export const routeTree = rootRoute.addChildren({
       PortalSettingsIndexRoute,
     }),
     PortalBillsNewRoute,
+    PortalCreditNotesNewRoute,
     PortalDeliveriesConsultationRoute,
     PortalDeliveriesNewRoute,
     PortalMedicamentsConsultationRoute,

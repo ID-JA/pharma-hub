@@ -69,7 +69,12 @@ const moackData = [
         to: '/deliveries/consultation',
         exact: true
       },
-      { label: 'Règlement factures', to: '/', exact: true }
+      { label: 'Règlement factures', to: '/bills/new', exact: true },
+      {
+        label: 'Emission Avoirs',
+        to: '/credit-notes/new',
+        exact: true
+      }
     ]
   },
   {

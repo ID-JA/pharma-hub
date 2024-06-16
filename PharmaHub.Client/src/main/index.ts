@@ -2,6 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/PH+.png?asset'
+import installExtension, {
+  REACT_DEVELOPER_TOOLS
+} from 'electron-devtools-installer'
 
 function createWindow(): void {
   // Create the browser window.
@@ -56,6 +59,14 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
+
+  installExtension(REACT_DEVELOPER_TOOLS)
+    .then((name) => {
+      console.log(`Added Extension:  ${name}`)
+    })
+    .catch((err) => {
+      console.log('An error occurred: ', err)
+    })
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
