@@ -30,51 +30,15 @@ import { useMemo, useState } from 'react'
 export const Route = createFileRoute('/_portal/credit-notes/new')({
   component: CreateCreditNotePage
 })
-const dummy = [
-  {
-    id: 1,
-    name: 1,
-    items: [
-      {
-        itemId: '1-1',
-        name: '1-1'
-      },
-      {
-        itemId: '1-2',
-        name: '1-2'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 2,
-    items: [
-      {
-        itemId: '2-1',
-        name: '2-1'
-      },
-      {
-        itemId: '2-2',
-        name: '2-2'
-      }
-    ]
-  }
-]
 
-function CreateCreditNotePage() {
-  const [searchFieldName, setSearchFieldName] = useState('name')
-  const [searchValue, setSearchValue] = useDebouncedState('', 1000)
-  const [selectedInventories, setSelectedInventories] = useState<any[]>([])
-  const form = useForm({
-    initialValues: {
-      supplierId: '',
-      creditNoteDate: new Date(),
-      creditNoteNumber: '',
-      creditNoteMedications: []
-    }
-  })
-
-  const { data = [] } = useQuery({
+export const useMedications = ({
+  searchValue,
+  searchFieldName
+}: {
+  searchValue: string
+  searchFieldName: string
+}) => {
+  return useQuery({
     queryKey: [
       'medications',
       {
@@ -91,6 +55,25 @@ function CreateCreditNotePage() {
       })
       return res.data.data
     }
+  })
+}
+
+function CreateCreditNotePage() {
+  const [searchFieldName, setSearchFieldName] = useState('name')
+  const [searchValue, setSearchValue] = useDebouncedState('', 1000)
+  const [selectedInventories, setSelectedInventories] = useState<any[]>([])
+  const form = useForm({
+    initialValues: {
+      supplierId: '',
+      creditNoteDate: new Date(),
+      creditNoteNumber: '',
+      creditNoteMedications: []
+    }
+  })
+
+  const { data = [] } = useMedications({
+    searchValue,
+    searchFieldName
   })
 
   const { data: suppliers = [] } = userSuppliers()

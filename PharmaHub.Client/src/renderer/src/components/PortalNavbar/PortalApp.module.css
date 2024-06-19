@@ -49,9 +49,8 @@
   padding-inline-end: calc(0rem + var(--app-portal-padding));
   padding-top: calc(0rem + var(--app-portal-padding));
   padding-bottom: calc(0rem + var(--app-portal-padding));
-  min-height: 100dvh;
+  height: 100dvh;
   transition: padding 0.1s ease;
-
   &[data-state='closed'] {
     padding-inline-start: calc(0px + var(--app-portal-padding));
   }
