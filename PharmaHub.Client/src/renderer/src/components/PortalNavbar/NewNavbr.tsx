@@ -1,8 +1,10 @@
 import classes from './NewNavbar.module.css'
 import { LinksGroup } from './LinksGroup'
-import { ScrollArea } from '@mantine/core'
+import { ActionIcon, Group, ScrollArea } from '@mantine/core'
+import { IconLayoutSidebar } from '@tabler/icons-react'
+import brandImage from '@renderer/assets/brand.png'
 
-const moackData = [
+const appLinks = [
   {
     icon: (
       <img
@@ -42,7 +44,7 @@ const moackData = [
     label: 'Vente',
     notifications: 4,
     links: [
-      { label: 'Overview', to: '/d', exact: true },
+      { label: 'Commandes Clients', to: '/sales/news', exact: true },
       { label: 'Forecasts', to: '/s', exact: true },
       { label: 'Outlook', to: '/a', exact: true },
       { label: 'Real time', to: '/x', exact: true }
@@ -103,15 +105,23 @@ const moackData = [
   }
 ]
 
-export function NewNavbar() {
-  const links = moackData.map((item) => (
+export function NewNavbar({ close }) {
+  const links = appLinks.map((item) => (
     <LinksGroup {...item} key={item.label} />
   ))
 
   return (
     <>
-      <ScrollArea className={classes.section}>
-        <div className={classes.mainLinks}>{links}</div>
+      <div className={classes.header}>
+        <Group justify="space-between">
+          <ActionIcon variant="transparent" onClick={close}>
+            <IconLayoutSidebar />
+          </ActionIcon>
+          <img src={brandImage} alt="PharmaHub" height={38} />
+        </Group>
+      </div>
+      <ScrollArea className={classes.links}>
+        <div className={classes.linksInner}>{links}</div>
       </ScrollArea>
     </>
   )

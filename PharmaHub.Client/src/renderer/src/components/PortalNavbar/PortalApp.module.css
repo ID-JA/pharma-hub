@@ -1,0 +1,58 @@
+:root {
+  --app-portal-padding: var(--mantine-spacing-sm);
+}
+
+.navbar {
+  flex-shrink: 0;
+  transition: 0.1s all ease;
+  overflow: hidden;
+  position: fixed;
+  top: var(--app-shell-header-offset, 0rem);
+  height: calc(
+    100dvh - var(--app-shell-header-offset, 0rem) -
+      var(--app-shell-footer-offset, 0rem)
+  );
+  width: rem(260px);
+  visibility: visible;
+
+  background-color: var(--mantine-color-body);
+  z-index: var(--app-shell-navbar-z-index);
+
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+  border-right: rem(1px) solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+
+  &[data-state='closed'] {
+    width: 0rem;
+    visibility: hidden;
+  }
+}
+
+.navbarInner {
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+  height: 100%;
+  width: rem(260px);
+  padding: var(--mantine-spacing-md);
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  padding-inline-start: calc(rem(260px) + var(--app-portal-padding));
+  padding-inline-end: calc(0rem + var(--app-portal-padding));
+  padding-top: calc(0rem + var(--app-portal-padding));
+  padding-bottom: calc(0rem + var(--app-portal-padding));
+  min-height: 100dvh;
+  transition: padding 0.1s ease;
+
+  &[data-state='closed'] {
+    padding-inline-start: calc(0px + var(--app-portal-padding));
+  }
+}
