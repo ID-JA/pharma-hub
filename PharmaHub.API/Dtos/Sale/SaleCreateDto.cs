@@ -6,8 +6,6 @@
         public double TotalPrice { get; set; }
         public string Status { get; set; }
         public float Discount { get; set; }
-        public int SaleNumber { get; set; }
-        public int UserId { get; set; }
         public List<SaleMedicationCreateDto> SaleMedications { get; set; }
     }
 }

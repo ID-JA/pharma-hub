@@ -46,4 +46,10 @@ public class SalesController(ISaleService saleService) : ControllerBase
         var result = await saleService.UpdateSale(id, request, cancellationToken);
         return !result ? NotFound() : NoContent();
     }
+    [HttpGet("next")]
+    [MustHavePermission(AppAction.View, AppResource.Sales)]
+    public async Task<ActionResult> GetNextSaleNumberAsync(CancellationToken cancellationToken)
+    {
+        return Ok(await saleService.GetNextSaleNumberAsync(cancellationToken));
+    }
 }

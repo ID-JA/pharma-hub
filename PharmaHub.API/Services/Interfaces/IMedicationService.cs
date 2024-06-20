@@ -120,11 +120,15 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         throw new NotImplementedException();
     }
 
-    public async Task<bool> IsSufficientQuantity(int InventoryId, int orderedQuantity, CancellationToken cancellationToken = default)
+    public async Task<bool> IsSufficientQuantity(int inventoryId, int orderedQuantity, CancellationToken cancellationToken = default)
     {
-        var medicamentQte = await dbContext.Inventories.Where(m => m.Id == InventoryId).FirstOrDefaultAsync(cancellationToken);
-        return true; //medicamentQte > orderedQuantity;
+        var medicamentQte = await dbContext.Inventories
+            .Where(m => m.Id == inventoryId)
+            .Select(m => m.Quantity)
+            .FirstOrDefaultAsync(cancellationToken);
+        return medicamentQte >= orderedQuantity;
     }
+
 
     public async Task<List<MedicationBasicDto>> GetMedicationsBasicInfo(string? name, CancellationToken cancellationToken)
     {
