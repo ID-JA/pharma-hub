@@ -46,9 +46,9 @@ const schema = z.object({
   family: z.string().min(1, 'Family is required'),
   dosage: z.string(),
   expirationDate: z.date(),
-  laboratory: z.string(),
-  section: z.string(),
-  orderSystem: z.string(),
+  laboratory: z.string().min(1),
+  section: z.string().min(1),
+  orderSystem: z.string().min(1),
   maxQuantity: z.number().default(0),
   minQuantity: z.number().default(0),
   usedBy: z

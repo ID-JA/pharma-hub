@@ -73,18 +73,21 @@ const useMedication = (id) => {
 }
 
 function StockDetail() {
-  const searchParams = useSearch({
-    strict: false
-  }) as { medicationId: number }
+  const searchParams = useSearch({ strict: false }) as { medicationId: number }
 
   const [medicamentId, setMedicamentId] = useState(searchParams.medicationId)
+  const [search, setSearch] = useState('')
 
-  const { data: medication = {} } = useMedication(
+  const { data: medication } = useMedication(
     searchParams.medicationId || medicamentId
   )
 
   const totalQuantity = useMemo(
-    () => medication.inventories?.reduce((acc, item) => acc + item.quantity, 0),
+    () =>
+      medication?.inventories?.reduce(
+        (acc, item: any) => acc + item.quantity,
+        0
+      ),
     [medication]
   )
 
@@ -92,9 +95,12 @@ function StockDetail() {
     <>
       <Group grow mb="xl">
         <SearchMedicament
-          medicationName={medication.name}
+          medicationName={medicamentId ? medication?.name : ''}
           label="Nom de produit"
           setValue={setMedicamentId}
+          search={search}
+          readOnly={!!searchParams.medicationId}
+          setSearch={setSearch}
         />
         <TextInput
           label="Code Bar"
@@ -244,7 +250,7 @@ function StockDetail() {
             </Table.Thead>
 
             <Table.Tbody>
-              {medication.inventories.map((item) => (
+              {medication.inventories.map((item: any) => (
                 <Table.Tr key={item.id}>
                   <Table.Td>{item.quantity}</Table.Td>
                   <Table.Td>{item.ppv}</Table.Td>

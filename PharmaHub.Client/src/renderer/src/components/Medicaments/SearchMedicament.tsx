@@ -6,14 +6,18 @@ import { useQuery } from '@tanstack/react-query'
 const SearchMedicament = ({
   setValue,
   label,
-  medicationName
+  medicationName,
+  search,
+  setSearch,
+  readOnly
 }: {
-  setValue: (v) => void
+  setValue: (v: number) => void
   label: string
   medicationName?: any
+  search: string
+  setSearch: (v: string) => void
+  readOnly: boolean
 }) => {
-  const [search, setSearch] = useDebouncedState(medicationName, 500)
-
   const { data: medicaments = [] } = useQuery({
     queryKey: ['searchedMedicament', search],
     queryFn: async () => {
@@ -28,22 +32,23 @@ const SearchMedicament = ({
         id: item.id
       }))
     },
-    enabled: medicationName || search ? true : false
+    enabled: !!search || !!medicationName
   })
 
   return (
     <Select
+      readOnly={readOnly}
       clearable
       label={label}
       searchable
       data={medicaments}
       value={medicationName}
-      defaultValue={search}
       onSearchChange={setSearch}
-      onChange={(v, option) => {
+      onChange={(v, option: any) => {
         setValue(option.id)
       }}
     />
   )
 }
+
 export default SearchMedicament
