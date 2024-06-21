@@ -3,6 +3,8 @@ namespace PharmaHub.API.Models;
 public class SaleMedications : BaseModel
 {
     public int Quantity { get; set; }
+    public int UnitQuantity { get; set; }
+    public int BoxQuantity { get; set; }
     public double Ppv { get; set; } // remove this
     public double TotalPrice { get; set; }
     public float Tva { get; set; } // remove this

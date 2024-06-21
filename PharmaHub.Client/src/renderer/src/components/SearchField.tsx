@@ -2,7 +2,7 @@ import { MultiSelect, Select } from '@mantine/core'
 import { useDebouncedState } from '@mantine/hooks'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 
 type SearchFieldPropsBase = {
   label: string
@@ -15,18 +15,20 @@ type SearchFieldPropsBase = {
 
 type SingleSelectProps = {
   isMultiSelect?: false
+  value: { value: string; label: string }
   setValue: (item: { value: string; label: string }) => void
 }
 
 type MultiSelectProps = {
   isMultiSelect: true
+  value: string[]
   setValue: (items: string[]) => void
-  // setValue: (item: { value: string; label: string }[]) => void
 }
+
 type SearchFieldProps = SearchFieldPropsBase &
   (MultiSelectProps | SingleSelectProps)
 
-function SearchField(props) {
+function SearchField(props: SearchFieldProps) {
   const {
     dataMapper,
     queryKey,
@@ -35,13 +37,14 @@ function SearchField(props) {
     isMultiSelect,
     label,
     error,
+    value,
     setValue,
     ...rest
   } = props
+
   const [search, setSearch] = useDebouncedState('', 500)
 
   const fetchOptions = useCallback(async () => {
-    if (!search) return []
     const response = await http.get(searchUrl, {
       params: {
         [queryParamName]: search
@@ -52,8 +55,7 @@ function SearchField(props) {
 
   const { data: options = [], isError } = useQuery({
     queryKey: [queryKey, search],
-    queryFn: fetchOptions,
-    enabled: !!search
+    queryFn: fetchOptions
   })
 
   const handleSearchChange = useCallback(
@@ -63,12 +65,19 @@ function SearchField(props) {
     [setSearch]
   )
 
+  useEffect(() => {
+    if (!isMultiSelect && value) {
+      setSearch(value.label)
+    }
+  }, [value, isMultiSelect])
+
   if (isError) {
     return <div>Error loading options...</div>
   }
 
   const commonProps = {
     label,
+    clearable: true,
     onSearchChange: handleSearchChange,
     searchable: true,
     data: options,
@@ -77,12 +86,19 @@ function SearchField(props) {
   }
 
   return isMultiSelect ? (
-    <MultiSelect {...commonProps} onChange={(values) => setValue(values)} />
+    <MultiSelect
+      {...commonProps}
+      value={value}
+      onChange={(values) => setValue(values)}
+    />
   ) : (
     <Select
       {...commonProps}
-      defaultValue={search}
-      onChange={(_, item) => setValue(item)}
+      value={value?.value || ''}
+      onChange={(value, item) => {
+        console.log({ value, item })
+        setValue(item)
+      }}
     />
   )
 }

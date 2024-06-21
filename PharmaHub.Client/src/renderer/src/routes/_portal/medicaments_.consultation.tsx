@@ -30,7 +30,7 @@ const DEFAULT_VALUE = {
   name: '',
   dosage: '',
   barcode: '',
-  dci: '',
+  dci: [],
   form: '',
   family: '',
   type: '',
@@ -50,7 +50,7 @@ const DEFAULT_VALUE = {
   quantity: 0,
   minQuantity: 0,
   maxQuantity: 0,
-  usedBy: 0,
+  usedBy: [],
   withPrescription: false,
   section: '',
   inventories: []
@@ -61,7 +61,7 @@ function MedicationConsultationPage() {
   return <StockDetail />
 }
 
-const useMedication = (id) => {
+export const useMedication = (id) => {
   return useQuery<TMedicament>({
     queryKey: ['medicamentDetail', id],
     queryFn: async () => {

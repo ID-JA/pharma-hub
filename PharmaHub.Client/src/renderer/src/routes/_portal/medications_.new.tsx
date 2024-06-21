@@ -15,16 +15,17 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { DatePickerInput } from '@mantine/dates'
-
 import {
   useCreateMedicament,
   useTaxesQuery
 } from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { z } from 'zod'
 import { calculatePPH } from '@renderer/utils/functions'
-import SearchField from '@renderer/components/SearchField'
+import MedicationFamilySelector from '@renderer/components/Medicaments/MedicationFamilySelector'
+import MedicationDciSelector from '@renderer/components/Medicaments/MedicationDciSelector'
+import MedicationFormSelector from '@renderer/components/Medicaments/MedicationFormSelector'
 export const Route = createFileRoute('/_portal/medications/new')({
   component: NewMedicationPage
 })
@@ -145,19 +146,9 @@ function NewMedicationPage() {
                 label="Code Barre"
                 {...form.getInputProps('barCode')}
               />
-              <SearchField
-                setValue={(item) => form.setFieldValue('form', item.label)}
-                label="From"
-                searchUrl="/api/forms"
-                queryKey="fromSearch"
-                queryParamName="query"
-                dataMapper={(item) => ({
-                  value: item.id.toString(),
-                  label: item.name
-                })}
-                error={form.getInputProps('form').error}
-              />
             </Group>
+            <MedicationFormSelector {...form.getInputProps('form')} />
+            <MedicationFamilySelector {...form.getInputProps('family')} />
 
             <Select
               label="Type"
@@ -165,64 +156,12 @@ function NewMedicationPage() {
               {...form.getInputProps('type')}
               onChange={(_, item) => handleTaxTypeChange(item)}
             />
-            <Group grow>
-              <SearchField
-                setValue={(item) => form.setFieldValue('family', item.label)}
-                label="Famille"
-                searchUrl="/api/families"
-                queryKey="familySearch"
-                queryParamName="query"
-                dataMapper={(item) => ({
-                  value: item.id.toString(),
-                  label: item.name
-                })}
-                error={form.getInputProps('family').error}
-              />
-              <SearchField
-                setValue={(items) => form.setFieldValue('dci', items as any)}
-                label="DCI"
-                searchUrl="/api/dcis"
-                queryKey="dciSearch"
-                isMultiSelect
-                queryParamName="query"
-                dataMapper={(item) => ({ value: item.name, label: item.name })}
-                error={form.getInputProps('dci').error}
-              />
-            </Group>
+            <MedicationDciSelector {...form.getInputProps('dci')} />
             <Select
               label="Laboratoire"
               data={['ABC Laboratory']}
               {...form.getInputProps('laboratory')}
             />
-            <Group grow>
-              <Select
-                label="Système de commande"
-                data={[
-                  'MANUEL',
-                  'STOCK MINIMUM ET STOCK MAXIMUM',
-                  'COMMANDE=VENTES DE LA JOURNÉE',
-                  'COUVERTURE DE STOCK'
-                ]}
-                {...form.getInputProps('orderSystem')}
-              />
-              {form.getValues().orderSystem ===
-                'STOCK MINIMUM ET STOCK MAXIMUM' && (
-                <Group grow>
-                  <NumberInput
-                    min={0}
-                    decimalScale={0}
-                    label="Min Quantity"
-                    {...form.getInputProps('minQuantity')}
-                  />
-                  <NumberInput
-                    min={form.getValues().minQuantity}
-                    decimalScale={0}
-                    label="Max Quantity"
-                    {...form.getInputProps('maxQuantity')}
-                  />
-                </Group>
-              )}
-            </Group>
           </Stack>
           <Stack gap="xs">
             <Select
@@ -267,6 +206,35 @@ function NewMedicationPage() {
                 <Radio mt="md" label="Non" value="no" />
               </Group>
             </Radio.Group>
+            <Group grow>
+              <Select
+                label="Système de commande"
+                data={[
+                  'MANUEL',
+                  'STOCK MINIMUM ET STOCK MAXIMUM',
+                  'COMMANDE=VENTES DE LA JOURNÉE',
+                  'COUVERTURE DE STOCK'
+                ]}
+                {...form.getInputProps('orderSystem')}
+              />
+              {form.getValues().orderSystem ===
+                'STOCK MINIMUM ET STOCK MAXIMUM' && (
+                <Group grow>
+                  <NumberInput
+                    min={0}
+                    decimalScale={0}
+                    label="Min Quantity"
+                    {...form.getInputProps('minQuantity')}
+                  />
+                  <NumberInput
+                    min={form.getValues().minQuantity}
+                    decimalScale={0}
+                    label="Max Quantity"
+                    {...form.getInputProps('maxQuantity')}
+                  />
+                </Group>
+              )}
+            </Group>
           </Stack>
         </Group>
         <Divider my="md" />

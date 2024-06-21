@@ -59,6 +59,8 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                     SaleId = sale.Id,
                     InventoryId = item.InventoryId,
                     Quantity = quantityToChange,
+                    BoxQuantity = quantityToChange,
+                    UnitQuantity = 0,
                     TotalPrice = item.NetPrice,
                     Discount = item.Discount,
                 };

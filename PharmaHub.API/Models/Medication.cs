@@ -71,5 +71,10 @@ public class Medication : BaseModel
 
     public string? Section { get; set; }
 
+    [Precision(10, 2)]
+    public decimal UnitPrice { get; set; }
+    public bool IsPartialSaleAllowed { get; set; }
+    public int SaleUnits { get; set; }
+
     public List<Inventory> Inventories { get; set; } = [];
 }

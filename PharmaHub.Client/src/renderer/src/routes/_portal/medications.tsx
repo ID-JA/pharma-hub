@@ -90,7 +90,15 @@ function MedicationsListPage() {
 
                 <Table.Td ta="center">
                   <Group justify="center">
-                    <ActionIcon size="sm">
+                    <ActionIcon
+                      size="sm"
+                      onClick={() => {
+                        navigate({
+                          to: `/medications/edit/$medicationId`,
+                          params: { medicationId: medication.id }
+                        })
+                      }}
+                    >
                       <IconPencil stroke={1.5} size="1.2rem" />
                     </ActionIcon>
                     <ActionIcon

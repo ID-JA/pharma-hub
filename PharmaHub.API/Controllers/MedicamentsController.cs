@@ -61,7 +61,7 @@ public class MedicamentsController(IMedicationService medicationService, IServic
         medicament.Barcode = request.Detials.Barcode;
         medicament.Family = request.Detials.Family;
         medicament.UsedBy = request.Detials.UsedBy;
-        medicament.WithPrescription = request.Detials.WithPrescription;
+        medicament.WithPrescription = request.Detials.WithPrescription.Equals("yes") ? true : false;
 
         await medicationService.UpdateAsync(medicament, cancellationToken);
         return NoContent();
@@ -102,4 +102,13 @@ public class MedicamentsController(IMedicationService medicationService, IServic
     {
         return Ok(await medicationService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
     }
+
+    [HttpPatch("{id:int}")]
+    public async Task<ActionResult> SetupMedicationPartialSale([FromRoute] int id, [FromBody] PartialSaleMedicationConfig request, CancellationToken cancellationToken)
+    {
+        await medicationService.SetupMedicationPartialSale(id, request, cancellationToken);
+        return Ok();
+    }
+
+
 }

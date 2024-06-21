@@ -29,6 +29,9 @@ public class MedicationDetailedDto : BaseDto<MedicationBasicDto, Models.Medicati
     public List<string> UsedBy { get; set; }
     public bool WithPrescription { get; set; }
     public string? Section { get; set; }
+    public decimal UnitPrice { get; set; }
+    public bool IsPartialSaleAllowed { get; set; }
+    public int SaleUnits { get; set; }
     public List<InventoryBasicDto> Inventories { get; set; }
     public List<StockHistoryBasicDto> InventoryHistories { get; set; }
 }
