@@ -50,6 +50,7 @@
   padding-top: calc(0rem + var(--app-portal-padding));
   padding-bottom: calc(0rem + var(--app-portal-padding));
   height: 100dvh;
+  background-color: #f4f4f4;
   transition: padding 0.1s ease;
   &[data-state='closed'] {
     padding-inline-start: calc(0px + var(--app-portal-padding));

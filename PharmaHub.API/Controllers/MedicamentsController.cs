@@ -37,7 +37,8 @@ public class MedicamentsController(IMedicationService medicationService, IServic
     [HttpGet("{id:int}")]
     public async Task<ActionResult> GetMedicament([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return Ok(await medicationService.GetByIdAsync(id, cancellationToken));
+        var result = await medicationService.GetMedicationDetails(id, cancellationToken);
+        return result is not null ? Ok(result) : NotFound();
     }
 
     [HttpPut("{id:int}")]

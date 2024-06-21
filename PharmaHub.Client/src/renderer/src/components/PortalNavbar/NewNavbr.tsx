@@ -22,6 +22,11 @@ const appLinks = [
         exact: true
       },
       {
+        label: 'Produits',
+        to: '/medications',
+        exact: true
+      },
+      {
         label: 'Saisie inventaire STOCK',
         to: '/medications/inventory/new',
         exact: true

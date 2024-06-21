@@ -19,6 +19,8 @@ public interface IMedicationService : IService<Medication>
     Task<bool> CreateMedicamentInventory(int id, InventoryCreateDto request, CancellationToken cancellationToken);
     Task<bool> UpdateMedicamentInventory(int id, InventoryUpdateDto request, CancellationToken cancellationToken);
     Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
+    Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default);
+
 
 }
 
@@ -193,5 +195,20 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         dbContext.Inventories.Remove(inventory!);
         var result = await dbContext.SaveChangesAsync(cancellationToken);
         return result > 0 ? true : false;
+    }
+
+    public async Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default)
+    {
+        var result = await dbContext.Medications
+            .AsNoTracking()
+            .Where(m => m.Id == id)
+            .Include(m => m.Inventories)
+            .ProjectToType<MedicationDetailedDto>()
+            .FirstOrDefaultAsync();
+
+        if (result is null)
+            return null;
+
+        return result;
     }
 }
