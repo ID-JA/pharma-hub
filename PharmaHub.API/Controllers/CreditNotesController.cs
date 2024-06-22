@@ -36,5 +36,13 @@ public class CreditNotesController(ICreditNoteService creditNoteService) : Contr
     var result = await creditNoteService.UpdateCreditNote(id, request, cancellationToken);
     return result ? Ok(result) : NotFound();
   }
+
+  [HttpPost("{id:int}/medications")]
+  public async Task<ActionResult> CreateCreditNoteMedication(int id, [FromBody] CreditNoteMedicationCreateDto request, CancellationToken cancellationToken)
+  {
+    await creditNoteService.CreateCreditNoteMedicationAsync(id, request, cancellationToken);
+    return NoContent();
+  }
+
 }
 
