@@ -22,7 +22,7 @@ import { useTaxesQuery } from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { useMemo, useCallback } from 'react'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { toast } from 'sonner'
 import MedicationFamilySelector from '@renderer/components/Medicaments/MedicationFamilySelector'
@@ -141,6 +141,8 @@ function MedicationDetail({ data }) {
     [form.getValues().type]
   )
 
+  const queryClient = useQueryClient()
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (values: any) => {
       await http.put(`/api/medicaments/${data.id}`, {
@@ -154,6 +156,11 @@ function MedicationDetail({ data }) {
     onSuccess: () => {
       toast.success('Mise à jour effectuée')
       form.resetDirty()
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['medicamentDetail', { id: data.id.toString() }]
+      })
     },
     onError: () => {
       toast.error('Une erreur est survenue')
@@ -299,6 +306,8 @@ function PartialSaleConfig({ data }) {
       saleUnits: data.saleUnits
     }
   })
+  const queryClient = useQueryClient()
+
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (values: any) => {
       await http.patch(`/api/medicaments/${data.id}`, values)
@@ -306,6 +315,11 @@ function PartialSaleConfig({ data }) {
     onSuccess: () => {
       toast.success('La configuration a été mise à jour avec succès.')
       form.resetDirty()
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['medicamentDetail', { id: data.id.toString() }]
+      })
     }
   })
   return (

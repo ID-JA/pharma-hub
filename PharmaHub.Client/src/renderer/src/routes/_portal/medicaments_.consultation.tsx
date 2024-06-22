@@ -63,7 +63,7 @@ function MedicationConsultationPage() {
 
 export const useMedication = (id) => {
   return useQuery<TMedicament>({
-    queryKey: ['medicamentDetail', id],
+    queryKey: ['medicamentDetail', { id }],
     queryFn: async () => {
       return (await http.get(`/api/medicaments/${id}`)).data
     },
