@@ -12,4 +12,6 @@ public class User : IdentityUser<int>
     public List<Sale> Sales { get; set; } = [];
     public List<Delivery> Deliveries { get; set; } = [];
     public List<Bill> Bills { get; set; } = [];
+    public List<CreditNote> CreditNotes { get; set; } = [];
+
 }

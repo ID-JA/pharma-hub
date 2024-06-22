@@ -23,6 +23,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(e => e.InventoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        builder.Entity<CreditNoteMedications>(entity =>
+           {
+               entity.HasKey(e => new { e.CreditNoteId, e.InventoryId });
+
+               entity.HasOne(e => e.CreditNote)
+                   .WithMany(o => o.CreditNoteMedications)
+                   .HasForeignKey(e => e.CreditNoteId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+               entity.HasOne(e => e.Inventory)
+                   .WithMany(i => i.CreditNoteMedications)
+                   .HasForeignKey(e => e.InventoryId)
+                   .OnDelete(DeleteBehavior.Restrict);
+           });
+
+
+
+
+
+
 
         // builder.Entity<OrderItem>(entity =>
         // {
@@ -79,4 +99,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }
     public DbSet<Client> Clients { get; set; }
+    public DbSet<CreditNote> CreditNotes { get; set; }
+    public DbSet<CreditNoteMedications> CreditNoteMedications { get; set; }
+
+
 }

@@ -19,4 +19,6 @@ public class Inventory : BaseModel
 
     public List<OrderDeliveryInventory> OrderDeliveryInventories { get; set; } = [];
     public List<InventoryHistory> InventoryHistories { get; set; } = [];
+    public List<CreditNoteMedications> CreditNoteMedications { get; set; } = [];
+
 }
