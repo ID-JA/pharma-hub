@@ -18,18 +18,16 @@ import {
   Box
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import SearchField from '@renderer/components/SearchField'
-import {
-  useCreateMedicament,
-  useTaxesQuery
-} from '@renderer/services/medicaments.service'
-import { calculatePPH } from '@renderer/utils/functions'
+import { useTaxesQuery } from '@renderer/services/medicaments.service'
 import { zodResolver } from 'mantine-form-zod-resolver'
-import { useMemo, useCallback, useEffect } from 'react'
+import { useMemo, useCallback } from 'react'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { toast } from 'sonner'
+import MedicationFamilySelector from '@renderer/components/Medicaments/MedicationFamilySelector'
+import MedicationDciSelector from '@renderer/components/Medicaments/MedicationDciSelector'
+import MedicationFormSelector from '@renderer/components/Medicaments/MedicationFormSelector'
 
 export const Route = createFileRoute('/_portal/medications/edit/$medicationId')(
   {
@@ -49,9 +47,7 @@ const MedicationSchema = z.object({
   laboratory: z.string().min(1).optional(),
   pfhtNotActive: z.number().nonnegative(),
   pfhtActive: z.number().nonnegative(),
-  pamp: z.number().nonnegative(),
-  ppv: z.number().nonnegative(),
-  pph: z.number().nonnegative(),
+  pamp: z.number().nonnegative().default(0),
   pbr: z.number().nonnegative(),
   tva: z.number().nonnegative(),
   marge: z.number().nonnegative(),
@@ -59,7 +55,6 @@ const MedicationSchema = z.object({
   reimbursementRate: z.number().nonnegative(),
   status: z.string().min(1).optional(),
   orderSystem: z.string().min(1).optional(),
-  quantity: z.number().nonnegative(),
   minQuantity: z.number().nonnegative(),
   maxQuantity: z.number().nonnegative(),
   usedBy: z.array(z.string()).optional(),
@@ -146,64 +141,48 @@ function MedicationDetail({ data }) {
     [form.getValues().type]
   )
 
-  //
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async (values: any) => {
+      await http.put(`/api/medicaments/${data.id}`, {
+        id: data.id,
+        details: {
+          ...values,
+          inventory: {}
+        }
+      })
+    },
+    onSuccess: () => {
+      toast.success('Mise à jour effectuée')
+      form.resetDirty()
+    },
+    onError: () => {
+      toast.error('Une erreur est survenue')
+    }
+  })
+
   return (
-    <form>
+    <form
+      onSubmit={form.onSubmit(async (values) => {
+        await mutateAsync(values)
+      })}
+    >
       <Title mb="md" order={3}>
         Modifié Fiche Produit
       </Title>
       <Group grow align="start" gap="xl">
         <Stack gap="xs">
           <TextInput label="Nom de produit" {...form.getInputProps('name')} />
-          <SearchField
-            value={{
-              value: form.getInputProps('form').value,
-              label: form.getInputProps('form').value
-            }}
-            setValue={(item) => form.setFieldValue('form', item.value)}
-            label="Form"
-            searchUrl="/api/forms"
-            queryKey="formSearch"
-            queryParamName="query"
-            dataMapper={(item) => ({
-              value: item.name,
-              label: item.name
-            })}
-            error={form.getInputProps('form').error}
-          />
-          <SearchField
-            value={form.getInputProps('dci').value}
-            setValue={(items) => form.setFieldValue('dci', items as any)}
-            label="DCI"
-            searchUrl="/api/dcis"
-            queryKey="dciSearch"
-            isMultiSelect
-            queryParamName="query"
-            dataMapper={(item) => ({ value: item.name, label: item.name })}
-            error={form.getInputProps('dci').error}
-          />
+          <MedicationFormSelector {...form.getInputProps('form')} />
+
+          <MedicationDciSelector {...form.getInputProps('dci')} />
           <Select
             label="Type"
             data={taxTypesData}
             {...form.getInputProps('type')}
             onChange={(_, item) => handleTaxTypeChange(item)}
           />
-          <SearchField
-            value={{
-              value: form.getInputProps('family').value,
-              label: form.getInputProps('family').value
-            }}
-            setValue={(item) => form.setFieldValue('family', item.label)}
-            label="Famille"
-            searchUrl="/api/families"
-            queryKey="familySearch"
-            queryParamName="query"
-            dataMapper={(item) => ({
-              value: item.name,
-              label: item.name
-            })}
-            error={form.getInputProps('family').error}
-          />
+          <MedicationFamilySelector {...form.getInputProps('family')} />
+
           <Select
             label="Laboratoire"
             data={['ABC Laboratory']}
@@ -300,7 +279,12 @@ function MedicationDetail({ data }) {
           </Radio.Group>
         </Stack>
       </Group>
-      <Button mt="lg" type="submit" disabled={!form.isDirty()}>
+      <Button
+        mt="lg"
+        type="submit"
+        disabled={!form.isDirty()}
+        loading={isPending}
+      >
         Valider les modifications
       </Button>
     </form>
@@ -315,7 +299,7 @@ function PartialSaleConfig({ data }) {
       saleUnits: data.saleUnits
     }
   })
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: async (values: any) => {
       await http.patch(`/api/medicaments/${data.id}`, values)
     },
@@ -351,7 +335,12 @@ function PartialSaleConfig({ data }) {
           {...form.getInputProps('unitPrice')}
         />
       </Group>
-      <Button type="submit" mt="md" disabled={!form.isDirty()}>
+      <Button
+        type="submit"
+        mt="md"
+        disabled={!form.isDirty()}
+        loading={isPending}
+      >
         Enregistre
       </Button>
     </form>
