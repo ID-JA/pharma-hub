@@ -4,29 +4,24 @@ import {
   useResizeObserver,
   useToggle
 } from '@mantine/hooks'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { useMemo, useRef, useState } from 'react'
 import { useMedications } from './credit-notes.new'
 import {
-  Box,
   TextInput,
   NativeSelect,
   rem,
   ScrollArea,
   ActionIcon,
   Table,
-  SimpleGrid,
-  Grid,
-  Divider,
   Button,
-  Flex,
   InputBase,
   Group,
   Paper,
   Text,
   NumberInput,
   Checkbox,
-  Switch
+  Select
 } from '@mantine/core'
 import {
   IconCalendar,
@@ -54,19 +49,26 @@ const calculateNetPrice = (ppv, discount, tva, quantity) => {
   const priceBeforeDiscount = ppv * (1 + tva / 100) * quantity
   return priceBeforeDiscount * (1 - discount / 100)
 }
-// const SaleMedicamentSchema =
 
 const SaleSchema = z.object({
-  totalQuantity: z.number().nonnegative(),
-  discountedPrice: z.number().nonnegative(),
-  totalPrice: z.number().nonnegative(),
+  totalQuantities: z.number().nonnegative(),
+  totalPpvNet: z.number().nonnegative(),
+  totalPpvBrut: z.number().nonnegative(),
+  discountedAmount: z.number().nonnegative(),
   saleMedications: z
     .array(
       z.object({
         inventoryId: z.number(),
         netPrice: z.number(),
         quantity: z.number(),
-        discount: z.number()
+        discount: z.number(),
+        saleType: z.string().default('box'),
+        medicationName: z.string().default(''),
+        ppv: z.number().default(0),
+        unitPrice: z.number().default(0),
+        pph: z.number().default(0),
+        tva: z.number().default(0),
+        marge: z.number().default(0)
       })
     )
     .default([])
@@ -80,13 +82,8 @@ function SaleNewsPage() {
   const [searchValue, setSearchValue] = useDebouncedState('', 500)
   const [isUsingBarcodeScanner, toggle] = useToggle<boolean>([false, true])
   const barcodeInputRef = useRef<HTMLInputElement>(null)
+  const [ref, { height }] = useResizeObserver()
 
-  const [selectedSaleItems, setSelectedSaleItems] = useState<any>([])
-  const [totals, setTotals] = useState({
-    totalQuantity: 0,
-    discountedPrice: 0,
-    totalPrice: 0
-  })
   const { data: medications = [] } = useMedications({
     searchValue,
     searchFieldName
@@ -94,9 +91,10 @@ function SaleNewsPage() {
 
   const form = useForm<Sale>({
     initialValues: {
-      totalQuantity: 0,
-      discountedPrice: 0,
-      totalPrice: 0,
+      totalQuantities: 0,
+      discountedAmount: 0,
+      totalPpvNet: 0,
+      totalPpvBrut: 0,
       saleMedications: []
     },
     validate: zodResolver(SaleSchema)
@@ -104,65 +102,61 @@ function SaleNewsPage() {
 
   const handleSearchWithBarcode = useDebouncedCallback(
     async (query: string) => {
-      const { inventories, ...medication } = (
-        await http.get('/api/medicaments/search', {
-          params: {
-            field: 'barcode',
-            query
-          }
-        })
-      ).data.data[0]
-      if (inventories.length === 1) {
-        const inventory = inventories[0]
-        const existingItemIndex = selectedSaleItems.findIndex(
-          (item) => item.inventory.id === inventory.id
-        )
-        if (existingItemIndex !== -1) {
-          setSelectedSaleItems((prev) => {
-            return prev.map((item, index) => {
-              if (index === existingItemIndex) {
-                form.setFieldValue(
-                  `saleMedications.${index}.quantity`,
-                  item.quantity + 1
-                )
-                return {
-                  ...item,
-                  quantity: item.quantity + 1
-                }
-              }
-              return item
-            })
-          })
-        } else {
-          handleInventoryAdd({
-            medication,
-            inventory
-          })
+      const { data: response } = await http.get('/api/medicaments/search', {
+        params: {
+          field: 'barcode',
+          query
         }
-      } else {
-        modals.open({
-          modalId: 'many-inventories',
-          title: <Text size="lg">Alert</Text>,
-          centered: true,
-          children: (
-            <>
-              <Text size="sm">
-                Il y a plus d'un inventaire avec ce code-barres, essayez d'en
-                sélectionner un manuellement.
-              </Text>
-              <Button
-                fullWidth
-                mt="md"
-                onClick={() => modals.close('many-inventories')}
-              >
-                D'accord
-              </Button>
-            </>
+      })
+
+      const { data } = response
+      if (data.length === 1) {
+        if (data[0].inventories.length === 1) {
+          const inventory = data[0].inventories[0]
+          const medication = data[0]
+          const saleMedications = form.getValues().saleMedications
+          const existingItemIndex = saleMedications.findIndex(
+            (item) => item.inventoryId === inventory.id
           )
-        })
-        setSearchFieldName('barcode')
-        setSearchValue(query)
+
+          if (existingItemIndex !== -1) {
+            const currentQuantity = saleMedications[existingItemIndex].quantity
+            form.setFieldValue(
+              `saleMedications.${existingItemIndex}.quantity`,
+              currentQuantity + 1
+            )
+          } else {
+            handleInventoryAdd({
+              medication,
+              inventory
+            })
+          }
+        } else {
+          modals.open({
+            modalId: 'many-inventories',
+            title: <Text size="lg">Alert</Text>,
+            centered: true,
+            children: (
+              <>
+                <Text size="sm">
+                  Il y a plus d'un inventaire avec ce code-barres, essayez d'en
+                  sélectionner un manuellement.
+                </Text>
+                <Button
+                  fullWidth
+                  mt="md"
+                  onClick={() => modals.close('many-inventories')}
+                >
+                  Fermmer
+                </Button>
+              </>
+            )
+          })
+          setSearchFieldName('barcode')
+          setSearchValue(query)
+        }
       }
+
       if (barcodeInputRef.current) {
         barcodeInputRef.current.focus()
         barcodeInputRef.current.select()
@@ -171,28 +165,97 @@ function SaleNewsPage() {
     500
   )
 
+  const handleRemoveProduct = (saleItemIndex) => {
+    form.removeListItem('saleMedications', saleItemIndex)
+  }
+
   const handleInventoryAdd = ({ medication, inventory }) => {
     // if (!isAdded(inventory.id)) {
-    setSelectedSaleItems((prev) => [
-      ...prev,
-      { medication, inventory, quantity: 1 }
-    ])
+
     form.insertListItem('saleMedications', {
       inventoryId: inventory.id,
       quantity: 1,
       netPrice: calculateNetPrice(inventory.ppv, 0, medication.tva, 1),
-      discount: 0
+      discount: 0,
+      saleType: 'box',
+      medicationName: medication.name,
+      ppv: inventory.ppv,
+      pph: inventory.pph,
+      tva: medication.tva,
+      pbr: medication.pbr,
+      marge: medication.marge,
+      isPartialSaleAllowed: medication.isPartialSaleAllowed,
+      unitPrice: medication.unitPrice
     })
     // }
   }
 
+  const saleItemsFields = form
+    .getValues()
+    .saleMedications.map((item, index) => (
+      <SaleItem
+        key={item.inventoryId}
+        saleItem={item}
+        form={form}
+        index={index}
+        onRemove={handleRemoveProduct}
+      />
+    ))
+
+  const totals = useMemo(() => {
+    const saleItems = form.getValues().saleMedications
+
+    const totals = saleItems.reduce(
+      (acc, item) => {
+        const { ppv, tva, quantity, discount, saleType, unitPrice } = item
+
+        const priceBeforeDiscount = ppv * (1 + tva / 100) * quantity
+        const priceAfterDiscount = calculateNetPrice(
+          ppv,
+          discount,
+          tva,
+          quantity
+        )
+        const discountedAmount = priceBeforeDiscount - priceAfterDiscount
+
+        acc.totalQuantities += quantity
+
+        if (saleType === 'box') {
+          acc.totalPpvBrut += priceBeforeDiscount
+          acc.totalPpvNet += priceAfterDiscount
+        } else {
+          acc.totalPpvBrut += unitPrice * quantity
+          acc.totalPpvNet += unitPrice * quantity
+        }
+
+        acc.discountedAmount += discountedAmount
+
+        return acc
+      },
+      {
+        totalQuantities: 0,
+        discountedAmount: 0,
+        totalPpvBrut: 0,
+        totalPpvNet: 0
+      }
+    )
+
+    return totals
+  }, [form.getValues().saleMedications])
+
   return (
-    <Paper withBorder px="md" py="xs" radius="md">
-      <Grid h="95vh">
-        <Grid.Col span={6}>
+    <Paper
+      withBorder
+      px="md"
+      py="xs"
+      radius="md"
+      h="calc(100vh - 1.5rem)"
+      ref={ref}
+    >
+      <Group h={height / 2}>
+        <div style={{ minHeight: `${height / 2}px`, flex: 1 }}>
           <Group justify="space-between">
             <TextInput
-              w="300px"
               label="Recherche Produits"
               defaultValue={searchValue}
               onChange={(e) => {
@@ -222,124 +285,97 @@ function SaleNewsPage() {
               }
               rightSectionWidth={95}
             />
-            <Group>
-              <InputBase
-                ref={barcodeInputRef}
-                label="code barre"
-                onChange={(e) => handleSearchWithBarcode(e.currentTarget.value)}
-              />
-              <ActionIcon
-                mt="md"
-                color="orange"
-                size="50px"
-                radius="100%"
-                variant={!isUsingBarcodeScanner ? 'default' : 'light'}
-                onClick={() => {
-                  if (barcodeInputRef.current) {
-                    barcodeInputRef.current.focus()
-                  }
-                  toggle()
-                }}
-              >
-                <img height={40} width={40} src={imgSrc} />
-              </ActionIcon>
-            </Group>
+            <InputBase
+              ref={barcodeInputRef}
+              readOnly={!isUsingBarcodeScanner}
+              label="Scanner Code Barre"
+              onChange={(e) => handleSearchWithBarcode(e.currentTarget.value)}
+              leftSection={
+                <img src={imgSrc} alt="barcode" height={24} width={24} />
+              }
+              rightSection={
+                <Checkbox
+                  onChange={(event) => {
+                    toggle()
+                    if (barcodeInputRef.current) {
+                      if (event.currentTarget.checked) {
+                        barcodeInputRef.current.focus()
+                        barcodeInputRef.current.select()
+                      } else {
+                        barcodeInputRef.current.value = ''
+                      }
+                    }
+                  }}
+                />
+              }
+            />
           </Group>
-          <ScrollArea>
+          <ScrollArea h={height / 2}>
             <InventoriesList
               medications={medications}
               onInventoryAdded={handleInventoryAdd}
             />
           </ScrollArea>
-        </Grid.Col>
-        <Grid.Col span={6}>
-          <form
-          // onSubmit={form.onSubmit(
-          //   async (values) => await createSale(values, {})
-          // )}
-          >
-            <Group mb="md" grow>
-              <NumberInput
-                label="TOTAL VENTE"
-                readOnly
-                hideControls
-                decimalScale={2}
-                value={totals.totalPrice}
-              />
-              <NumberInput
-                label="DONT REMISE"
-                readOnly
-                hideControls
-                decimalScale={2}
-                value={totals.discountedPrice}
-              />
+        </div>
+        <div>
+          <Button fullWidth mb="md">
+            Equivalents
+          </Button>
+          <Button fullWidth mb="md">
+            Fiche Produit
+          </Button>
+          <Button fullWidth mb="md">
+            D.C.I Famille Thérap.
+          </Button>
+          <Button fullWidth mb="md">
+            Reprendre Vente
+          </Button>
+          <Button fullWidth>Retour Client</Button>
+        </div>
+      </Group>
+      <Group h={height / 2} align="stretch">
+        <ScrollArea h={height / 2} flex="1">
+          {saleItemsFields}
+        </ScrollArea>
+        <div>
+          <Group justify="space-between">
+            <Text fw="bold">
+              Produit: {saleItemsFields.length} | N° Vente: {'saleNumber'}
+            </Text>
+            <Group wrap="nowrap" gap={10} mt={5}>
+              <IconCalendar stroke={1.5} size="1.5rem" />
+              <Text fz="sm">{dayjs().format('DD-MM-YYYY')}</Text>
+              <IconClock stroke={1.5} size="1.5rem" />
+              <Text fz="sm"> {dayjs().format('HH:mm')}</Text>
             </Group>
-            <Group
-              wrap="nowrap"
-              gap={10}
-              mt={5}
-              align="center"
-              justify="space-between"
-            >
-              <Text fw="bold">
-                Produit: {selectedSaleItems.length} | N° Vente: {'saleNumber'}
-              </Text>
-              <Group wrap="nowrap" gap={10} mt={5}>
-                <IconCalendar stroke={1.5} size="1.5rem" />
-                <Text fz="sm">{dayjs().format('DD-MM-YYYY')}</Text>
-                <IconClock stroke={1.5} size="1.5rem" />
-                <Text fz="sm"> {dayjs().format('HH:mm')}</Text>
-              </Group>
-            </Group>
-            <Group my="md" grow>
-              <Button
-                fullWidth
-                type="submit"
-                // onClick={async (e) => {
-                //   e.preventDefault()
-                //   await handleSubmit('Paid')
-                // }}
-              >
-                Valider Vente Espèce
-              </Button>
-              <Button fullWidth>Valider CNSS/CNOPS</Button>
-              <Button
-                fullWidth
-                color="yellow"
-                // onClick={async (e) => {
-                //   e.preventDefault()
-                //   await handleSubmit('Pending')
-                // }}
-              >
-                Suspendre Vente
-              </Button>
-            </Group>
-            <ScrollArea my="md">
-              {selectedSaleItems.length > 0 ? (
-                selectedSaleItems.map((saleItem, index) => (
-                  <SaleItem
-                    key={saleItem.inventory.id}
-                    saleItem={saleItem}
-                    form={form}
-                    index={index}
-                    removeItem={() => {}}
-                  />
-                ))
-              ) : (
-                <Text
-                  size="xl"
-                  ta="center"
-                  c={form.errors?.saleMedications ? 'red' : 'gray'}
-                >
-                  Aucun produit n'est sélectionné
-                </Text>
-              )}
-            </ScrollArea>
-          </form>
-        </Grid.Col>
-      </Grid>
-      <pre>{JSON.stringify(selectedSaleItems, null, 2)}</pre>
-      <pre>{JSON.stringify(form.getValues(), null, 2)}</pre>
+          </Group>
+          <Group my="md" grow>
+            <NumberInput
+              label="TOTAL VENTE"
+              readOnly
+              hideControls
+              decimalScale={2}
+              value={totals.totalPpvNet}
+            />
+            <NumberInput
+              label="DONT REMISE"
+              readOnly
+              hideControls
+              decimalScale={2}
+              value={totals.discountedAmount}
+            />
+          </Group>
+          <Group>
+            <Button fullWidth type="submit">
+              Valider Vente Espèce
+            </Button>
+            <Button fullWidth>Valider CNSS/CNOPS</Button>
+            <Button fullWidth color="yellow">
+              Suspendre Vente
+            </Button>
+          </Group>
+        </div>
+      </Group>
     </Paper>
   )
 }
@@ -348,12 +384,13 @@ SaleNewsPage.displayName = 'SaleNewsPage'
 
 function InventoriesList({ medications, onInventoryAdded }) {
   return (
-    <Table verticalSpacing="lg" style={{ width: '100%', whiteSpace: 'nowrap' }}>
+    <Table verticalSpacing="xs" style={{ width: '100%', whiteSpace: 'nowrap' }}>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Nom</Table.Th>
           <Table.Th>Barcode</Table.Th>
           <Table.Th>PPV</Table.Th>
+          <Table.Th>PPH</Table.Th>
           <Table.Th>Quantité</Table.Th>
           <Table.Th>Péremption</Table.Th>
           <Table.Th ta="center">Action</Table.Th>
@@ -366,6 +403,7 @@ function InventoriesList({ medications, onInventoryAdded }) {
               <Table.Td>{medication.name}</Table.Td>
               <Table.Td>{medication.barcode}</Table.Td>
               <Table.Td>{inventory.ppv}</Table.Td>
+              <Table.Td>{inventory.pph}</Table.Td>
               <Table.Td>{inventory.quantity}</Table.Td>
               <Table.Td>
                 {new Date(inventory.expirationDate).toLocaleDateString()}
@@ -386,7 +424,7 @@ function InventoriesList({ medications, onInventoryAdded }) {
   )
 }
 
-function SaleItem({ form, saleItem, index, removeItem }) {
+function SaleItem({ form, saleItem, index, onRemove }) {
   return (
     <Paper
       w={'100%'}
@@ -394,39 +432,50 @@ function SaleItem({ form, saleItem, index, removeItem }) {
       withBorder
       px="sm"
       py="xs"
-      mb="md"
+      mb="xs"
     >
       <Group justify="space-between" mb="sm" wrap="nowrap">
-        <div>{saleItem.medication.name}</div>
+        <div>{saleItem.medicationName}</div>
         <ActionIcon
           color="red"
           variant="light"
           size="sm"
-          // onClick={() => removeItem(saleItem.inventory.id, index)}
+          onClick={() => onRemove(index)}
         >
           <IconTrash stroke={1.5} size="1.5rem" />
         </ActionIcon>
       </Group>
       <Group justify="space-between" wrap="nowrap">
         <Group wrap="nowrap">
+          {saleItem.isPartialSaleAllowed && (
+            <Select
+              allowDeselect={false}
+              label="Type d'Unité"
+              w="80px"
+              data={[
+                { value: 'box', label: 'Box' },
+                { value: 'unit', label: 'Unit' }
+              ]}
+              {...form.getInputProps(`saleMedications.${index}.saleType`)}
+            />
+          )}
           <InputBase
             w="50px"
             readOnly
-            defaultValue={saleItem.inventory.ppv}
+            defaultValue={saleItem.ppv}
             label="PPV"
           />
           <InputBase
             w="50px"
             readOnly
-            defaultValue={saleItem.medication.pbr}
+            defaultValue={saleItem.pbr}
             label="PBR"
           />
           <InputBase
             w="80px"
             readOnly
             value={
-              saleItem.inventory.ppv *
-              form.getValues().saleMedications[index].quantity
+              saleItem.ppv * form.getValues().saleMedications[index].quantity
             }
             label="Brut PPV"
           />
@@ -443,35 +492,35 @@ function SaleItem({ form, saleItem, index, removeItem }) {
           <NumberInput
             w="60px"
             min={0}
-            defaultValue={1}
             label="Quantité"
             {...form.getInputProps(`saleMedications.${index}.quantity`)}
-            onBlur={(event) => {
+            onChange={(value) => {
+              form.setFieldValue(`saleMedications.${index}.quantity`, value)
               form.setFieldValue(
                 `saleMedications.${index}.netPrice`,
                 calculateNetPrice(
-                  saleItem.inventory.ppv,
-                  form.getValues().saleMedications[index].discount,
-                  saleItem.medication.tva,
-                  Number(event.target.value)
+                  saleItem.ppv,
+                  saleItem.discount,
+                  saleItem.tva,
+                  value
                 )
               )
             }}
           />
           <NumberInput
+            label="Remise"
             w="60px"
             min={0}
             max={100}
-            defaultValue={0}
-            label="Remise"
             {...form.getInputProps(`saleMedications.${index}.discount`)}
-            onBlur={(event) => {
+            onChange={(value) => {
+              form.setFieldValue(`saleMedications.${index}.discount`, value)
               form.setFieldValue(
                 `saleMedications.${index}.netPrice`,
                 calculateNetPrice(
-                  saleItem.inventory.ppv,
-                  Number(event.target.value),
-                  saleItem.medication.tva,
+                  saleItem.ppv,
+                  saleItem.discount,
+                  saleItem.tva,
                   form.getValues().saleMedications[index].quantity
                 )
               )
@@ -482,13 +531,13 @@ function SaleItem({ form, saleItem, index, removeItem }) {
             w="50px"
             readOnly
             label="TVA %"
-            defaultValue={saleItem.medication.tva}
+            defaultValue={saleItem.tva}
           />
           <InputBase
             w="60px"
             readOnly
             label="Marge %"
-            defaultValue={saleItem.medication.marge}
+            defaultValue={saleItem.marge}
           />
         </Group>
       </Group>
