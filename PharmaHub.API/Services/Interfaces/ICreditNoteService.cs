@@ -11,6 +11,8 @@ public interface ICreditNoteService
   Task<PaginatedResponse<CreditNoteBasicDto>> GetCreditNotesAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
   public Task<bool> DeleteCreditNote(int id, CancellationToken cancellationToken = default);
   public Task<bool> UpdateCreditNote(int id, CreditNoteUpdateDto request, CancellationToken cancellationToken = default);
+  public Task<bool> UpdateCreditNoteMedicationAsync(int creditNoteId, CreditNoteMedicationCreateDto request, CancellationToken cancellationToken = default);
+  public Task<bool> DeleteCreditNoteMedicationAsync(int creditNoteId, int inventoryId, CancellationToken cancellationToken = default);
 
   // CreditNoteMedication methods
   Task<bool> CreateCreditNoteMedicationAsync(int creditNoteId, CreditNoteMedicationCreateDto request, CancellationToken cancellationToken = default);
@@ -140,8 +142,59 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
     if (inventory is not null)
     {
       inventory.Quantity = inventory.Quantity >= request.EmittedQuantity ? inventory.Quantity - request.EmittedQuantity : 0;
+      dbContext.Inventories.Update(inventory);
+      await dbContext.SaveChangesAsync();
     }
 
     return true;
   }
+  public async Task<bool> UpdateCreditNoteMedicationAsync(int creditNoteId, CreditNoteMedicationCreateDto request, CancellationToken cancellationToken = default)
+  {
+    // Check if the CreditNoteMedications already exists
+    var creditNoteMedication = await dbContext.CreditNoteMedications
+        .FirstOrDefaultAsync(cnm => cnm.InventoryId == request.InventoryId && cnm.CreditNoteId == creditNoteId, cancellationToken);
+
+    if (creditNoteMedication != null)
+    {
+      // Update the existing CreditNoteMedications entity
+      creditNoteMedication.AcceptedQuantity = request.AcceptedQuantity;
+      creditNoteMedication.EmittedQuantity = request.EmittedQuantity;
+      creditNoteMedication.Motif = request.Motif;
+      creditNoteMedication.RefusedQuantity = request.RefusedQuantity;
+
+      dbContext.CreditNoteMedications.Update(creditNoteMedication);
+      await dbContext.SaveChangesAsync(cancellationToken);
+
+    }
+    return true;
+
+  }
+
+
+  public async Task<bool> DeleteCreditNoteMedicationAsync(int creditNoteId, int inventoryId, CancellationToken cancellationToken = default)
+  {
+    var creditNoteMedication = await dbContext.CreditNoteMedications
+        .FirstOrDefaultAsync(cnm => cnm.CreditNoteId == creditNoteId && cnm.InventoryId == inventoryId, cancellationToken);
+
+    if (creditNoteMedication == null)
+    {
+      return false;
+    }
+    var inventory = await dbContext.Inventories.FindAsync([inventoryId], cancellationToken);
+    if (inventory != null)
+    {
+      inventory.Quantity += creditNoteMedication.EmittedQuantity;
+      dbContext.Inventories.Update(inventory);
+    }
+    dbContext.CreditNoteMedications.Remove(creditNoteMedication);
+    await dbContext.SaveChangesAsync(cancellationToken);
+    return true;
+  }
+
+
+
+
+
 }
+
+

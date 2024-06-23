@@ -43,6 +43,27 @@ public class CreditNotesController(ICreditNoteService creditNoteService) : Contr
     await creditNoteService.CreateCreditNoteMedicationAsync(id, request, cancellationToken);
     return NoContent();
   }
+  [HttpPut("{id:int}/medications")]
+  public async Task<ActionResult> UpdateCreditNoteMedication(int id, [FromBody] CreditNoteMedicationCreateDto request, CancellationToken cancellationToken)
+  {
+    var result = await creditNoteService.UpdateCreditNoteMedicationAsync(id, request, cancellationToken);
+    if (!result)
+    {
+      return NotFound();
+    }
+    return NoContent();
+  }
 
+  // Delete endpoint
+  [HttpDelete("{creditNoteId:int}/medications/{inventoryId:int}")]
+  public async Task<ActionResult> DeleteCreditNoteMedication(int creditNoteId, int inventoryId, CancellationToken cancellationToken)
+  {
+    var result = await creditNoteService.DeleteCreditNoteMedicationAsync(creditNoteId, inventoryId, cancellationToken);
+    if (!result)
+    {
+      return NotFound();
+    }
+    return NoContent();
+  }
 }
 
