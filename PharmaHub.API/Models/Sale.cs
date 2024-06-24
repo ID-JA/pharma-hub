@@ -1,14 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace PharmaHub.API.Models;
 
 public class Sale : BaseModel
 {
-    public int TotalQuantity { get; set; }
-    public double TotalPrice { get; set; }
     public string Status { get; set; }
-    public float Discount { get; set; }
     public int SaleNumber { get; set; }
+    public int TotalQuantities { get; set; }
+    [Precision(18, 2)]
+    public decimal TotalNetPrices { get; set; }
+    [Precision(18, 2)]
+    public decimal TotalBrutPrices { get; set; }
+    [Precision(18, 2)]
+    public decimal DiscountedAmount { get; set; }
     public int UserId { get; set; }
     public User User { get; set; } = null!;
-    public List<SaleMedications> SaleMedications { get; set; } = [];
+    public List<SaleMedication> SaleMedications { get; set; } = [];
     public List<InventoryHistory> InventoryHistories { get; set; } = [];
 }

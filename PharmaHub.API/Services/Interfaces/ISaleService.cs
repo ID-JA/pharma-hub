@@ -17,7 +17,7 @@ public interface ISaleService
 }
 
 
-public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedications> saleMedicamentRepository, ICurrentUser currentUserService, IMedicationService medicationService) : ISaleService
+public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepository, IService<SaleMedication> saleMedicamentRepository, ICurrentUser currentUserService, IMedicationService medicationService) : ISaleService
 {
     public async Task<long> GetNextSaleNumberAsync(CancellationToken cancellationToken = default)
     {
@@ -38,46 +38,91 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         {
             var sale = new Sale
             {
-                TotalQuantity = request.SaleMedications.Sum(sm => sm.Quantity),
-                TotalPrice = request.SaleMedications.Sum(sm => sm.NetPrice),
+                TotalQuantities = request.TotalQuantities,
+                TotalNetPrices = request.TotalNetPrices,
+                TotalBrutPrices = request.TotalBrutPrices,
                 Status = request.Status,
-                Discount = request.Discount,
+                DiscountedAmount = request.DiscountedAmount,
                 UserId = userId,
-                SaleMedications = new List<SaleMedications>()
+                SaleMedications = new List<SaleMedication>()
             };
 
             dbContext.Sales.Add(sale);
             await dbContext.SaveChangesAsync();
 
+            var inventoryIds = request.SaleMedications.Select(sm => sm.InventoryId).ToList();
+
+            var inventories = await dbContext.Inventories
+                .Include(i => i.Medication)
+                .Where(i => inventoryIds.Contains(i.Id))
+                .ToDictionaryAsync(i => i.Id);
+
+            var inventoryUpdates = new List<Inventory>();
+            var inventoryHistories = new List<InventoryHistory>();
             foreach (var item in request.SaleMedications)
             {
-                var isSufficient = await medicationService.IsSufficientQuantity(item.InventoryId, item.Quantity);
-                var quantityToChange = isSufficient ? item.Quantity : -item.Quantity;
-
-                var saleItem = new SaleMedications
+                if (inventories.TryGetValue(item.InventoryId, out var inventory))
                 {
-                    SaleId = sale.Id,
-                    InventoryId = item.InventoryId,
-                    Quantity = quantityToChange,
-                    BoxQuantity = quantityToChange,
-                    UnitQuantity = 0,
-                    TotalPrice = item.NetPrice,
-                    Discount = item.Discount,
-                };
-                sale.SaleMedications.Add(saleItem);
+                    var previousBoxQuantity = inventory.BoxQuantity;
+                    var previousUnitQuantity = inventory.UnitQuantity;
 
-                if (!isSufficient)
+                    SaleMedication saleItem = item.ToEntity();
+                    if (item.SaleType.Equals("Box"))
+                    {
+                        inventory.BoxQuantity -= item.Quantity;
+                        if (inventory.BoxQuantity < 0)
+                        {
+                            isOutOfStock = true;
+                            saleItem.Status = "OutOfStock";
+                        }
+                    }
+                    else if (item.SaleType.Equals("Unit"))
+                    {
+                        inventory.UnitQuantity -= item.Quantity;
+
+                        if (inventory.UnitQuantity < 0)
+                        {
+                            int unitsPerBox = inventory.Medication.SaleUnits;
+                            int boxesNeeded = (int)Math.Ceiling((double)Math.Abs(inventory.UnitQuantity) / unitsPerBox);
+
+                            if (inventory.BoxQuantity > 0)
+                            {
+                                inventory.BoxQuantity -= boxesNeeded;
+                                inventory.UnitQuantity += boxesNeeded * unitsPerBox;
+                            }
+                            else
+                            {
+                                isOutOfStock = true;
+                                saleItem.Status = "OutOfStock";
+                            }
+                        }
+                    }
+                    // Record the inventory history
+                    var inventoryHistory = new InventoryHistory
+                    {
+                        InventoryId = inventory.Id,
+                        PreviousBoxQuantity = previousBoxQuantity,
+                        PreviousUnitQuantity = previousUnitQuantity,
+                        NewBoxQuantity = inventory.BoxQuantity,
+                        NewUnitQuantity = inventory.UnitQuantity,
+                        ChangeDate = DateTime.UtcNow,
+                        ChangeType = "Sale",
+                        SaleId = sale.Id
+                    };
+
+                    inventoryHistories.Add(inventoryHistory);
+                    inventoryUpdates.Add(inventory);
+                    sale.SaleMedications.Add(saleItem);
+                }
+                else
                 {
                     isOutOfStock = true;
                 }
-
-                if (request.Status == "Paid" && isSufficient)
-                {
-                    await UpdateInventory(item.InventoryId, quantityToChange, sale.Id);
-                }
             }
 
-            sale.Status = DetermineSaleStatus(request.Status, isOutOfStock);
+            dbContext.Inventories.UpdateRange(inventoryUpdates);
+            dbContext.InventoryHistories.AddRange(inventoryHistories);
+            sale.Status = isOutOfStock ? "OutOfStock" : request.Status;
             await dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -89,32 +134,23 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         }
     }
 
-    private string DetermineSaleStatus(string initialStatus, bool isOutOfStock)
-    {
-        if (isOutOfStock)
-        {
-            return "OutOfStock";
-        }
-        return initialStatus;
-    }
+    // private async Task UpdateInventory(int inventoryId, int quantityToChange, int saleId)
+    // {
+    //     var inventoryHistory = new InventoryHistory
+    //     {
+    //         InventoryId = inventoryId,
+    //         QuantityChanged = quantityToChange,
+    //         SaleId = saleId,
+    //     };
+    //     dbContext.InventoryHistories.Add(inventoryHistory);
 
-    private async Task UpdateInventory(int inventoryId, int quantityToChange, int saleId)
-    {
-        var inventoryHistory = new InventoryHistory
-        {
-            InventoryId = inventoryId,
-            QuantityChanged = quantityToChange,
-            SaleId = saleId,
-        };
-        dbContext.InventoryHistories.Add(inventoryHistory);
-
-        var inventory = await dbContext.Inventories.FindAsync(inventoryId);
-        if (inventory != null)
-        {
-            inventory.Quantity -= quantityToChange;
-            dbContext.Inventories.Update(inventory);
-        }
-    }
+    //     var inventory = await dbContext.Inventories.FindAsync(inventoryId);
+    //     if (inventory != null)
+    //     {
+    //         inventory.Quantity -= quantityToChange;
+    //         dbContext.Inventories.Update(inventory);
+    //     }
+    // }
 
     public async Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default)
     {
@@ -125,35 +161,33 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         // It could be better if we create an endpoint for updating only sales item (/sales/{id}/items)
         if (sale is null) return false;
 
-        sale.TotalQuantity = request.SaleMedications.Sum(sm => sm.Quantity);
-        sale.TotalPrice = request.TotalPrice;
-        sale.Status = request.Status;
-        sale.Discount = request.Discount;
+        // sale.TotalQuantity = request.SaleMedications.Sum(sm => sm.Quantity);
+        // sale.TotalPrice = request.TotalPrice;
+        // sale.Status = request.Status;
+        // sale.Discount = request.Discount;
 
         dbContext.SaleMedications.RemoveRange(sale.SaleMedications);
         foreach (var item in request.SaleMedications)
         {
-            var saleItemDetail = new SaleMedications
+            var saleItemDetail = new SaleMedication
             {
                 InventoryId = item.InventoryId,
                 Quantity = item.Quantity,
-                Ppv = item.Ppv,
-                Discount = item.Discount,
-                TotalPrice = item.TotalPrice,
-                Tva = item.Tva,
+                DiscountRate = item.Discount,
+                NetPrice = item.TotalPrice,
             };
 
             sale.SaleMedications.Add(saleItemDetail);
 
-            if (request.Status == "Paid")
-            {
-                await medicationService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
-                {
-                    InventoryId = item.InventoryId,
-                    QuantityChanged = sale.TotalQuantity,
-                    SaleId = sale.Id
-                });
-            }
+            // if (request.Status == "Paid")
+            // {
+            //     await medicationService.CreateMedicamentHistoryAsync(new StockHistoryCreateDto()
+            //     {
+            //         InventoryId = item.InventoryId,
+            //         QuantityChanged = sale.TotalQuantity,
+            //         SaleId = sale.Id
+            //     });
+            // }
         }
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;

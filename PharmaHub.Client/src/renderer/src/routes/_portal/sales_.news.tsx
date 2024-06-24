@@ -27,6 +27,7 @@ import {
   IconCalendar,
   IconClock,
   IconPlus,
+  IconShoppingCartPlus,
   IconTrash
 } from '@tabler/icons-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -52,8 +53,8 @@ const calculateNetPrice = (ppv, discount, tva, quantity) => {
 
 const SaleSchema = z.object({
   totalQuantities: z.number().nonnegative(),
-  totalPpvNet: z.number().nonnegative(),
-  totalPpvBrut: z.number().nonnegative(),
+  totalNetPrices: z.number().nonnegative(),
+  totalBrutPrices: z.number().nonnegative(),
   discountedAmount: z.number().nonnegative(),
   saleMedications: z
     .array(
@@ -93,8 +94,8 @@ function SaleNewsPage() {
     initialValues: {
       totalQuantities: 0,
       discountedAmount: 0,
-      totalPpvNet: 0,
-      totalPpvBrut: 0,
+      totalNetPrices: 0,
+      totalBrutPrices: 0,
       saleMedications: []
     },
     validate: zodResolver(SaleSchema)
@@ -190,6 +191,32 @@ function SaleNewsPage() {
     // }
   }
 
+  const { mutateAsync: createSale } = useMutation({
+    mutationFn: async (data: any) => {
+      await http.post('/api/sales', data)
+    }
+  })
+
+  const handleSubmit = async (stauts) => {
+    const validationResult = form.validate()
+    if (!validationResult.hasErrors) {
+      const data = form.getValues()
+      console.log({ data })
+      // await createSale(
+      //   { stauts, ...data },
+      //   {
+      //     onSuccess: () => {
+      //       form.reset()
+      //       toast.success('La vente a été enregistre avec succès.')
+      //     },
+      //     onError: () => {
+      //       toast.error("Quelque chose de grave s'est produit.")
+      //     }
+      //   }
+      // )
+    }
+  }
+
   const saleItemsFields = form
     .getValues()
     .saleMedications.map((item, index) => (
@@ -221,22 +248,25 @@ function SaleNewsPage() {
         acc.totalQuantities += quantity
 
         if (saleType === 'box') {
-          acc.totalPpvBrut += priceBeforeDiscount
-          acc.totalPpvNet += priceAfterDiscount
+          acc.totalBrutPrices += priceBeforeDiscount
+          acc.totalNetPrices += priceAfterDiscount
         } else {
-          acc.totalPpvBrut += unitPrice * quantity
-          acc.totalPpvNet += unitPrice * quantity
+          acc.totalBrutPrices += unitPrice * quantity
+          acc.totalNetPrices += unitPrice * quantity
         }
 
         acc.discountedAmount += discountedAmount
-
+        form.setFieldValue('discountedAmount', acc.discountedAmount)
+        form.setFieldValue('totalQuantities', acc.totalQuantities)
+        form.setFieldValue('totalBrutPrices', acc.totalBrutPrices)
+        form.setFieldValue('totalNetPrices', acc.totalNetPrices)
         return acc
       },
       {
         totalQuantities: 0,
         discountedAmount: 0,
-        totalPpvBrut: 0,
-        totalPpvNet: 0
+        totalBrutPrices: 0,
+        totalNetPrices: 0
       }
     )
 
@@ -335,7 +365,35 @@ function SaleNewsPage() {
       </Group>
       <Group h={height / 2} align="stretch">
         <ScrollArea h={height / 2} flex="1">
-          {saleItemsFields}
+          {saleItemsFields.length > 0 ? (
+            saleItemsFields
+          ) : (
+            <div
+              style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              <IconShoppingCartPlus
+                style={{ width: rem(80), height: rem(80), textAlign: 'center' }}
+                stroke={1.5}
+                color={
+                  form.errors?.saleMedications
+                    ? 'var(--mantine-color-red-9)'
+                    : 'var(--mantine-color-gray-9)'
+                }
+              />
+              <Text
+                size="xl"
+                ta="center"
+                c={form.errors?.saleMedications ? 'red.9' : 'gray.9'}
+              >
+                Aucun produit n'est sélectionné
+              </Text>
+            </div>
+          )}
         </ScrollArea>
         <div>
           <Group justify="space-between">
@@ -355,7 +413,7 @@ function SaleNewsPage() {
               readOnly
               hideControls
               decimalScale={2}
-              value={totals.totalPpvNet}
+              value={totals.totalNetPrices}
             />
             <NumberInput
               label="DONT REMISE"
@@ -366,11 +424,19 @@ function SaleNewsPage() {
             />
           </Group>
           <Group>
-            <Button fullWidth type="submit">
+            <Button
+              fullWidth
+              type="submit"
+              onClick={() => handleSubmit('paid')}
+            >
               Valider Vente Espèce
             </Button>
             <Button fullWidth>Valider CNSS/CNOPS</Button>
-            <Button fullWidth color="yellow">
+            <Button
+              fullWidth
+              color="yellow"
+              onClick={() => handleSubmit('pending')}
+            >
               Suspendre Vente
             </Button>
           </Group>
