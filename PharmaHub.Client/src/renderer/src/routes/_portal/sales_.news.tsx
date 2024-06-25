@@ -5,7 +5,7 @@ import {
   useToggle
 } from '@mantine/hooks'
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMedications } from './credit-notes.new'
 import {
   TextInput,
@@ -21,7 +21,8 @@ import {
   Text,
   NumberInput,
   Checkbox,
-  Select
+  Select,
+  Badge
 } from '@mantine/core'
 import {
   IconCalendar,
@@ -79,6 +80,7 @@ const SaleSchema = z.object({
 type Sale = z.infer<typeof SaleSchema>
 
 function SaleNewsPage() {
+  const queryClient = useQueryClient()
   const [searchFieldName, setSearchFieldName] = useState('name')
   const [searchValue, setSearchValue] = useDebouncedState('', 500)
   const [isUsingBarcodeScanner, toggle] = useToggle<boolean>([false, true])
@@ -88,6 +90,13 @@ function SaleNewsPage() {
   const { data: medications = [] } = useMedications({
     searchValue,
     searchFieldName
+  })
+
+  const { data: saleNumber = 0 } = useQuery({
+    queryKey: ['saleNumber'],
+    queryFn: async () => {
+      return (await http.get('/api/sales/next')).data
+    }
   })
 
   const form = useForm<Sale>({
@@ -171,14 +180,13 @@ function SaleNewsPage() {
   }
 
   const handleInventoryAdd = ({ medication, inventory }) => {
-    // if (!isAdded(inventory.id)) {
-
     form.insertListItem('saleMedications', {
       inventoryId: inventory.id,
       quantity: 1,
       netPrice: calculateNetPrice(inventory.ppv, 0, medication.tva, 1),
+      brutPrice: inventory.ppv,
       discount: 0,
-      saleType: 'box',
+      saleType: 'Box',
       medicationName: medication.name,
       ppv: inventory.ppv,
       pph: inventory.pph,
@@ -188,54 +196,44 @@ function SaleNewsPage() {
       isPartialSaleAllowed: medication.isPartialSaleAllowed,
       unitPrice: medication.unitPrice
     })
-    // }
   }
 
-  const { mutateAsync: createSale } = useMutation({
-    mutationFn: async (data: any) => {
-      await http.post('/api/sales', data)
-    }
-  })
+  const { mutateAsync: createSale, isPending: isCreateSalePending } =
+    useMutation({
+      mutationFn: async (data: any) => {
+        await http.post('/api/sales', data)
+      }
+    })
 
-  const handleSubmit = async (stauts) => {
+  const handleSubmit = async (status) => {
     const validationResult = form.validate()
     if (!validationResult.hasErrors) {
       const data = form.getValues()
-      console.log({ data })
-      // await createSale(
-      //   { stauts, ...data },
-      //   {
-      //     onSuccess: () => {
-      //       form.reset()
-      //       toast.success('La vente a été enregistre avec succès.')
-      //     },
-      //     onError: () => {
-      //       toast.error("Quelque chose de grave s'est produit.")
-      //     }
-      //   }
-      // )
+      await createSale(
+        { status, ...(status === 'Paid' && { paymentType: 'Cash' }), ...data },
+        {
+          onSuccess: () => {
+            form.reset()
+            toast.success('La vente a été enregistrée avec succès.')
+            queryClient.invalidateQueries({
+              queryKey: ['medications']
+            })
+          },
+          onError: () => {
+            toast.error("Quelque chose de grave s'est produit.")
+          }
+        }
+      )
     }
   }
-
-  const saleItemsFields = form
-    .getValues()
-    .saleMedications.map((item, index) => (
-      <SaleItem
-        key={item.inventoryId}
-        saleItem={item}
-        form={form}
-        index={index}
-        onRemove={handleRemoveProduct}
-      />
-    ))
 
   const totals = useMemo(() => {
     const saleItems = form.getValues().saleMedications
 
-    const totals = saleItems.reduce(
+    return saleItems.reduce(
       (acc, item) => {
         const { ppv, tva, quantity, discount, saleType, unitPrice } = item
-
+        console.log({ item })
         const priceBeforeDiscount = ppv * (1 + tva / 100) * quantity
         const priceAfterDiscount = calculateNetPrice(
           ppv,
@@ -247,7 +245,7 @@ function SaleNewsPage() {
 
         acc.totalQuantities += quantity
 
-        if (saleType === 'box') {
+        if (saleType === 'Box') {
           acc.totalBrutPrices += priceBeforeDiscount
           acc.totalNetPrices += priceAfterDiscount
         } else {
@@ -256,10 +254,6 @@ function SaleNewsPage() {
         }
 
         acc.discountedAmount += discountedAmount
-        form.setFieldValue('discountedAmount', acc.discountedAmount)
-        form.setFieldValue('totalQuantities', acc.totalQuantities)
-        form.setFieldValue('totalBrutPrices', acc.totalBrutPrices)
-        form.setFieldValue('totalNetPrices', acc.totalNetPrices)
         return acc
       },
       {
@@ -269,9 +263,28 @@ function SaleNewsPage() {
         totalNetPrices: 0
       }
     )
-
-    return totals
   }, [form.getValues().saleMedications])
+
+  useEffect(() => {
+    form.setValues({
+      totalQuantities: totals.totalQuantities,
+      discountedAmount: totals.discountedAmount,
+      totalBrutPrices: totals.totalBrutPrices,
+      totalNetPrices: totals.totalNetPrices
+    })
+  }, [totals])
+
+  const saleItemsFields = form
+    .getInputProps('saleMedications')
+    .value.map((item, index) => (
+      <SaleItem
+        key={item.inventoryId}
+        saleItem={item}
+        form={form}
+        index={index}
+        onRemove={handleRemoveProduct}
+      />
+    ))
 
   return (
     <Paper
@@ -282,64 +295,40 @@ function SaleNewsPage() {
       h="calc(100vh - 1.5rem)"
       ref={ref}
     >
-      <Group h={height / 2}>
+      <Group h={height / 2} align="stretch">
         <div style={{ minHeight: `${height / 2}px`, flex: 1 }}>
-          <Group justify="space-between">
-            <TextInput
-              label="Recherche Produits"
-              defaultValue={searchValue}
-              onChange={(e) => {
-                setSearchValue(e.currentTarget.value)
-              }}
-              rightSection={
-                <NativeSelect
-                  value={searchFieldName}
-                  onChange={(e) => setSearchFieldName(e.currentTarget.value)}
-                  data={[
-                    { value: 'name', label: 'Nom' },
-                    { value: 'barcode', label: 'Barcode' },
-                    { value: 'type', label: 'Type' },
-                    { value: 'ppv', label: 'PPV' }
-                  ]}
-                  rightSectionWidth={28}
-                  styles={{
-                    input: {
-                      fontWeight: 500,
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                      width: rem(95),
-                      marginRight: rem(-2)
-                    }
-                  }}
-                />
-              }
-              rightSectionWidth={95}
-            />
-            <InputBase
-              ref={barcodeInputRef}
-              readOnly={!isUsingBarcodeScanner}
-              label="Scanner Code Barre"
-              onChange={(e) => handleSearchWithBarcode(e.currentTarget.value)}
-              leftSection={
-                <img src={imgSrc} alt="barcode" height={24} width={24} />
-              }
-              rightSection={
-                <Checkbox
-                  onChange={(event) => {
-                    toggle()
-                    if (barcodeInputRef.current) {
-                      if (event.currentTarget.checked) {
-                        barcodeInputRef.current.focus()
-                        barcodeInputRef.current.select()
-                      } else {
-                        barcodeInputRef.current.value = ''
-                      }
-                    }
-                  }}
-                />
-              }
-            />
-          </Group>
+          <TextInput
+            mb="xs"
+            w="500px"
+            label="Recherche Produits"
+            defaultValue={searchValue}
+            onChange={(e) => {
+              setSearchValue(e.currentTarget.value)
+            }}
+            rightSection={
+              <NativeSelect
+                value={searchFieldName}
+                onChange={(e) => setSearchFieldName(e.currentTarget.value)}
+                data={[
+                  { value: 'name', label: 'Nom' },
+                  { value: 'barcode', label: 'Barcode' },
+                  { value: 'type', label: 'Type' },
+                  { value: 'ppv', label: 'PPV' }
+                ]}
+                rightSectionWidth={28}
+                styles={{
+                  input: {
+                    fontWeight: 500,
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0,
+                    width: rem(95),
+                    marginRight: rem(-2)
+                  }
+                }}
+              />
+            }
+            rightSectionWidth={95}
+          />
           <ScrollArea h={height / 2}>
             <InventoriesList
               medications={medications}
@@ -348,6 +337,31 @@ function SaleNewsPage() {
           </ScrollArea>
         </div>
         <div>
+          <InputBase
+            mb="md"
+            ref={barcodeInputRef}
+            readOnly={!isUsingBarcodeScanner}
+            label="Scanner Code Barre"
+            onChange={(e) => handleSearchWithBarcode(e.currentTarget.value)}
+            leftSection={
+              <img src={imgSrc} alt="barcode" height={24} width={24} />
+            }
+            rightSection={
+              <Checkbox
+                onChange={(event) => {
+                  toggle()
+                  if (barcodeInputRef.current) {
+                    if (event.currentTarget.checked) {
+                      barcodeInputRef.current.focus()
+                      barcodeInputRef.current.select()
+                    } else {
+                      barcodeInputRef.current.value = ''
+                    }
+                  }
+                }}
+              />
+            }
+          />
           <Button fullWidth mb="md">
             Equivalents
           </Button>
@@ -398,7 +412,7 @@ function SaleNewsPage() {
         <div>
           <Group justify="space-between">
             <Text fw="bold">
-              Produit: {saleItemsFields.length} | N° Vente: {'saleNumber'}
+              Produit: {saleItemsFields.length} | N° Vente: {saleNumber}
             </Text>
             <Group wrap="nowrap" gap={10} mt={5}>
               <IconCalendar stroke={1.5} size="1.5rem" />
@@ -425,17 +439,21 @@ function SaleNewsPage() {
           </Group>
           <Group>
             <Button
+              loading={isCreateSalePending}
               fullWidth
               type="submit"
-              onClick={() => handleSubmit('paid')}
+              onClick={() => handleSubmit('Paid')}
             >
               Valider Vente Espèce
             </Button>
-            <Button fullWidth>Valider CNSS/CNOPS</Button>
+            <Button fullWidth loading={isCreateSalePending}>
+              Valider CNSS/CNOPS
+            </Button>
             <Button
+              loading={isCreateSalePending}
               fullWidth
               color="yellow"
-              onClick={() => handleSubmit('pending')}
+              onClick={() => handleSubmit('Pending')}
             >
               Suspendre Vente
             </Button>
@@ -456,8 +474,10 @@ function InventoriesList({ medications, onInventoryAdded }) {
           <Table.Th>Nom</Table.Th>
           <Table.Th>Barcode</Table.Th>
           <Table.Th>PPV</Table.Th>
-          <Table.Th>PPH</Table.Th>
           <Table.Th>Quantité</Table.Th>
+          <Table.Th>Prix Unit</Table.Th>
+          <Table.Th>Unités Par Boîte</Table.Th>
+          <Table.Th>PPH</Table.Th>
           <Table.Th>Péremption</Table.Th>
           <Table.Th ta="center">Action</Table.Th>
         </Table.Tr>
@@ -469,8 +489,22 @@ function InventoriesList({ medications, onInventoryAdded }) {
               <Table.Td>{medication.name}</Table.Td>
               <Table.Td>{medication.barcode}</Table.Td>
               <Table.Td>{inventory.ppv}</Table.Td>
+              <Table.Td>{inventory.boxQuantity}</Table.Td>
+              <Table.Td>
+                {medication.isPartialSaleAllowed ? (
+                  medication.unitPrice
+                ) : (
+                  <Badge color="red">N/A</Badge>
+                )}
+              </Table.Td>
+              <Table.Td>
+                {medication.isPartialSaleAllowed ? (
+                  inventory.unitQuantity
+                ) : (
+                  <Badge color="red">N/A</Badge>
+                )}
+              </Table.Td>
               <Table.Td>{inventory.pph}</Table.Td>
-              <Table.Td>{inventory.quantity}</Table.Td>
               <Table.Td>
                 {new Date(inventory.expirationDate).toLocaleDateString()}
               </Table.Td>
@@ -519,8 +553,8 @@ function SaleItem({ form, saleItem, index, onRemove }) {
               label="Type d'Unité"
               w="80px"
               data={[
-                { value: 'box', label: 'Box' },
-                { value: 'unit', label: 'Unit' }
+                { value: 'Box', label: 'Box' },
+                { value: 'Unit', label: 'Unit' }
               ]}
               {...form.getInputProps(`saleMedications.${index}.saleType`)}
             />

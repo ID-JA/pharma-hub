@@ -11,7 +11,7 @@ public interface ISaleService
     Task<long> GetNextSaleNumberAsync(CancellationToken cancellationToken = default);
     Task CreateSale(SaleCreateDto request);
     Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
-    Task<List<SaleBasicDto>> GetSalesAsync(CancellationToken cancellationToken = default);
+    Task<List<SaleDetailedDto>> GetSalesAsync(CancellationToken cancellationToken = default);
     Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
 }
@@ -44,6 +44,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                 Status = request.Status,
                 DiscountedAmount = request.DiscountedAmount,
                 UserId = userId,
+                PaymentType = request.PaymentType,
                 SaleMedications = new List<SaleMedication>()
             };
 
@@ -97,6 +98,12 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                             }
                         }
                     }
+
+                    if (isOutOfStock)
+                    {
+                        saleItem.Status = "OutOfStock";
+                        saleItem.Quantity = item.Quantity * -1;
+                    }
                     // Record the inventory history
                     var inventoryHistory = new InventoryHistory
                     {
@@ -134,23 +141,6 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         }
     }
 
-    // private async Task UpdateInventory(int inventoryId, int quantityToChange, int saleId)
-    // {
-    //     var inventoryHistory = new InventoryHistory
-    //     {
-    //         InventoryId = inventoryId,
-    //         QuantityChanged = quantityToChange,
-    //         SaleId = saleId,
-    //     };
-    //     dbContext.InventoryHistories.Add(inventoryHistory);
-
-    //     var inventory = await dbContext.Inventories.FindAsync(inventoryId);
-    //     if (inventory != null)
-    //     {
-    //         inventory.Quantity -= quantityToChange;
-    //         dbContext.Inventories.Update(inventory);
-    //     }
-    // }
 
     public async Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default)
     {
@@ -194,9 +184,13 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
 
     }
 
-    public async Task<List<SaleBasicDto>> GetSalesAsync(CancellationToken cancellationToken = default)
+    public async Task<List<SaleDetailedDto>> GetSalesAsync(CancellationToken cancellationToken = default)
     {
-        return await dbContext.Sales.ProjectToType<SaleBasicDto>().ToListAsync(cancellationToken);
+        var result = await dbContext.Sales
+        .ProjectToType<SaleDetailedDto>()
+        .ToListAsync(cancellationToken);
+
+        return result;
     }
 
     public async Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)

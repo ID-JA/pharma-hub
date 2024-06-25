@@ -4,6 +4,7 @@
     {
         public int TotalQuantities { get; set; }
         public string Status { get; set; }
+        public string? PaymentType { get; set; }
         public decimal DiscountedAmount { get; set; }
         public decimal TotalNetPrices { get; set; }
         public decimal TotalBrutPrices { get; set; }
