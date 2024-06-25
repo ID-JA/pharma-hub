@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PharmaHub.API;
+using PharmaHub.API.Services;
 using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,6 +49,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IBillService, BillService>();
     builder.Services.AddScoped<IClientService, ClientService>();
     builder.Services.AddScoped<ICreditNoteService, CreditNoteService>();
+    builder.Services.AddScoped<IGenerateSaleService, GenerateSaleService>();
 
 
     builder.Services.AddAuth();

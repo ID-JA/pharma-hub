@@ -1,4 +1,5 @@
 ﻿using PharmaHub.API.Dtos.Sale;
+using QuestPDF.Fluent;
 
 namespace PharmaHub.API.Controllers;
 
@@ -52,4 +53,16 @@ public class SalesController(ISaleService saleService) : ControllerBase
     {
         return Ok(await saleService.GetNextSaleNumberAsync(cancellationToken));
     }
+
+    [HttpGet("{id:int}/ticket")]
+    public async Task<FileStreamResult?> GetPDF(int id)
+    {
+        var sale = await saleService.GetSaleAsync(id, CancellationToken.None);
+        if(sale is null) return null;
+        var document = new SaleTicketDocment(sale.ToEntity());
+        byte[] pdfBytes = document.GeneratePdf();
+        MemoryStream ms = new MemoryStream(pdfBytes);
+        return new FileStreamResult(ms, "application/pdf");
+    }
+
 }

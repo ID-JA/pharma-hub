@@ -12,7 +12,7 @@ public interface ISaleService
     Task CreateSale(SaleCreateDto request);
     Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
     Task<List<SaleBasicDto>> GetSalesAsync(CancellationToken cancellationToken = default);
-    Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
+    Task<SaleDetailedDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
 }
 
@@ -163,9 +163,15 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         return await dbContext.Sales.ProjectToType<SaleBasicDto>().ToListAsync(cancellationToken);
     }
 
-    public async Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<SaleDetailedDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Sales.Where(s => s.Id == id).ProjectToType<SaleBasicDto>().FirstOrDefaultAsync(cancellationToken);
+        return await dbContext.Sales.Where(s => s.Id == id)
+            .Include(s => s.SaleMedications)
+            .ThenInclude(s => s.Inventory)
+            .ThenInclude(s => s.Medication)
+            .AsNoTracking()
+            .ProjectToType<SaleDetailedDto>()
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task DeleteSale(int id, CancellationToken cancellationToken = default)
