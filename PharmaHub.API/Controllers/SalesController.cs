@@ -18,9 +18,14 @@ public class SalesController(ISaleService saleService) : ControllerBase
 
     [HttpGet]
     [MustHavePermission(AppAction.View, AppResource.Sales)]
-    public async Task<ActionResult> GetSales(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetSales(
+       [FromQuery] DateTime? from,
+       [FromQuery] DateTime? to,
+       [FromQuery] int? saleNumber,
+       CancellationToken cancellationToken)
     {
-        return Ok(await saleService.GetSalesAsync(cancellationToken));
+        var sales = await saleService.GetSalesAsync(from, to, saleNumber, cancellationToken);
+        return Ok(sales);
     }
 
     [HttpGet("{id:int}")]

@@ -11,7 +11,7 @@ public interface ISaleService
     Task<long> GetNextSaleNumberAsync(CancellationToken cancellationToken = default);
     Task CreateSale(SaleCreateDto request);
     Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
-    Task<List<SaleDetailedDto>> GetSalesAsync(CancellationToken cancellationToken = default);
+    Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default);
     Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
 }
@@ -184,14 +184,40 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
 
     }
 
-    public async Task<List<SaleDetailedDto>> GetSalesAsync(CancellationToken cancellationToken = default)
+    public async Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default)
     {
-        var result = await dbContext.Sales
-        .ProjectToType<SaleDetailedDto>()
-        .ToListAsync(cancellationToken);
+        if (!from.HasValue && !to.HasValue)
+        {
+            to = DateTime.UtcNow.Date;
+            from = to.Value.AddDays(-6);
+        }
+
+        if (from.HasValue && to.HasValue && from > to)
+        {
+            (from, to) = (to, from);
+        }
+
+        if (to.HasValue)
+        {
+            to = to.Value.Date.AddDays(1).AddTicks(-1);
+        }
+
+        var query = dbContext.Sales
+            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to))
+            .Where(s => s.Status != "Pending"); // Exclude sales with status "Pending"
+
+        if (saleNumber.HasValue)
+        {
+            query = query.Where(s => s.SaleNumber == saleNumber.Value);
+        }
+
+        var result = await query
+            .ProjectToType<SaleDetailedDto>()
+            .ToListAsync(cancellationToken);
 
         return result;
     }
+
 
     public async Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
     {
