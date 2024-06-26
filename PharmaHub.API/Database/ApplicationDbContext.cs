@@ -94,7 +94,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OrderDeliveryInventory> OrderDeliveryInventories { get; set; }
     // public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<SaleMedications> SaleMedications { get; set; }
+    public DbSet<SaleMedication> SaleMedications { get; set; }
     // public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }

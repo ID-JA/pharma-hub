@@ -1,7 +1,6 @@
 import classes from './NewNavbar.module.css'
 import { LinksGroup } from './LinksGroup'
-import { ActionIcon, Group, ScrollArea } from '@mantine/core'
-import { IconLayoutSidebar } from '@tabler/icons-react'
+import { ScrollArea } from '@mantine/core'
 import brandImage from '@renderer/assets/brand.png'
 
 const appLinks = [
@@ -19,6 +18,11 @@ const appLinks = [
       {
         label: 'Nouveau Produit',
         to: '/medications/new',
+        exact: true
+      },
+      {
+        label: 'Produits',
+        to: '/medications',
         exact: true
       },
       {
@@ -105,7 +109,7 @@ const appLinks = [
   }
 ]
 
-export function NewNavbar({ close }) {
+export function NewNavbar() {
   const links = appLinks.map((item) => (
     <LinksGroup {...item} key={item.label} />
   ))
@@ -113,12 +117,7 @@ export function NewNavbar({ close }) {
   return (
     <>
       <div className={classes.header}>
-        <Group justify="space-between">
-          <ActionIcon variant="transparent" onClick={close}>
-            <IconLayoutSidebar />
-          </ActionIcon>
-          <img src={brandImage} alt="PharmaHub" height={38} />
-        </Group>
+        <img src={brandImage} alt="PharmaHub" height={38} />
       </div>
       <ScrollArea className={classes.links}>
         <div className={classes.linksInner}>{links}</div>

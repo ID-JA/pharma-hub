@@ -32,6 +32,8 @@
 }
 
 .navbarInner {
+  position: relative;
+
   background-color: light-dark(
     var(--mantine-color-white),
     var(--mantine-color-dark-6)
@@ -49,9 +51,17 @@
   padding-inline-end: calc(0rem + var(--app-portal-padding));
   padding-top: calc(0rem + var(--app-portal-padding));
   padding-bottom: calc(0rem + var(--app-portal-padding));
-  height: 100dvh;
+  min-height: 100dvh;
+  background-color: #f4f4f4;
   transition: padding 0.1s ease;
   &[data-state='closed'] {
     padding-inline-start: calc(0px + var(--app-portal-padding));
   }
+}
+
+.sidebarToggle {
+  z-index: 1000;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }

@@ -3,7 +3,11 @@ import classes from './PortalApp.module.css'
 import { NewNavbar } from './NewNavbr'
 import { useEffect, useRef, useState } from 'react'
 import { useDisclosure } from '@mantine/hooks'
-import { IconLayoutSidebar } from '@tabler/icons-react'
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconLayoutSidebar
+} from '@tabler/icons-react'
 import { Outlet } from '@tanstack/react-router'
 
 function PortalApp() {
@@ -47,26 +51,19 @@ function PortalApp() {
         data-state={opened ? 'opened' : 'closed'}
       >
         <div className={classes.navbarInner}>
-          <NewNavbar close={handleToggle} />
+          <NewNavbar />
         </div>
       </nav>
       <main className={classes.main} data-state={opened ? 'opened' : 'closed'}>
-        {!opened && buttonVisible && (
-          <Group
-            p="md"
-            h="54px"
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              zIndex: 100
-            }}
-          >
-            <ActionIcon variant="transparent" onClick={open} mt="5px">
-              <IconLayoutSidebar />
-            </ActionIcon>
-          </Group>
-        )}
+        <div className={classes.sidebarToggle}>
+          <ActionIcon radius="xl" onClick={toggle}>
+            {opened ? (
+              <IconArrowLeft size="1.5rem" />
+            ) : (
+              <IconArrowRight size="1.5rem" />
+            )}
+          </ActionIcon>
+        </div>
         <Outlet />
       </main>
     </div>

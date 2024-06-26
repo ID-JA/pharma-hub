@@ -19,7 +19,17 @@ public interface IMedicationService : IService<Medication>
     Task<bool> CreateMedicamentInventory(int id, InventoryCreateDto request, CancellationToken cancellationToken);
     Task<bool> UpdateMedicamentInventory(int id, InventoryUpdateDto request, CancellationToken cancellationToken);
     Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
+    Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default);
+    Task SetupMedicationPartialSale(int id, PartialSaleMedicationConfig request, CancellationToken cancellationToken = default);
 
+}
+
+
+public class PartialSaleMedicationConfig
+{
+    public decimal UnitPrice { get; set; }
+    public int SaleUnits { get; set; }
+    public bool IsPartialSaleAllowed { get; set; }
 }
 
 public class SearchQuery
@@ -55,7 +65,7 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             Status = "Out of stock",
             DiscountRate = 0, // request.DiscountRate, this should be deleted because it belongs to inventory
             OrderSystem = request.OrderSystem,
-            WithPrescription = request.WithPrescription,
+            WithPrescription = request.WithPrescription == "yes" ? true : false,
         };
 
         dbContext.Medications.Add(medicament);
@@ -68,6 +78,7 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
                 MedicationId = medicament.Id,
                 ExpirationDate = request.Inventory.ExpirationDate,
                 Quantity = request.Inventory.Quantity,
+                BoxQuantity = request.Inventory.Quantity,
                 Pph = request.Inventory.Pph,
                 Ppv = request.Inventory.Ppv,
             };
@@ -193,5 +204,35 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         dbContext.Inventories.Remove(inventory!);
         var result = await dbContext.SaveChangesAsync(cancellationToken);
         return result > 0 ? true : false;
+    }
+
+    public async Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default)
+    {
+        var result = await dbContext.Medications
+            .AsNoTracking()
+            .Where(m => m.Id == id)
+            .Include(m => m.Inventories)
+            .ProjectToType<MedicationDetailedDto>()
+            .FirstOrDefaultAsync();
+
+        if (result is null)
+            return null;
+
+        return result;
+    }
+
+    public async Task SetupMedicationPartialSale(int id, PartialSaleMedicationConfig request, CancellationToken cancellationToken = default)
+    {
+        var medication = await dbContext.Medications.FindAsync([id]);
+
+        if (medication is not null)
+        {
+            medication.SaleUnits = request.SaleUnits;
+            medication.UnitPrice = request.UnitPrice;
+            medication.IsPartialSaleAllowed = request.IsPartialSaleAllowed;
+
+            dbContext.Medications.Update(medication);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }
