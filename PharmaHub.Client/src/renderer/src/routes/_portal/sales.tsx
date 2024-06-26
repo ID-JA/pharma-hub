@@ -213,8 +213,16 @@ function Row({ row }) {
         </Table.Td>
         <Table.Td>{row.saleNumber}</Table.Td>
         <Table.Td>
-          <Badge color={row.status === 'Return' ? 'red' : 'green'}>
-            {row.status}
+          <Badge
+            color={
+              row.status === 'Return'
+                ? 'red'
+                : row.status === 'OutOfStock'
+                  ? 'yellow'
+                  : 'green'
+            }
+          >
+            {row.status || 'N/A'}
           </Badge>
         </Table.Td>
         <Table.Td>
@@ -294,8 +302,16 @@ function SaleItems({ saleMedications }) {
                 <Table.Td>{item.inventory.medication.name}</Table.Td>
                 <Table.Td>{item.quantity}</Table.Td>
                 <Table.Td>
-                  <Badge color={item.status === 'Return' ? 'red' : 'green'}>
-                    {item.status}
+                  <Badge
+                    color={
+                      item.status === 'Return'
+                        ? 'red'
+                        : item.status === 'OutOfStock'
+                          ? 'yellow'
+                          : 'green'
+                    }
+                  >
+                    {item.status || 'N/A'}
                   </Badge>
                 </Table.Td>
                 <Table.Td>{item.brutPrice}</Table.Td>

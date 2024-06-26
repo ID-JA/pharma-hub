@@ -1,11 +1,10 @@
 import {
   useDebouncedCallback,
   useDebouncedState,
-  useResizeObserver,
   useToggle
 } from '@mantine/hooks'
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMedications } from './credit-notes.new'
 import {
   TextInput,
@@ -22,11 +21,14 @@ import {
   NumberInput,
   Checkbox,
   Select,
-  Badge
+  Badge,
+  Loader,
+  Flex
 } from '@mantine/core'
 import {
   IconCalendar,
   IconClock,
+  IconPill,
   IconPlus,
   IconShoppingCartPlus,
   IconTrash
@@ -85,9 +87,8 @@ function SaleNewsPage() {
   const [searchValue, setSearchValue] = useDebouncedState('', 500)
   const [isUsingBarcodeScanner, toggle] = useToggle<boolean>([false, true])
   const barcodeInputRef = useRef<HTMLInputElement>(null)
-  const [ref, { height }] = useResizeObserver()
 
-  const { data: medications = [] } = useMedications({
+  const { data: medications = [], isLoading } = useMedications({
     searchValue,
     searchFieldName
   })
@@ -287,49 +288,49 @@ function SaleNewsPage() {
     ))
 
   return (
-    <Paper
-      withBorder
-      px="md"
-      py="xs"
-      radius="md"
-      h="calc(100vh - 1.5rem)"
-      ref={ref}
-    >
-      <Group h={height / 2} align="stretch">
-        <div style={{ minHeight: `${height / 2}px`, flex: 1 }}>
-          <TextInput
-            mb="xs"
-            w="500px"
-            label="Recherche Produits"
-            defaultValue={searchValue}
-            onChange={(e) => {
-              setSearchValue(e.currentTarget.value)
-            }}
-            rightSection={
-              <NativeSelect
-                value={searchFieldName}
-                onChange={(e) => setSearchFieldName(e.currentTarget.value)}
-                data={[
-                  { value: 'name', label: 'Nom' },
-                  { value: 'barcode', label: 'Barcode' },
-                  { value: 'type', label: 'Type' },
-                  { value: 'ppv', label: 'PPV' }
-                ]}
-                rightSectionWidth={28}
-                styles={{
-                  input: {
-                    fontWeight: 500,
-                    borderTopLeftRadius: 0,
-                    borderBottomLeftRadius: 0,
-                    width: rem(95),
-                    marginRight: rem(-2)
-                  }
-                }}
-              />
-            }
-            rightSectionWidth={95}
-          />
-          <ScrollArea h={height / 2}>
+    <>
+      <Group
+        h="calc((100vh - 1rem - var(--app-portal-padding)) / 2)"
+        align="stretch"
+      >
+        <div style={{ height: '100%', flex: 1 }}>
+          <Group mb="md" align="center">
+            <TextInput
+              mb="xs"
+              w="500px"
+              label="Recherche Produits"
+              defaultValue={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.currentTarget.value)
+              }}
+              rightSection={
+                <NativeSelect
+                  value={searchFieldName}
+                  onChange={(e) => setSearchFieldName(e.currentTarget.value)}
+                  data={[
+                    { value: 'name', label: 'Nom' },
+                    { value: 'barcode', label: 'Barcode' },
+                    { value: 'type', label: 'Type' },
+                    { value: 'ppv', label: 'PPV' }
+                  ]}
+                  rightSectionWidth={28}
+                  styles={{
+                    input: {
+                      fontWeight: 500,
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      width: rem(95),
+                      marginRight: rem(-2)
+                    }
+                  }}
+                />
+              }
+              rightSectionWidth={95}
+            />
+            {isLoading && <Loader size="sm" mt="lg" />}
+          </Group>
+
+          <ScrollArea h="100%">
             <InventoriesList
               medications={medications}
               onInventoryAdded={handleInventoryAdd}
@@ -377,8 +378,11 @@ function SaleNewsPage() {
           <Button fullWidth>Retour Client</Button>
         </div>
       </Group>
-      <Group h={height / 2} align="stretch">
-        <ScrollArea h={height / 2} flex="1">
+      <Group
+        h="calc((100vh - 1rem - var(--app-portal-padding)) / 2)"
+        align="stretch"
+      >
+        <ScrollArea h="100%" flex="1">
           {saleItemsFields.length > 0 ? (
             saleItemsFields
           ) : (
@@ -460,7 +464,7 @@ function SaleNewsPage() {
           </Group>
         </div>
       </Group>
-    </Paper>
+    </>
   )
 }
 
@@ -483,51 +487,136 @@ function InventoriesList({ medications, onInventoryAdded }) {
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {medications.map((medication) => {
-          return medication.inventories.map((inventory) => (
-            <Table.Tr key={inventory.id}>
-              <Table.Td>{medication.name}</Table.Td>
-              <Table.Td>{medication.barcode}</Table.Td>
-              <Table.Td>{inventory.ppv}</Table.Td>
-              <Table.Td>{inventory.boxQuantity}</Table.Td>
-              <Table.Td>
-                {medication.isPartialSaleAllowed ? (
-                  medication.unitPrice
-                ) : (
-                  <Badge color="red">N/A</Badge>
-                )}
-              </Table.Td>
-              <Table.Td>
-                {medication.isPartialSaleAllowed ? (
-                  inventory.unitQuantity
-                ) : (
-                  <Badge color="red">N/A</Badge>
-                )}
-              </Table.Td>
-              <Table.Td>{inventory.pph}</Table.Td>
-              <Table.Td>
-                {new Date(inventory.expirationDate).toLocaleDateString()}
-              </Table.Td>
-              <Table.Td ta="center">
-                <ActionIcon
-                  size="sm"
-                  onClick={() => onInventoryAdded({ medication, inventory })}
+        {medications.length === 0 ? (
+          <Table.Tr>
+            <Table.Td colSpan={9}>
+              <Flex direction="column" justify="center" align="center">
+                <IconPill
+                  style={{
+                    width: rem(80),
+                    height: rem(80),
+                    textAlign: 'center'
+                  }}
+                  stroke={1.5}
+                />
+                <Text fz="xl" c="gray.9" ta="center">
+                  Aucun donnée
+                </Text>
+              </Flex>
+            </Table.Td>
+          </Table.Tr>
+        ) : (
+          medications.map((medication) => {
+            return medication.inventories.map((inventory) => (
+              <Table.Tr key={inventory.id}>
+                <Table.Td>{medication.name}</Table.Td>
+                <Table.Td>{medication.barcode}</Table.Td>
+                <Table.Td>{inventory.ppv}</Table.Td>
+                <Table.Td
+                  fw="bold"
+                  c={inventory.boxQuantity < 0 ? 'red.9' : 'green.9'}
                 >
-                  <IconPlus />
-                </ActionIcon>
-              </Table.Td>
-            </Table.Tr>
-          ))
-        })}
+                  {inventory.boxQuantity}
+                </Table.Td>
+                <Table.Td>
+                  {medication.isPartialSaleAllowed ? (
+                    medication.unitPrice
+                  ) : (
+                    <Badge color="red">N/A</Badge>
+                  )}
+                </Table.Td>
+                <Table.Td
+                  fw="bold"
+                  c={inventory.unitQuantity < 0 ? 'red.9' : 'green.9'}
+                >
+                  {medication.isPartialSaleAllowed ? (
+                    inventory.unitQuantity
+                  ) : (
+                    <Badge color="red">N/A</Badge>
+                  )}
+                </Table.Td>
+                <Table.Td>{inventory.pph}</Table.Td>
+                <Table.Td>
+                  {new Date(inventory.expirationDate).toLocaleDateString()}
+                  {new Date(inventory.expirationDate) < new Date() && (
+                    <Badge color="red" ml="sm">
+                      périmé
+                    </Badge>
+                  )}
+                </Table.Td>
+                <Table.Td ta="center">
+                  <ActionIcon
+                    disabled={new Date(inventory.expirationDate) < new Date()}
+                    size="sm"
+                    onClick={() => onInventoryAdded({ medication, inventory })}
+                  >
+                    <IconPlus />
+                  </ActionIcon>
+                </Table.Td>
+              </Table.Tr>
+            ))
+          })
+        )}
       </Table.Tbody>
     </Table>
   )
 }
 
-function SaleItem({ form, saleItem, index, onRemove }) {
+interface SaleItemProps {
+  form: any
+  saleItem: {
+    medicationName: string
+    isPartialSaleAllowed: boolean
+    ppv: number
+    unitPrice: number
+    pbr: number
+    tva: number
+    marge: number
+    discount: number
+  }
+  index: number
+  onRemove: (saleItemIndex: number) => void
+}
+
+const SaleItem = memo(({ form, saleItem, index, onRemove }: SaleItemProps) => {
+  const {
+    medicationName,
+    isPartialSaleAllowed,
+    ppv,
+    unitPrice,
+    pbr,
+    tva,
+    marge,
+    discount
+  } = saleItem
+
+  const { saleType, quantity } = form.getValues().saleMedications[index]
+
+  const handleQuantityChange = useCallback((value: number) => {
+    form.setFieldValue(`saleMedications.${index}.quantity`, value)
+    form.setFieldValue(
+      `saleMedications.${index}.netPrice`,
+      saleType === 'Box'
+        ? calculateNetPrice(ppv, discount, tva, value)
+        : unitPrice * value
+    )
+  }, [])
+
+  const handleDiscountChange = useCallback((value) => {
+    form.setFieldValue(`saleMedications.${index}.discount`, value)
+    form.setFieldValue(
+      `saleMedications.${index}.netPrice`,
+      calculateNetPrice(ppv, value, tva, quantity)
+    )
+  }, [])
+
+  const price = saleType === 'Box' ? ppv : unitPrice
+  const label = saleType === 'Box' ? 'PPV' : 'Prix Unité'
+  const brutPpv = quantity * price
+
   return (
     <Paper
-      w={'100%'}
+      w="100%"
       style={{ whiteSpace: 'nowrap' }}
       withBorder
       px="sm"
@@ -535,7 +624,7 @@ function SaleItem({ form, saleItem, index, onRemove }) {
       mb="xs"
     >
       <Group justify="space-between" mb="sm" wrap="nowrap">
-        <div>{saleItem.medicationName}</div>
+        <div>{medicationName}</div>
         <ActionIcon
           color="red"
           variant="light"
@@ -547,7 +636,7 @@ function SaleItem({ form, saleItem, index, onRemove }) {
       </Group>
       <Group justify="space-between" wrap="nowrap">
         <Group wrap="nowrap">
-          {saleItem.isPartialSaleAllowed && (
+          {isPartialSaleAllowed && (
             <Select
               allowDeselect={false}
               label="Type d'Unité"
@@ -559,26 +648,9 @@ function SaleItem({ form, saleItem, index, onRemove }) {
               {...form.getInputProps(`saleMedications.${index}.saleType`)}
             />
           )}
-          <InputBase
-            w="50px"
-            readOnly
-            defaultValue={saleItem.ppv}
-            label="PPV"
-          />
-          <InputBase
-            w="50px"
-            readOnly
-            defaultValue={saleItem.pbr}
-            label="PBR"
-          />
-          <InputBase
-            w="80px"
-            readOnly
-            value={
-              saleItem.ppv * form.getValues().saleMedications[index].quantity
-            }
-            label="Brut PPV"
-          />
+          <InputBase w="70px" readOnly value={price} label={label} />
+          <InputBase w="50px" readOnly defaultValue={pbr} label="PBR" />
+          <InputBase w="80px" readOnly value={brutPpv} label="Brut PPV" />
           <NumberInput
             hideControls
             decimalScale={2}
@@ -594,53 +666,29 @@ function SaleItem({ form, saleItem, index, onRemove }) {
             min={0}
             label="Quantité"
             {...form.getInputProps(`saleMedications.${index}.quantity`)}
-            onChange={(value) => {
-              form.setFieldValue(`saleMedications.${index}.quantity`, value)
-              form.setFieldValue(
-                `saleMedications.${index}.netPrice`,
-                calculateNetPrice(
-                  saleItem.ppv,
-                  saleItem.discount,
-                  saleItem.tva,
-                  value
-                )
-              )
-            }}
+            onChange={handleQuantityChange}
           />
-          <NumberInput
-            label="Remise"
-            w="60px"
-            min={0}
-            max={100}
-            {...form.getInputProps(`saleMedications.${index}.discount`)}
-            onChange={(value) => {
-              form.setFieldValue(`saleMedications.${index}.discount`, value)
-              form.setFieldValue(
-                `saleMedications.${index}.netPrice`,
-                calculateNetPrice(
-                  saleItem.ppv,
-                  saleItem.discount,
-                  saleItem.tva,
-                  form.getValues().saleMedications[index].quantity
-                )
-              )
-            }}
-          />
-
-          <InputBase
-            w="50px"
-            readOnly
-            label="TVA %"
-            defaultValue={saleItem.tva}
-          />
-          <InputBase
-            w="60px"
-            readOnly
-            label="Marge %"
-            defaultValue={saleItem.marge}
-          />
+          {saleType === 'Box' && (
+            <>
+              <NumberInput
+                label="Remise"
+                w="60px"
+                min={0}
+                max={100}
+                {...form.getInputProps(`saleMedications.${index}.discount`)}
+                onChange={handleDiscountChange}
+              />
+              <InputBase w="50px" readOnly label="TVA %" defaultValue={tva} />
+              <InputBase
+                w="60px"
+                readOnly
+                label="Marge %"
+                defaultValue={marge}
+              />
+            </>
+          )}
         </Group>
       </Group>
     </Paper>
   )
-}
+})
