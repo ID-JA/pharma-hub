@@ -18,4 +18,5 @@ public class SaleMedication : BaseModel
     public Sale Sale { get; set; } = null!;
     public int InventoryId { get; set; }
     public Inventory Inventory { get; set; } = null!;
+    public List<InventoryHistory> InventoryHistories { get; set; } = [];
 }

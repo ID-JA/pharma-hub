@@ -28,6 +28,17 @@ public class SalesController(ISaleService saleService) : ControllerBase
         return Ok(sales);
     }
 
+    [HttpDelete("cancel")]
+    [MustHavePermission(AppAction.View, AppResource.Sales)]
+    public async Task<ActionResult> GetSales(
+       [FromQuery] int saleId,
+       [FromQuery] int? saleItemId,
+       CancellationToken cancellationToken)
+    {
+        await saleService.CancelSale(saleId, saleItemId, cancellationToken);
+        return Ok();
+    }
+
     [HttpGet("{id:int}")]
     [MustHavePermission(AppAction.View, AppResource.Sales)]
     public async Task<ActionResult> GetSale(int id, CancellationToken cancellationToken)

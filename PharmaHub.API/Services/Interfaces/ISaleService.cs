@@ -1,8 +1,5 @@
-﻿using Mapster;
-using Microsoft.EntityFrameworkCore;
-using PharmaHub.API.Dtos.Medicament;
+﻿using Microsoft.EntityFrameworkCore;
 using PharmaHub.API.Dtos.Sale;
-using PharmaHub.API.Dtos.StockHistory;
 
 namespace PharmaHub.API.Services.Interfaces;
 
@@ -14,6 +11,8 @@ public interface ISaleService
     Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default);
     Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
+    Task CancelSale(int saleId, int? inventoryId, CancellationToken cancellationToken);
+
 }
 
 
@@ -64,10 +63,12 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             {
                 if (inventories.TryGetValue(item.InventoryId, out var inventory))
                 {
+
                     var previousBoxQuantity = inventory.BoxQuantity;
                     var previousUnitQuantity = inventory.UnitQuantity;
 
                     SaleMedication saleItem = item.ToEntity();
+                    saleItem.SaleId = sale.Id;
                     if (item.SaleType.Equals("Box"))
                     {
                         inventory.BoxQuantity -= item.Quantity;
@@ -104,6 +105,14 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                         saleItem.Status = "OutOfStock";
                         saleItem.Quantity = item.Quantity * -1;
                     }
+                    else
+                    {
+                        saleItem.Status = request.Status;
+                    }
+
+                    dbContext.SaleMedications.Add(saleItem);
+                    await dbContext.SaveChangesAsync();
+
                     // Record the inventory history
                     var inventoryHistory = new InventoryHistory
                     {
@@ -114,12 +123,11 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
                         NewUnitQuantity = inventory.UnitQuantity,
                         ChangeDate = DateTime.UtcNow,
                         ChangeType = "Sale",
-                        SaleId = sale.Id
+                        SaleMedicationId = saleItem.Id
                     };
 
                     inventoryHistories.Add(inventoryHistory);
                     inventoryUpdates.Add(inventory);
-                    sale.SaleMedications.Add(saleItem);
                 }
                 else
                 {
@@ -230,6 +238,123 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         if (entity is not null)
         {
             await saleRepository.DeleteAsync(entity, cancellationToken);
+        }
+    }
+
+    public async Task CancelSale(int saleId, int? saleItemId, CancellationToken cancellationToken)
+    {
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var sale = await dbContext.Sales
+                .Include(s => s.SaleMedications)
+                    .ThenInclude(sm => sm.Inventory)
+                    .ThenInclude(i => i.Medication)
+                .Include(s => s.SaleMedications)
+                    .ThenInclude(sm => sm.InventoryHistories)
+                .FirstOrDefaultAsync(s => s.Id == saleId, cancellationToken);
+
+            if (sale == null)
+            {
+                throw new Exception("Sale not found.");
+            }
+
+            if (saleItemId.HasValue)
+            {
+                var saleMedication = sale.SaleMedications.FirstOrDefault(sm => sm.Id == saleItemId.Value);
+                if (saleMedication == null)
+                {
+                    throw new Exception("Sale item not found.");
+                }
+
+                var inventory = saleMedication.Inventory;
+                if (saleMedication.SaleType.Equals("Unit", StringComparison.OrdinalIgnoreCase))
+                {
+                    inventory.UnitQuantity += saleMedication.Quantity;
+                    if (inventory.UnitQuantity >= inventory.Medication.SaleUnits)
+                    {
+                        inventory.BoxQuantity += inventory.UnitQuantity / inventory.Medication.SaleUnits;
+                        inventory.UnitQuantity %= inventory.Medication.SaleUnits;
+                    }
+                }
+                else if (saleMedication.SaleType.Equals("Box", StringComparison.OrdinalIgnoreCase))
+                {
+                    inventory.BoxQuantity += saleMedication.Quantity;
+                }
+
+                dbContext.InventoryHistories.Add(new InventoryHistory
+                {
+                    InventoryId = inventory.Id,
+                    SaleMedicationId = saleMedication.Id,
+                    ChangeDate = DateTime.UtcNow,
+                    ChangeType = "Return",
+                    PreviousBoxQuantity = inventory.BoxQuantity - saleMedication.Quantity,
+                    PreviousUnitQuantity = inventory.UnitQuantity - saleMedication.Quantity,
+                    NewBoxQuantity = inventory.BoxQuantity,
+                    NewUnitQuantity = inventory.UnitQuantity
+                });
+
+                saleMedication.Status = "Return";
+                saleMedication.Quantity = -saleMedication.Quantity;
+
+                if (sale.SaleMedications.All(sm => sm.Status == "Return"))
+                {
+                    sale.Status = "Return";
+                }
+            }
+            else
+            {
+                var inventoriesToUpdate = sale.SaleMedications
+                    .GroupBy(sm => sm.InventoryId)
+                    .Select(g => new
+                    {
+                        Inventory = g.First().Inventory,
+                        UnitQuantity = g.Sum(sm => sm.SaleType.Equals("Unit", StringComparison.OrdinalIgnoreCase) ? sm.Quantity : 0),
+                        BoxQuantity = g.Sum(sm => sm.SaleType.Equals("Box", StringComparison.OrdinalIgnoreCase) ? sm.Quantity : 0)
+                    }).ToList();
+
+                foreach (var item in inventoriesToUpdate)
+                {
+                    var previousBoxQuantity = item.Inventory.BoxQuantity;
+                    var previousUnitQuantity = item.Inventory.UnitQuantity;
+
+                    item.Inventory.UnitQuantity += item.UnitQuantity;
+                    if (item.Inventory.UnitQuantity >= item.Inventory.Medication.SaleUnits)
+                    {
+                        item.Inventory.BoxQuantity += item.Inventory.UnitQuantity / item.Inventory.Medication.SaleUnits;
+                        item.Inventory.UnitQuantity %= item.Inventory.Medication.SaleUnits;
+                    }
+                    item.Inventory.BoxQuantity += item.BoxQuantity;
+
+                    dbContext.InventoryHistories.Add(new InventoryHistory
+                    {
+                        InventoryId = item.Inventory.Id,
+                        SaleMedicationId = null,
+                        ChangeDate = DateTime.UtcNow,
+                        ChangeType = "Return",
+                        PreviousBoxQuantity = previousBoxQuantity,
+                        PreviousUnitQuantity = previousUnitQuantity,
+                        NewBoxQuantity = item.Inventory.BoxQuantity,
+                        NewUnitQuantity = item.Inventory.UnitQuantity
+                    });
+                }
+
+                foreach (var saleMedication in sale.SaleMedications)
+                {
+                    saleMedication.Status = "Return";
+                    saleMedication.Quantity = -saleMedication.Quantity;
+                }
+
+                sale.Status = "Return";
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw new Exception("An error occurred while canceling the sale.", ex);
         }
     }
 }

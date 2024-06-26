@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import dayjs from 'dayjs'
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Group,
   ScrollArea,
@@ -12,12 +12,19 @@ import {
   InputBase,
   Flex,
   Loader,
-  rem
+  rem,
+  ActionIcon
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
-import { IconShoppingCartPlus } from '@tabler/icons-react'
+import {
+  IconChevronDown,
+  IconChevronRight,
+  IconShoppingCartPlus,
+  IconTrash
+} from '@tabler/icons-react'
 import { useDebouncedState, useElementSize } from '@mantine/hooks'
 import { http } from '@renderer/utils/http'
+import { modals } from '@mantine/modals'
 
 export const Route = createFileRoute('/_portal/sales')({
   component: SaleData
@@ -40,7 +47,7 @@ function SaleData() {
     queryKey: [
       'sales',
       {
-        form: value[0],
+        from: value[0],
         to: value[1],
         saleNumber
       }
@@ -49,7 +56,7 @@ function SaleData() {
       http
         .get('/api/sales', {
           params: {
-            form: value[0],
+            from: value[0],
             to: value[1],
             saleNumber
           }
@@ -57,8 +64,6 @@ function SaleData() {
         .then((res) => res.data),
     enabled: Boolean((value[0] && value[1]) || saleNumber)
   })
-
-  if (error) return 'An error has occurred'
 
   return (
     <Paper
@@ -95,68 +100,21 @@ function SaleData() {
         >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Date et Heur</Table.Th>
+              <Table.Th>Date et Heure</Table.Th>
               <Table.Th>N° Vente</Table.Th>
+              <Table.Th>Status</Table.Th>
               <Table.Th>Réglementation</Table.Th>
-              <Table.Th>Nom Produit</Table.Th>
-              <Table.Th>Qté Stock</Table.Th>
-              <Table.Th>Qté Vente</Table.Th>
-              <Table.Th>Qté Avant</Table.Th>
-              <Table.Th>P.P.V</Table.Th>
-              <Table.Th>Client</Table.Th>
-              <Table.Th>Utilisateur</Table.Th>
-              <Table.Th>P.P.M ORIGINE</Table.Th>
-              <Table.Th>Type</Table.Th>
+              <Table.Th>Quantité Total</Table.Th>
+              <Table.Th>Prix NET</Table.Th>
+              <Table.Th>Prix BRUT</Table.Th>
+              <Table.Th>Dont Remise</Table.Th>
+              <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {!isFetching ? (
               sales.length > 0 ? (
-                sales.map((sale) =>
-                  sale.saleMedications.map((saleMedication, index) => {
-                    const inventoryHistory =
-                      sale.inventoryHistories[index] || {}
-                    const dateTime = new Date(saleMedication.createdAt)
-                    const date = dateTime.toLocaleDateString()
-                    const time = dateTime.toLocaleTimeString()
-                    return (
-                      <Table.Tr key={`${sale.id}-${saleMedication.id}`}>
-                        <Table.Td>
-                          {date} à {time}
-                        </Table.Td>
-                        <Table.Td>{sale.saleNumber}</Table.Td>
-                        <Table.Td>
-                          {(sale.paymentType === 'Cash' && 'Espèce') || (
-                            <Badge color="red">N/A</Badge>
-                          )}
-                        </Table.Td>
-                        <Table.Td>
-                          {saleMedication.inventory.medication.name}
-                        </Table.Td>
-                        <Table.Td>
-                          {saleMedication.inventory.boxQuantity}
-                        </Table.Td>
-                        <Table.Td>{saleMedication.quantity}</Table.Td>
-                        <Table.Td>
-                          {saleMedication.saleType === 'Box'
-                            ? inventoryHistory.previousBoxQuantity
-                            : inventoryHistory.previousUnitQuantity}
-                        </Table.Td>
-                        <Table.Td>{saleMedication.inventory.ppv}</Table.Td>
-                        <Table.Td>{sale.user.fullName}</Table.Td>
-                        <Table.Td>{sale.user.fullName}</Table.Td>
-                        <Table.Td>{saleMedication.inventory.pph}</Table.Td>
-                        <Table.Td>
-                          {saleMedication.saleType === 'Box' ? (
-                            'Box'
-                          ) : (
-                            <Badge>N/A</Badge>
-                          )}
-                        </Table.Td>
-                      </Table.Tr>
-                    )
-                  })
-                )
+                sales.map((sale) => <Row row={sale} key={sale.id} />)
               ) : (
                 <Table.Tr>
                   <Table.Td colSpan={12}>
@@ -196,3 +154,172 @@ function SaleData() {
     </Paper>
   )
 }
+
+function Row({ row }) {
+  const queryClient = useQueryClient()
+  const [expanded, setExpanded] = useState(false)
+  const dateTime = new Date(row.createdAt)
+  const date = dateTime.toLocaleDateString()
+  const time = dateTime.toLocaleTimeString()
+
+  const { mutateAsync } = useMutation({
+    mutationFn: async (saleId) => {
+      await http.delete(`/api/sales/cancel`, {
+        params: {
+          saleId
+        }
+      })
+    }
+  })
+
+  const handleRemoveSale = () => {
+    modals.openConfirmModal({
+      title: 'Suppression de la vente',
+      children: <Text>Êtes-vous sur de vouloir supprimer la vente?</Text>,
+      labels: { confirm: 'Oui', cancel: 'Non' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await mutateAsync(row.id, {
+          onSuccess: () => {
+            modals.closeAll()
+            queryClient.invalidateQueries({
+              queryKey: ['sales']
+            })
+          }
+        })
+      }
+    })
+  }
+  return (
+    <>
+      <Table.Tr bg={expanded ? 'var(--mantine-color-blue-light)' : 'white'}>
+        <Table.Td>
+          <Group align="center">
+            <ActionIcon
+              variant="default"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? (
+                <IconChevronDown size={18} />
+              ) : (
+                <IconChevronRight size={18} />
+              )}
+            </ActionIcon>
+            <Text>
+              {date} à {time}
+            </Text>
+          </Group>
+        </Table.Td>
+        <Table.Td>{row.saleNumber}</Table.Td>
+        <Table.Td>
+          <Badge color={row.status === 'Return' ? 'red' : 'green'}>
+            {row.status}
+          </Badge>
+        </Table.Td>
+        <Table.Td>
+          {(row.paymentType === 'Cash' && 'Espèce') || (
+            <Badge color="red">N/A</Badge>
+          )}
+        </Table.Td>
+        <Table.Td>{row.totalQuantities}</Table.Td>
+        <Table.Td>{row.totalBrutPrices}</Table.Td>
+        <Table.Td>{row.totalNetPrices}</Table.Td>
+        <Table.Td>{row.discountedAmount}</Table.Td>
+        <Table.Td>
+          <ActionIcon
+            color="red"
+            onClick={handleRemoveSale}
+            disabled={Boolean(row.status === 'Return')}
+          >
+            <IconTrash size="1.5rem" stroke={1.2} />
+          </ActionIcon>
+        </Table.Td>
+      </Table.Tr>
+      {expanded && <SaleItems saleMedications={row.saleMedications} />}
+    </>
+  )
+}
+
+function SaleItems({ saleMedications }) {
+  const queryClient = useQueryClient()
+  const { mutateAsync } = useMutation({
+    mutationFn: async (saleItemId) => {
+      await http.delete(`/api/sales/cancel`, {
+        params: {
+          saleItemId
+        }
+      })
+    }
+  })
+
+  const handleRemoveSaleItem = (saleItemId) => {
+    modals.openConfirmModal({
+      title: 'Suppression de la vente',
+      children: <Text>Êtes-vous sur de vouloir supprimer la vente?</Text>,
+      labels: { confirm: 'Oui', cancel: 'Non' },
+      confirmProps: { color: 'red' },
+      onConfirm: async () => {
+        await mutateAsync(saleItemId, {
+          onSuccess: () => {
+            modals.closeAll()
+            queryClient.invalidateQueries({
+              queryKey: ['sales']
+            })
+          }
+        })
+      }
+    })
+  }
+  return (
+    <Table.Tr>
+      <Table.Td colSpan={9} bg="gray.1">
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Produit</Table.Th>
+              <Table.Th>Quantité</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Prix BRUT</Table.Th>
+              <Table.Th>Prix NET</Table.Th>
+              <Table.Th>Taux Remise</Table.Th>
+              <Table.Th>TVA</Table.Th>
+              <Table.Th>Marge</Table.Th>
+              <Table.Th></Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {saleMedications.map((item) => (
+              <Table.Tr key={item.id}>
+                <Table.Td>{item.inventory.medication.name}</Table.Td>
+                <Table.Td>{item.quantity}</Table.Td>
+                <Table.Td>
+                  <Badge color={item.status === 'Return' ? 'red' : 'green'}>
+                    {item.status}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>{item.brutPrice}</Table.Td>
+                <Table.Td>{item.netPrice}</Table.Td>
+                <Table.Td>{item.discountRate}</Table.Td>
+                <Table.Td>{item.inventory.medication.tva}</Table.Td>
+                <Table.Td>{item.inventory.medication.marge}</Table.Td>
+                <Table.Td>
+                  <ActionIcon
+                    variant="light"
+                    color="red"
+                    onClick={() => handleRemoveSaleItem(item.id)}
+                    disabled={Boolean(item.status === 'Return')}
+                  >
+                    <IconTrash size="1.5rem" stroke={1.2} />
+                  </ActionIcon>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.Td>
+    </Table.Tr>
+  )
+}
+
+export default SaleData

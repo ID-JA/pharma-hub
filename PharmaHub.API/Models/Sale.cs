@@ -17,5 +17,4 @@ public class Sale : BaseModel
     public int UserId { get; set; }
     public User User { get; set; } = null!;
     public List<SaleMedication> SaleMedications { get; set; } = [];
-    public List<InventoryHistory> InventoryHistories { get; set; } = [];
 }
