@@ -27,6 +27,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
 
         return lastSale != null ? lastSale.SaleNumber + 1 : 100;
     }
+
     public async Task CreateSale(SaleCreateDto request)
     {
         var userId = currentUserService.GetUserId();
@@ -50,93 +51,90 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             dbContext.Sales.Add(sale);
             await dbContext.SaveChangesAsync();
 
-            var inventoryIds = request.SaleMedications.Select(sm => sm.InventoryId).ToList();
-
+            var inventoryIds = request.SaleMedications.Select(sm => sm.InventoryId).Distinct().ToList();
             var inventories = await dbContext.Inventories
                 .Include(i => i.Medication)
                 .Where(i => inventoryIds.Contains(i.Id))
                 .ToDictionaryAsync(i => i.Id);
 
-            var inventoryUpdates = new List<Inventory>();
-            var inventoryHistories = new List<InventoryHistory>();
+            var saleMedications = new List<SaleMedication>();
+
             foreach (var item in request.SaleMedications)
             {
-                if (inventories.TryGetValue(item.InventoryId, out var inventory))
+                if (!inventories.TryGetValue(item.InventoryId, out var inventory))
                 {
+                    isOutOfStock = true;
+                    continue;
+                }
 
-                    var previousBoxQuantity = inventory.BoxQuantity;
-                    var previousUnitQuantity = inventory.UnitQuantity;
+                var previousBoxQuantity = inventory.BoxQuantity;
+                var previousUnitQuantity = inventory.UnitQuantity;
 
-                    SaleMedication saleItem = item.ToEntity();
-                    saleItem.SaleId = sale.Id;
-                    if (item.SaleType.Equals("Box"))
+                var saleItem = item.ToEntity();
+                saleItem.SaleId = sale.Id;
+
+                if (item.SaleType.Equals("Box", StringComparison.OrdinalIgnoreCase))
+                {
+                    inventory.BoxQuantity -= item.Quantity;
+                    if (inventory.BoxQuantity < 0)
                     {
-                        inventory.BoxQuantity -= item.Quantity;
-                        if (inventory.BoxQuantity < 0)
+                        isOutOfStock = true;
+                        saleItem.Status = "OutOfStock";
+                        saleItem.Quantity = -item.Quantity;
+                    }
+                }
+                else if (item.SaleType.Equals("Unit", StringComparison.OrdinalIgnoreCase))
+                {
+                    inventory.UnitQuantity -= item.Quantity;
+                    if (inventory.UnitQuantity < 0)
+                    {
+                        int unitsPerBox = inventory.Medication.SaleUnits;
+                        int boxesNeeded = (int)Math.Ceiling((double)Math.Abs(inventory.UnitQuantity) / unitsPerBox);
+
+                        if (inventory.BoxQuantity >= boxesNeeded)
+                        {
+                            inventory.BoxQuantity -= boxesNeeded;
+                            inventory.UnitQuantity += boxesNeeded * unitsPerBox;
+                        }
+                        else
                         {
                             isOutOfStock = true;
                             saleItem.Status = "OutOfStock";
+                            saleItem.Quantity = -item.Quantity;
                         }
                     }
-                    else if (item.SaleType.Equals("Unit"))
-                    {
-                        inventory.UnitQuantity -= item.Quantity;
-
-                        if (inventory.UnitQuantity < 0)
-                        {
-                            int unitsPerBox = inventory.Medication.SaleUnits;
-                            int boxesNeeded = (int)Math.Ceiling((double)Math.Abs(inventory.UnitQuantity) / unitsPerBox);
-
-                            if (inventory.BoxQuantity > 0)
-                            {
-                                inventory.BoxQuantity -= boxesNeeded;
-                                inventory.UnitQuantity += boxesNeeded * unitsPerBox;
-                            }
-                            else
-                            {
-                                isOutOfStock = true;
-                                saleItem.Status = "OutOfStock";
-                            }
-                        }
-                    }
-
-                    if (isOutOfStock)
-                    {
-                        saleItem.Status = "OutOfStock";
-                        saleItem.Quantity = item.Quantity * -1;
-                    }
-                    else
-                    {
-                        saleItem.Status = request.Status;
-                    }
-
-                    dbContext.SaleMedications.Add(saleItem);
-                    await dbContext.SaveChangesAsync();
-
-                    // Record the inventory history
-                    var inventoryHistory = new InventoryHistory
-                    {
-                        InventoryId = inventory.Id,
-                        PreviousBoxQuantity = previousBoxQuantity,
-                        PreviousUnitQuantity = previousUnitQuantity,
-                        NewBoxQuantity = inventory.BoxQuantity,
-                        NewUnitQuantity = inventory.UnitQuantity,
-                        ChangeDate = DateTime.UtcNow,
-                        ChangeType = "Sale",
-                        SaleMedicationId = saleItem.Id
-                    };
-
-                    inventoryHistories.Add(inventoryHistory);
-                    inventoryUpdates.Add(inventory);
                 }
-                else
+
+                if (!isOutOfStock)
                 {
-                    isOutOfStock = true;
+                    saleItem.Status = request.Status;
                 }
+
+                saleMedications.Add(saleItem);
             }
 
-            dbContext.Inventories.UpdateRange(inventoryUpdates);
+            await dbContext.SaleMedications.AddRangeAsync(saleMedications);
+            await dbContext.SaveChangesAsync();
+
+            var inventoryHistories = saleMedications.Select(saleItem =>
+            {
+                var inventory = inventories[saleItem.InventoryId];
+                return new InventoryHistory
+                {
+                    InventoryId = inventory.Id,
+                    PreviousBoxQuantity = inventory.BoxQuantity,
+                    PreviousUnitQuantity = inventory.UnitQuantity,
+                    NewBoxQuantity = inventory.BoxQuantity,
+                    NewUnitQuantity = inventory.UnitQuantity,
+                    ChangeDate = DateTime.UtcNow,
+                    ChangeType = "Sale",
+                    SaleMedicationId = saleItem.Id
+                };
+            }).ToList();
+
             dbContext.InventoryHistories.AddRange(inventoryHistories);
+            dbContext.Inventories.UpdateRange(inventories.Values);
+
             sale.Status = isOutOfStock ? "OutOfStock" : request.Status;
             await dbContext.SaveChangesAsync();
 
@@ -148,6 +146,10 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             throw new Exception("An error occurred while creating the sale.", ex);
         }
     }
+
+
+
+
 
 
     public async Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default)
