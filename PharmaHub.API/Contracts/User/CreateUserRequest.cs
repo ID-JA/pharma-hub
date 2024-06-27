@@ -8,5 +8,5 @@ public class UpdateUserRequest
     public string Cni { get; set; } = default!;
     public char Gender { get; set; }
     public string Phone { get; set; } = default!;
-    public string Address { get; set; }= default!;
+    public string Address { get; set; } = default!;
 }

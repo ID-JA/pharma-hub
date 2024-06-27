@@ -1,536 +1,536 @@
 {
-	"info": {
-		"_postman_id": "7cfd8711-6a80-4cef-8906-6e021120478b",
-		"name": "PharmaHub",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "14663159",
-		"_collection_link": "https://planetary-robot-918422.postman.co/workspace/My-Workspace~d09a2195-fd7d-4bed-8646-fb74412eef30/collection/14663159-7cfd8711-6a80-4cef-8906-6e021120478b?action=share&source=collection_link&creator=14663159"
-	},
-	"item": [
-		{
-			"name": "Users",
-			"item": [
-				{
-					"name": "Create user",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"{{$randomEmail}}\",\r\n  \"firstName\": \"{{$randomFirstName}}\",\r\n  \"lastName\": \"{{$randomLastName}}\",\r\n  \"password\": \"Aze123aze@@\",\r\n  \"address\": \"{{$randomStreetAddress}}\",\r\n  \"gender\": \"M\",\r\n  \"phone\": \"{{$randomPhoneNumber}}\",\r\n  \"cni\": \"{{$randomNameSuffix}}\"s\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/register",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"register"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List of users",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/users",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"users"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Drugs",
-			"item": [
-				{
-					"name": "Create drug",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"name\": \"Paracetamol\",\r\n        \"dci\": \"Paracetamol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 10,\r\n        \"pph\": 8,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Analgesic\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890123\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": false,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Ibuprofen\",\r\n        \"dci\": \"Ibuprofen\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 15,\r\n        \"pph\": 12,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anti-inflammatory\",\r\n        \"marge\": 0.25,\r\n        \"codebar\": \"1234567890124\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Aspirin\",\r\n        \"dci\": \"Acetylsalicylic Acid\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 12,\r\n        \"pph\": 10,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Analgesic\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890125\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Amoxicillin\",\r\n        \"dci\": \"Amoxicillin\",\r\n        \"form\": \"Capsule\",\r\n        \"ppv\": 20,\r\n        \"pph\": 18,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antibiotic\",\r\n        \"marge\": 0.1,\r\n        \"codebar\": \"1234567890126\",\r\n        \"family\": \"Infection\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Metformin\",\r\n        \"dci\": \"Metformin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 30,\r\n        \"pph\": 28,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antidiabetic\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890127\",\r\n        \"family\": \"Diabetes\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Lisinopril\",\r\n        \"dci\": \"Lisinopril\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 25,\r\n        \"pph\": 22,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890128\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Omeprazole\",\r\n        \"dci\": \"Omeprazole\",\r\n        \"form\": \"Capsule\",\r\n        \"ppv\": 18,\r\n        \"pph\": 16,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Proton Pump Inhibitor\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890129\",\r\n        \"family\": \"Gastrointestinal\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Levothyroxine\",\r\n        \"dci\": \"Levothyroxine\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 35,\r\n        \"pph\": 32,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Hormone\",\r\n        \"marge\": 0.1,\r\n        \"codebar\": \"1234567890130\",\r\n        \"family\": \"Endocrine\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Simvastatin\",\r\n        \"dci\": \"Simvastatin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 28,\r\n        \"pph\": 26,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 0,\r\n        \"type\": \"Cholesterol\",\r\n        \"marge\": 0.12,\r\n        \"codebar\": \"1234567890131\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Alprazolam\",\r\n        \"dci\": \"Alprazolam\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 22,\r\n        \"pph\": 20,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anxiolytic\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890132\",\r\n        \"family\": \"Mental Health\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Losartan\",\r\n        \"dci\": \"Losartan\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 27,\r\n        \"pph\": 24,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.17,\r\n        \"codebar\": \"1234567890133\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Atorvastatin\",\r\n        \"dci\": \"Atorvastatin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 29,\r\n        \"pph\": 27,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Cholesterol\",\r\n        \"marge\": 0.13,\r\n        \"codebar\": \"1234567890134\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Amlodipine\",\r\n        \"dci\": \"Amlodipine\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 23,\r\n        \"pph\": 21,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.14,\r\n        \"codebar\": \"1234567890135\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Clopidogrel\",\r\n        \"dci\": \"Clopidogrel\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 24,\r\n        \"pph\": 22,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antiplatelet\",\r\n        \"marge\": 0.16,\r\n        \"codebar\": \"1234567890136\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Warfarin\",\r\n        \"dci\": \"Warfarin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 26,\r\n        \"pph\": 23,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anticoagulant\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890137\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Metoprolol\",\r\n        \"dci\": \"Metoprolol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 21,\r\n        \"pph\": 19,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Beta Blocker\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890138\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Diltiazem\",\r\n        \"dci\": \"Diltiazem\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 30,\r\n        \"pph\": 27,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Calcium Channel Blocker\",\r\n        \"marge\": 0.12,\r\n        \"codebar\": \"1234567890139\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Gliclazide\",\r\n        \"dci\": \"Gliclazide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 22,\r\n        \"pph\": 20,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antidiabetic\",\r\n        \"marge\": 0.17,\r\n        \"codebar\": \"1234567890140\",\r\n        \"family\": \"Diabetes\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Carvedilol\",\r\n        \"dci\": \"Carvedilol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 25,\r\n        \"pph\": 23,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Beta Blocker\",\r\n        \"marge\": 0.14,\r\n        \"codebar\": \"1234567890141\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Furosemide\",\r\n        \"dci\": \"Furosemide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 18,\r\n        \"pph\": 16,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Diuretic\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890143\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Hydrochlorothiazide\",\r\n        \"dci\": \"Hydrochlorothiazide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 19,\r\n        \"pph\": 17,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Diuretic\",\r\n        \"marge\": 0.19,\r\n        \"codebar\": \"1234567890144\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    }\r\n]",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/medicaments",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"medicaments"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "List of medicaments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/medicaments",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"medicaments"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "update medicament",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": " {\r\n        \"name\": \"Product XXX\",\r\n        \"dci\": \"Active Ingredient A\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 12.99,\r\n        \"pph\": 9.99,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 15.99,\r\n        \"type\": \"Medication\",\r\n        \"marge\": 222,\r\n        \"codebar\": \"1234567890123\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 2,\r\n        \"withPrescription\": true,\r\n        \"stockHistories\": null,\r\n        \"saleMedicaments\": null,\r\n        \"id\": 1,\r\n        \"createdAt\": \"2024-05-13T02:07:12.7872839\",\r\n        \"updatedAt\": \"2024-05-13T02:07:12.7874195\"\r\n    }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/medicaments/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"medicaments",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete medicament",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/medicaments/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"medicaments",
-								"1"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Sales",
-			"item": [
-				{
-					"name": "Create sale",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"TotalQuantity\": 3,\r\n  \"TotalPrice\": 100,\r\n  \"Status\": \"Paid\",\r\n  \"Discount\": 10.5,\r\n  \"SaleMedicaments\": [\r\n    {\r\n      \"MedicamentId\": 3,\r\n      \"Quantity\": 3,\r\n      \"PPV\": 15,\r\n      \"Discount\": 1.2\r\n    }\r\n  ]\r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/sales",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"sales"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "update sale",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"TotalQuantity\": 1112,\r\n  \"TotalPrice\": 100,\r\n  \"Status\": \"Paid\",\r\n  \"Discount\": 10.5,\r\n  \"SaleMedicaments\": [\r\n    {\r\n      \"MedicamentId\": 2,\r\n      \"Quantity\": 3,\r\n      \"PPV\": 151,\r\n      \"Discount\": 1.2\r\n    }\r\n  ]\r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/sales/3",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"sales",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Sales",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/sales",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"sales"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Sale",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/sales/3",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"sales",
-								"3"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete sale",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/sales/2",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"sales",
-								"2"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Orders",
-			"item": [
-				{
-					"name": "Get orders",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/orders",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"orders"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Order",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"totalQuantity\": 100,\r\n    \"supplierId\": 3,\r\n    \"OrderMedicaments\": [\r\n        {\r\n            \"medicamentId\": 3,\r\n            \"quantity\": 100\r\n        }\r\n    ]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/orders",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"orders"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Order",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/orders/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"orders",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update order",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"totalQuantity\": 1001,\r\n    \"supplierId\": 3,\r\n    \"OrderMedicaments\": [\r\n        {\r\n            \"medicamentId\": 3,\r\n            \"quantity\": 1001\r\n        }\r\n    ]\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/orders/2",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"orders",
-								"2"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Suppliers",
-			"item": [
-				{
-					"name": "Create Supplier",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"Ali Mx\",\r\n    \"phone\":\"063737383\",\r\n    \"fax\":\"056373883\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/suppliers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"suppliers"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Suppliers",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/suppliers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"suppliers"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete supplier",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:5023/api/suppliers/5",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"suppliers",
-								"5"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update supplier",
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"Ali Mxi\",\r\n    \"phone\":\"063737383\",\r\n    \"fax\":\"056373883\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:5023/api/suppliers/4",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "5023",
-							"path": [
-								"api",
-								"suppliers",
-								"4"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Sign in",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"email\":\"AdminJake91\",\r\n    \"password\":\"Admin@123\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:5023/login",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5023",
-					"path": [
-						"login"
-					]
-				}
-			},
-			"response": []
-		}
-	]
+  "info": {
+    "_postman_id": "7cfd8711-6a80-4cef-8906-6e021120478b",
+    "name": "PharmaHub",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "14663159",
+    "_collection_link": "https://planetary-robot-918422.postman.co/workspace/My-Workspace~d09a2195-fd7d-4bed-8646-fb74412eef30/collection/14663159-7cfd8711-6a80-4cef-8906-6e021120478b?action=share&source=collection_link&creator=14663159"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create user",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{$randomEmail}}\",\r\n  \"firstName\": \"{{$randomFirstName}}\",\r\n  \"lastName\": \"{{$randomLastName}}\",\r\n  \"password\": \"Aze123aze@@\",\r\n  \"address\": \"{{$randomStreetAddress}}\",\r\n  \"gender\": \"M\",\r\n  \"phone\": \"{{$randomPhoneNumber}}\",\r\n  \"cni\": \"{{$randomNameSuffix}}\"s\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List of users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Drugs",
+      "item": [
+        {
+          "name": "Create drug",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"name\": \"Paracetamol\",\r\n        \"dci\": \"Paracetamol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 10,\r\n        \"pph\": 8,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Analgesic\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890123\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": false,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Ibuprofen\",\r\n        \"dci\": \"Ibuprofen\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 15,\r\n        \"pph\": 12,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anti-inflammatory\",\r\n        \"marge\": 0.25,\r\n        \"codebar\": \"1234567890124\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Aspirin\",\r\n        \"dci\": \"Acetylsalicylic Acid\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 12,\r\n        \"pph\": 10,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Analgesic\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890125\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Amoxicillin\",\r\n        \"dci\": \"Amoxicillin\",\r\n        \"form\": \"Capsule\",\r\n        \"ppv\": 20,\r\n        \"pph\": 18,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antibiotic\",\r\n        \"marge\": 0.1,\r\n        \"codebar\": \"1234567890126\",\r\n        \"family\": \"Infection\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Metformin\",\r\n        \"dci\": \"Metformin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 30,\r\n        \"pph\": 28,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antidiabetic\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890127\",\r\n        \"family\": \"Diabetes\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Lisinopril\",\r\n        \"dci\": \"Lisinopril\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 25,\r\n        \"pph\": 22,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890128\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Omeprazole\",\r\n        \"dci\": \"Omeprazole\",\r\n        \"form\": \"Capsule\",\r\n        \"ppv\": 18,\r\n        \"pph\": 16,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Proton Pump Inhibitor\",\r\n        \"marge\": 0.2,\r\n        \"codebar\": \"1234567890129\",\r\n        \"family\": \"Gastrointestinal\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Levothyroxine\",\r\n        \"dci\": \"Levothyroxine\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 35,\r\n        \"pph\": 32,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Hormone\",\r\n        \"marge\": 0.1,\r\n        \"codebar\": \"1234567890130\",\r\n        \"family\": \"Endocrine\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Simvastatin\",\r\n        \"dci\": \"Simvastatin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 28,\r\n        \"pph\": 26,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 0,\r\n        \"type\": \"Cholesterol\",\r\n        \"marge\": 0.12,\r\n        \"codebar\": \"1234567890131\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Alprazolam\",\r\n        \"dci\": \"Alprazolam\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 22,\r\n        \"pph\": 20,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anxiolytic\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890132\",\r\n        \"family\": \"Mental Health\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Losartan\",\r\n        \"dci\": \"Losartan\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 27,\r\n        \"pph\": 24,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.17,\r\n        \"codebar\": \"1234567890133\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Atorvastatin\",\r\n        \"dci\": \"Atorvastatin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 29,\r\n        \"pph\": 27,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Cholesterol\",\r\n        \"marge\": 0.13,\r\n        \"codebar\": \"1234567890134\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Amlodipine\",\r\n        \"dci\": \"Amlodipine\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 23,\r\n        \"pph\": 21,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antihypertensive\",\r\n        \"marge\": 0.14,\r\n        \"codebar\": \"1234567890135\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Clopidogrel\",\r\n        \"dci\": \"Clopidogrel\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 24,\r\n        \"pph\": 22,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antiplatelet\",\r\n        \"marge\": 0.16,\r\n        \"codebar\": \"1234567890136\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Warfarin\",\r\n        \"dci\": \"Warfarin\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 26,\r\n        \"pph\": 23,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Anticoagulant\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890137\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Metoprolol\",\r\n        \"dci\": \"Metoprolol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 21,\r\n        \"pph\": 19,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Beta Blocker\",\r\n        \"marge\": 0.15,\r\n        \"codebar\": \"1234567890138\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Diltiazem\",\r\n        \"dci\": \"Diltiazem\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 30,\r\n        \"pph\": 27,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Calcium Channel Blocker\",\r\n        \"marge\": 0.12,\r\n        \"codebar\": \"1234567890139\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Gliclazide\",\r\n        \"dci\": \"Gliclazide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 22,\r\n        \"pph\": 20,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Antidiabetic\",\r\n        \"marge\": 0.17,\r\n        \"codebar\": \"1234567890140\",\r\n        \"family\": \"Diabetes\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Carvedilol\",\r\n        \"dci\": \"Carvedilol\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 25,\r\n        \"pph\": 23,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Beta Blocker\",\r\n        \"marge\": 0.14,\r\n        \"codebar\": \"1234567890141\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Furosemide\",\r\n        \"dci\": \"Furosemide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 18,\r\n        \"pph\": 16,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0,\r\n        \"pbr\": 0,\r\n        \"type\": \"Diuretic\",\r\n        \"marge\": 0.18,\r\n        \"codebar\": \"1234567890143\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    },\r\n    {\r\n        \"name\": \"Hydrochlorothiazide\",\r\n        \"dci\": \"Hydrochlorothiazide\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 19,\r\n        \"pph\": 17,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.05,\r\n        \"pbr\": 0,\r\n        \"type\": \"Diuretic\",\r\n        \"marge\": 0.19,\r\n        \"codebar\": \"1234567890144\",\r\n        \"family\": \"Cardiovascular\",\r\n        \"usedBy\": 202506,\r\n        \"withPrescription\": true,\r\n        \"status\": \"Out of stock\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/medicaments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "medicaments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List of medicaments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/medicaments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "medicaments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update medicament",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": " {\r\n        \"name\": \"Product XXX\",\r\n        \"dci\": \"Active Ingredient A\",\r\n        \"form\": \"Tablet\",\r\n        \"ppv\": 12.99,\r\n        \"pph\": 9.99,\r\n        \"tva\": 0.2,\r\n        \"discount\": 0.1,\r\n        \"pbr\": 15.99,\r\n        \"type\": \"Medication\",\r\n        \"marge\": 222,\r\n        \"codebar\": \"1234567890123\",\r\n        \"family\": \"Pain Relief\",\r\n        \"usedBy\": 2,\r\n        \"withPrescription\": true,\r\n        \"stockHistories\": null,\r\n        \"saleMedicaments\": null,\r\n        \"id\": 1,\r\n        \"createdAt\": \"2024-05-13T02:07:12.7872839\",\r\n        \"updatedAt\": \"2024-05-13T02:07:12.7874195\"\r\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/medicaments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "medicaments",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete medicament",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/medicaments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "medicaments",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "Create sale",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"TotalQuantity\": 3,\r\n  \"TotalPrice\": 100,\r\n  \"Status\": \"Paid\",\r\n  \"Discount\": 10.5,\r\n  \"SaleMedicaments\": [\r\n    {\r\n      \"MedicamentId\": 3,\r\n      \"Quantity\": 3,\r\n      \"PPV\": 15,\r\n      \"Discount\": 1.2\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update sale",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"TotalQuantity\": 1112,\r\n  \"TotalPrice\": 100,\r\n  \"Status\": \"Paid\",\r\n  \"Discount\": 10.5,\r\n  \"SaleMedicaments\": [\r\n    {\r\n      \"MedicamentId\": 2,\r\n      \"Quantity\": 3,\r\n      \"PPV\": 151,\r\n      \"Discount\": 1.2\r\n    }\r\n  ]\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/sales/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "sales",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/sales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "sales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sale",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/sales/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "sales",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete sale",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/sales/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "sales",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"totalQuantity\": 100,\r\n    \"supplierId\": 3,\r\n    \"OrderMedicaments\": [\r\n        {\r\n            \"medicamentId\": 3,\r\n            \"quantity\": 100\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/orders/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "orders",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update order",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"totalQuantity\": 1001,\r\n    \"supplierId\": 3,\r\n    \"OrderMedicaments\": [\r\n        {\r\n            \"medicamentId\": 3,\r\n            \"quantity\": 1001\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/orders/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "orders",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "Create Supplier",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\":\"Ali Mx\",\r\n    \"phone\":\"063737383\",\r\n    \"fax\":\"056373883\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/suppliers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "suppliers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/suppliers",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "suppliers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete supplier",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5023/api/suppliers/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "suppliers",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update supplier",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\":\"Ali Mxi\",\r\n    \"phone\":\"063737383\",\r\n    \"fax\":\"056373883\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5023/api/suppliers/4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5023",
+              "path": [
+                "api",
+                "suppliers",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sign in",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"AdminJake91\",\r\n    \"password\":\"Admin@123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5023/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5023",
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
 }
