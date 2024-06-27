@@ -49,9 +49,7 @@ const appLinks = [
     notifications: 4,
     links: [
       { label: 'Commandes Clients', to: '/sales/news', exact: true },
-      { label: 'Forecasts', to: '/s', exact: true },
-      { label: 'Outlook', to: '/a', exact: true },
-      { label: 'Real time', to: '/x', exact: true }
+      { label: 'Commandes Validées', to: '/sales/', exact: true }
     ]
   },
   {

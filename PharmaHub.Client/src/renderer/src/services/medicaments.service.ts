@@ -47,7 +47,7 @@ export const medicamentQueryOptions = (medicamentId: number | undefined) =>
 export const useMedicament = (medicamentId) =>
   useQuery(medicamentQueryOptions(medicamentId))
 
-export const useMedicamentInventories = (medicamentId = null) => {
+export const useMedicamentInventories = (medicamentId: any) => {
   return useQuery({
     queryKey: ['medicamentInventories', medicamentId],
     queryFn: async () => {

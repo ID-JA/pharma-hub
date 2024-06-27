@@ -1,5 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ActionIcon, Button, Flex, Group, InputBase, Text } from '@mantine/core'
+import {
+  ActionIcon,
+  Button,
+  Flex,
+  Group,
+  InputBase,
+  NativeSelect,
+  Text,
+  TextInput,
+  rem
+} from '@mantine/core'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import {
@@ -19,6 +29,7 @@ import {
 import { modals } from '@mantine/modals'
 import { calculatePPH } from '@renderer/utils/functions'
 import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
+import { useDebouncedState } from '@mantine/hooks'
 
 type Inventory = {
   id: number
@@ -34,8 +45,10 @@ export const Route = createFileRoute('/_portal/medications/inventory/new')({
 })
 
 function NewInventoryPage() {
-  const [medicamentId, setMedicamentId] = useState()
+  const [medicamentId, setMedicamentId] = useState<string | number | null>(null)
+  const [search, setSearch] = useState('')
   const { data } = useMedicamentInventories(medicamentId)
+
   const { mutate: createInventory } = useCreateInventory(medicamentId)
   const { mutate: updateInventory } = useUpdateInventory(medicamentId)
   const { mutate: deleteInventory } = useDeleteInventory(medicamentId)
@@ -44,6 +57,7 @@ function NewInventoryPage() {
     Record<string, string | undefined>
   >({})
   const [pph, setPph] = useState(0)
+
   const columns = useMemo<MRT_ColumnDef<Inventory>[]>(
     () => [
       {
@@ -63,13 +77,11 @@ function NewInventoryPage() {
           onChange: (e) => {
             setPph(calculatePPH(e.target.value, 12))
           },
-          //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
               ppv: undefined
             })
-          //optionally add validation checking for onBlur or onChange
         }
       },
       {
@@ -89,7 +101,6 @@ function NewInventoryPage() {
           required: true,
           error: validationErrors?.quantity,
           min: 0,
-          //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
@@ -105,7 +116,6 @@ function NewInventoryPage() {
           type: 'date',
           required: true,
           error: validationErrors?.expirationDate,
-          //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
@@ -117,14 +127,8 @@ function NewInventoryPage() {
     [validationErrors, pph]
   )
 
-  //CREATE action
   const handleCreateInventory: MRT_TableOptions<Inventory>['onCreatingRowSave'] =
     async ({ values, exitCreatingMode }) => {
-      // const newValidationErrors = validateUser(values);
-      // if (Object.values(newValidationErrors).some((error) => error)) {
-      //   setValidationErrors(newValidationErrors);
-      //   return;
-      // }
       setValidationErrors({})
       await createInventory({
         ...values,
@@ -133,20 +137,13 @@ function NewInventoryPage() {
       exitCreatingMode()
     }
 
-  //UPDATE action
   const handleSaveInventory: MRT_TableOptions<Inventory>['onEditingRowSave'] =
     async ({ values, table }) => {
-      // const newValidationErrors = validateUser(values);
-      // if (Object.values(newValidationErrors).some((error) => error)) {
-      //   setValidationErrors(newValidationErrors);
-      //   return;
-      // }
       setValidationErrors({})
       updateInventory(values)
-      table.setEditingRow(null) //exit editing mode
+      table.setEditingRow(null)
     }
 
-  //DELETE action
   const openDeleteConfirmModal = (row: MRT_Row<Inventory>) =>
     modals.openConfirmModal({
       title: 'Delete Confirmation',
@@ -212,31 +209,27 @@ function NewInventoryPage() {
         <Button
           disabled={!medicamentId}
           onClick={() => {
-            table.setCreatingRow(true) //simplest way to open the create row modal with no default values
-            //or you can pass in a row object to set default values with the `createRow` helper function
-            // table.setCreatingRow(
-            //   createRow(table, {
-            //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-            //   }),
-            // );
+            table.setCreatingRow(true)
           }}
         >
           Create New Inventory
         </Button>
       </Group>
     ),
-    state: {
-      // isLoading: isLoadingUsers,
-      // isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
-      // showAlertBanner: isLoadingUsersError,
-      // showProgressBars: isFetchingUsers,
-    }
+    state: {}
   })
 
   return (
     <>
       <Group mb="lg">
-        <SearchMedicament label="Medicament Name" setValue={setMedicamentId} />
+        <SearchMedicament
+          readOnly={false}
+          medicationName={medicamentId}
+          label="Nom de produit"
+          setValue={(v) => setMedicamentId(v)}
+          search={search}
+          setSearch={setSearch}
+        />
       </Group>
       <Group grow mb="lg">
         <InputBase label="Section" value={data?.section} readOnly />

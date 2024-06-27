@@ -37,8 +37,8 @@ import { Route as PortalDeliveriesNewImport } from './routes/_portal/deliveries.
 import { Route as PortalDeliveriesConsultationImport } from './routes/_portal/deliveries.consultation'
 import { Route as PortalCreditNotesNewImport } from './routes/_portal/credit-notes.new'
 import { Route as PortalBillsNewImport } from './routes/_portal/bills.new'
+import { Route as PortalMedicationsInventoryNewImport } from './routes/_portal/medications_.inventory.new'
 import { Route as PortalMedicationsEditMedicationIdImport } from './routes/_portal/medications_.edit.$medicationId'
-import { Route as PortalMedicationsInventoryNewImport } from './routes/_portal/medications.inventory.new'
 import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
 
 // Create/Update Routes
@@ -176,16 +176,16 @@ const PortalBillsNewRoute = PortalBillsNewImport.update({
   getParentRoute: () => PortalRoute,
 } as any)
 
+const PortalMedicationsInventoryNewRoute =
+  PortalMedicationsInventoryNewImport.update({
+    path: '/medications/inventory/new',
+    getParentRoute: () => PortalRoute,
+  } as any)
+
 const PortalMedicationsEditMedicationIdRoute =
   PortalMedicationsEditMedicationIdImport.update({
     path: '/medications/edit/$medicationId',
     getParentRoute: () => PortalRoute,
-  } as any)
-
-const PortalMedicationsInventoryNewRoute =
-  PortalMedicationsInventoryNewImport.update({
-    path: '/inventory/new',
-    getParentRoute: () => PortalMedicationsRoute,
   } as any)
 
 const PortalMedicamentsMedicamentIdHistoryRoute =
@@ -387,18 +387,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMedicamentsMedicamentIdHistoryImport
       parentRoute: typeof PortalMedicamentsMedicamentIdImport
     }
-    '/_portal/medications/inventory/new': {
-      id: '/_portal/medications/inventory/new'
-      path: '/inventory/new'
-      fullPath: '/medications/inventory/new'
-      preLoaderRoute: typeof PortalMedicationsInventoryNewImport
-      parentRoute: typeof PortalMedicationsImport
-    }
     '/_portal/medications/edit/$medicationId': {
       id: '/_portal/medications/edit/$medicationId'
       path: '/medications/edit/$medicationId'
       fullPath: '/medications/edit/$medicationId'
       preLoaderRoute: typeof PortalMedicationsEditMedicationIdImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/medications/inventory/new': {
+      id: '/_portal/medications/inventory/new'
+      path: '/medications/inventory/new'
+      fullPath: '/medications/inventory/new'
+      preLoaderRoute: typeof PortalMedicationsInventoryNewImport
       parentRoute: typeof PortalImport
     }
   }
@@ -417,9 +417,7 @@ export const routeTree = rootRoute.addChildren({
         }),
       PortalMedicamentsIndexRoute,
     }),
-    PortalMedicationsRoute: PortalMedicationsRoute.addChildren({
-      PortalMedicationsInventoryNewRoute,
-    }),
+    PortalMedicationsRoute,
     PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
     PortalSettingsRoute: PortalSettingsRoute.addChildren({
       PortalSettingsFormsRoute,
@@ -440,6 +438,7 @@ export const routeTree = rootRoute.addChildren({
     PortalSalesNewsRoute,
     PortalSettingsTypesRoute,
     PortalMedicationsEditMedicationIdRoute,
+    PortalMedicationsInventoryNewRoute,
   }),
 })
 
