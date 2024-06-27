@@ -36,7 +36,7 @@ export function InventorySelectorDrawer({
     return (
       <Table.Tr key={item.inventory.id}>
         <Table.Td>{item.medication.name}</Table.Td>
-        <Table.Td ta="center">{item.inventory.quantity}</Table.Td>
+        <Table.Td ta="center">{item.inventory.boxQuantity}</Table.Td>
         <Table.Td ta="center">{item.inventory.ppv}</Table.Td>
         <Table.Td ta="center">{item.inventory.pph}</Table.Td>
         <Table.Td ta="center">

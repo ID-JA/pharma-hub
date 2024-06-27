@@ -9,6 +9,11 @@ public class DeliveryDetailedDto : BaseDto<DeliveryDetailedDto, Models.Delivery>
     public int Id { get; set; }
     public int TotalQuantity { get; set; }
     public int DeliveryNumber { get; set; }
+    public decimal TotalPpv { get; set; }
+    public decimal TotalFreePpv { get; set; }
+    public decimal TotalNetPph { get; set; }
+    public decimal TotalBrutPph { get; set; }
+    public decimal DiscountedAmount { get; set; }
     public DateTime DeliveryDate { get; set; }
     public UserBasicDto User { get; set; }
     public SupplierBasicDto? Supplier { get; set; }

@@ -21,9 +21,11 @@ public class CreditNotesController(ICreditNoteService creditNoteService) : Contr
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetCreditNotesAsync(CancellationToken cancellationToken, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult> GetCreditNotesAsync([FromQuery] int? creditNoteNumber, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int? supplierId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        return Ok(await creditNoteService.GetCreditNotesAsync(pageNumber, pageSize, cancellationToken));
+        var result = await creditNoteService.SearchCreditNoteDetailsAsync(creditNoteNumber, from, to, supplierId, pageNumber, pageSize, cancellationToken);
+
+        return Ok(result);
     }
 
     [HttpDelete("{id:int}")]

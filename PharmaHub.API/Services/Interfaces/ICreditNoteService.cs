@@ -7,11 +7,12 @@ namespace PharmaHub.API.Services.Interfaces;
 public interface ICreditNoteService
 {
     Task<bool> CreateCreditNoteAsync(CreditNoteCreateDto request, CancellationToken cancellationToken = default);
-    Task<CreditNoteBasicDto?> GetCreditNoteAsync(int id, CancellationToken cancellationToken = default);
-    Task<PaginatedResponse<CreditNoteBasicDto>> GetCreditNotesAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    public Task<bool> DeleteCreditNote(int id, CancellationToken cancellationToken = default);
-    public Task<bool> UpdateCreditNote(int id, CreditNoteUpdateDto request, CancellationToken cancellationToken = default);
-    public Task<CreditNoteDetailDto?> GetCreditNoteDetails(int creditNoteNumber, CancellationToken cancellationToken = default);
+        Task<CreditNoteBasicDto?> GetCreditNoteAsync(int id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteCreditNote(int id, CancellationToken cancellationToken = default);
+    Task<bool> UpdateCreditNote(int id, CreditNoteUpdateDto request, CancellationToken cancellationToken = default);
+    Task<CreditNoteDetailDto?> GetCreditNoteDetails(int creditNoteNumber, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<CreditNoteDetailDto>> SearchCreditNoteDetailsAsync(int? creditNoteNumber = null, DateTime? from = null, DateTime? to = null, int? supplierId = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
+
 }
 public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser currentUser) : ICreditNoteService
 {
@@ -50,6 +51,7 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+
     public async Task<CreditNoteBasicDto?> GetCreditNoteAsync(int id, CancellationToken cancellationToken = default)
     {
         return await dbContext.CreditNotes
@@ -57,10 +59,7 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
                 .ProjectToType<CreditNoteBasicDto>()
                 .FirstOrDefaultAsync(cancellationToken);
     }
-    public async Task<PaginatedResponse<CreditNoteBasicDto>> GetCreditNotesAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
-    {
-        return await dbContext.CreditNotes.ProjectToType<CreditNoteBasicDto>().PaginatedListAsync(pageNumber, pageSize);
-    }
+
     public async Task<bool> DeleteCreditNote(int id, CancellationToken cancellationToken = default)
     {
         var creditNote = await dbContext.CreditNotes.FirstOrDefaultAsync(c => c.Id == id, cancellationToken: cancellationToken);
@@ -170,6 +169,38 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
             await transaction.RollbackAsync(cancellationToken);
             return false;
         }
+    }
+
+    public async Task<PaginatedResponse<CreditNoteDetailDto>> SearchCreditNoteDetailsAsync(int? creditNoteNumber = null, DateTime? from = null, DateTime? to = null, int? supplierId = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        from ??= DateTime.UtcNow.AddDays(-7);
+        to ??= DateTime.UtcNow;
+
+        var query = dbContext.CreditNotes
+            .Include(d => d.CreditNoteMedications)
+            .AsNoTracking();
+
+        if (creditNoteNumber.HasValue)
+        {
+            query = query.Where(d => d.CreditNoteNumber == creditNoteNumber.Value);
+        }
+
+        if (from.HasValue && to.HasValue)
+        {
+            query = query.Where(d => d.CreatedAt >= from.Value && d.CreatedAt <= to.Value);
+        }
+
+        if (supplierId.HasValue && supplierId.Value > 0)
+        {
+            query = query.Where(d => d.SupplierId == supplierId.Value);
+        }
+
+        var result = await query
+            .OrderBy(d => d.CreatedAt)
+            .ProjectToType<CreditNoteDetailDto>()
+            .PaginatedListAsync(pageNumber, pageSize);
+
+        return result;
     }
 
     public async Task<CreditNoteDetailDto?> GetCreditNoteDetails(int creditNoteNumber, CancellationToken cancellationToken = default)
