@@ -103,7 +103,7 @@ export const useInventorySelector = ({
   const InventorySelectorDrawerButtonCallback = useCallback(() => {
     return (
       <Button onClick={open} variant="light">
-        Select Inventory
+        Sélectionner inventaire
       </Button>
     )
   }, [open])

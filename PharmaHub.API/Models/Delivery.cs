@@ -11,6 +11,5 @@ public class Delivery : BaseModel
     public Supplier Supplier { get; set; } = null!;
     public int? BillId { get; set; }
     public Bill Bill { get; set; } = null!;
-    public List<InventoryHistory> InventoryHistories { get; set; } = [];
     public List<OrderDeliveryInventory> OrderDeliveryInventories { get; set; } = [];
 }

@@ -16,13 +16,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(s => s.SaleNumber)
             .HasDefaultValueSql("NEXT VALUE FOR SaleNumbers");
 
-        builder.Entity<InventoryHistory>(entity =>
-        {
-            entity.HasOne(e => e.Inventory)
-                .WithMany(i => i.InventoryHistories)
-                .HasForeignKey(e => e.InventoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        // builder.Entity<InventoryHistory>(entity =>
+        // {
+        //     entity.HasOne(e => e.Inventory)
+        //         .WithMany(i => i.InventoryHistories)
+        //         .HasForeignKey(e => e.InventoryId)
+        //         .OnDelete(DeleteBehavior.Cascade);
+        // });
         builder.Entity<CreditNoteMedications>(entity =>
            {
                entity.HasKey(e => new { e.CreditNoteId, e.InventoryId });

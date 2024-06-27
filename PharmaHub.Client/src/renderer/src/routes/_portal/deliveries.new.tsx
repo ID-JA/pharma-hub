@@ -109,7 +109,7 @@ export function NewDeliveryPage() {
               ppv: orderItem.inventory.ppv,
               tva: orderItem.inventory.medication.tva,
               pph: orderItem.inventory.pph,
-              quantityInStock: orderItem.inventory.quantity,
+              quantityInStock: orderItem.inventory.boxQuantity,
               totalFreeUnits: 0,
               totalPpv: orderItem.inventory.ppv * orderItem.orderedQuantity,
               totalPph: orderItem.inventory.pph * orderItem.orderedQuantity
@@ -154,7 +154,7 @@ export function NewDeliveryPage() {
               ppv: inventory.ppv,
               tva: medication.tva,
               pph: inventory.pph,
-              quantityInStock: inventory.quantity,
+              quantityInStock: inventory.boxQuantity,
               totalFreeUnits: 0,
               totalPpv: inventory.ppv * 1,
               totalPph: inventory.pph * 1
@@ -349,7 +349,7 @@ export function NewDeliveryPage() {
                     tva: item.inventory.medication.tva,
                     pph: item.inventory.pph,
                     quantityInStock:
-                      item.inventory.quantity -
+                      item.inventory.boxQuantity -
                       item.deliveredQuantity -
                       item.totalFreeUnits,
                     totalFreeUnits: item.totalFreeUnits,

@@ -33,4 +33,7 @@ public class OrderDeliveryInventory : BaseModel
 
     public string Status { get; set; } = "Pending";
     public int TotalFreeUnits { get; set; }
+
+    public List<InventoryHistory> InventoryHistories { get; set; } = [];
+
 }

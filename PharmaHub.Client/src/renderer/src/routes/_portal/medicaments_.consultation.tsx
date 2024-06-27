@@ -1,5 +1,4 @@
 import {
-  Container,
   Fieldset,
   Group,
   TextInput,
@@ -8,9 +7,7 @@ import {
   InputBase,
   Stack,
   Checkbox,
-  Table,
-  Tabs,
-  NativeSelect
+  Table
 } from '@mantine/core'
 import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { http } from '@renderer/utils/http'
@@ -18,8 +15,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { IconBarcode, IconCategory } from '@tabler/icons-react'
 import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
-import { useMedications } from './credit-notes.new'
-import { useDebouncedState } from '@mantine/hooks'
 
 export const Route = createFileRoute('/_portal/medicaments/consultation')({
   component: MedicationConsultationPage
