@@ -14,4 +14,6 @@ public class InventoryHistory : BaseModel
     public SaleMedication SaleMedication { get; set; } = null!;
     public int? OrderDeliveryInventoryId { get; set; }
     public OrderDeliveryInventory OrderDeliveryInventory { get; set; } = null!;
+    public int? CreditNoteId { get; set; }
+    public CreditNote CreditNote { get; set; } = null!;
 }

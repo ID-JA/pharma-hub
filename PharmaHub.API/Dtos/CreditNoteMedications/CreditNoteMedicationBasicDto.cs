@@ -1,6 +1,6 @@
 namespace PharmaHub.API;
 
-public class CreditNoteMedicationBasicDto : BaseDto<CreditNoteMedicationBasicDto, CreditNoteMedications>
+public class CreditNoteMedicationBasicDto : BaseDto<CreditNoteMedicationBasicDto, CreditNoteMedication>
 {
   public string Motif { get; set; }
   public int EmittedQuantity { get; set; }

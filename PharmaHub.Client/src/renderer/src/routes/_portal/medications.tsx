@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useMedications } from './credit-notes.new'
 import {
   ActionIcon,
   Container,
@@ -13,6 +12,7 @@ import { IconEye, IconPencil, IconTrashX } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useDebouncedState } from '@mantine/hooks'
 import { useState } from 'react'
+import { useMedications } from '@renderer/services/medicaments.service'
 
 export const Route = createFileRoute('/_portal/medications')({
   component: MedicationsListPage

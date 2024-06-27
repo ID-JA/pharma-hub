@@ -5,7 +5,6 @@ import {
 } from '@mantine/hooks'
 import { createFileRoute } from '@tanstack/react-router'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useMedications } from './credit-notes.new'
 import {
   TextInput,
   NativeSelect,
@@ -41,6 +40,7 @@ import { z } from 'zod'
 import { zodResolver } from 'mantine-form-zod-resolver'
 import { toast } from 'sonner'
 import { modals } from '@mantine/modals'
+import { useMedications } from '@renderer/services/medicaments.service'
 
 export const Route = createFileRoute('/_portal/sales/news')({
   component: SaleNewsPage

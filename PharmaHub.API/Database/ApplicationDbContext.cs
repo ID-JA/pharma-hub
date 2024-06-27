@@ -23,7 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         //         .HasForeignKey(e => e.InventoryId)
         //         .OnDelete(DeleteBehavior.Cascade);
         // });
-        builder.Entity<CreditNoteMedications>(entity =>
+        builder.Entity<CreditNoteMedication>(entity =>
            {
                entity.HasKey(e => new { e.CreditNoteId, e.InventoryId });
 
@@ -100,7 +100,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Tax> Taxes { get; set; }
     public DbSet<Client> Clients { get; set; }
     public DbSet<CreditNote> CreditNotes { get; set; }
-    public DbSet<CreditNoteMedications> CreditNoteMedications { get; set; }
+    public DbSet<CreditNoteMedication> CreditNoteMedications { get; set; }
 
 
 }

@@ -170,3 +170,30 @@ export const useUpdateInventory = (medicamentId) => {
       queryClient.invalidateQueries({ queryKey: ['medicamentInventories'] })
   })
 }
+
+export const useMedications = ({
+  searchValue,
+  searchFieldName
+}: {
+  searchValue: string
+  searchFieldName: string
+}) => {
+  return useQuery({
+    queryKey: [
+      'medications',
+      {
+        searchValue,
+        searchField: searchFieldName
+      }
+    ],
+    queryFn: async () => {
+      const res = await http.get('/api/medicaments/search', {
+        params: {
+          field: searchFieldName,
+          query: searchValue
+        }
+      })
+      return res.data.data
+    }
+  })
+}

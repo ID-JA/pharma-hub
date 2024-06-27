@@ -6,5 +6,6 @@ public class CreditNote : BaseModel
   public Supplier Supplier { get; set; }
   public int UserId { get; set; }
   public User User { get; set; }
-  public List<CreditNoteMedications> CreditNoteMedications { get; set; } = [];
+  public List<CreditNoteMedication> CreditNoteMedications { get; set; } = [];
+  public List<InventoryHistory> InventoryHistories { get; set; } = [];
 }

@@ -316,7 +316,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         foreach (var inventory in inventories)
         {
-            inventory.Quantity += inventoryUpdates[inventory.Id];
+            inventory.BoxQuantity += inventoryUpdates[inventory.Id];
             dbContext.Inventories.Update(inventory);
         }
 

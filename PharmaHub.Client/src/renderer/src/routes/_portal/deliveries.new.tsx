@@ -430,7 +430,6 @@ export function NewDeliveryPage() {
       <InventorySelectorDrawer />
       <form
         onSubmit={form.onSubmit((values) => {
-          console.log(values)
           if (!isDeliveryValidated) {
             createDelivery(values, {
               onSuccess: () => {
