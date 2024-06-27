@@ -74,11 +74,11 @@ export function NewDeliveryPage() {
   const [isDeliveryValidated, setIsDeliveryValidated] = useState(false)
   const [totals, setTotals] = useState({
     totalPpv: 0,
-    gratPpv: 0,
-    totalPphBrut: 0,
-    totalPphNet: 0,
+    totalFreePpv: 0,
+    totalBrutPph: 0,
+    totalNetPph: 0,
     totalProducts: 0,
-    discountedPrice: 0,
+    discountedAmount: 0,
     totalQuantities: 0
   })
   const [selectedDeliveryItems, setSelectedDeliveryItems] = useState<any>([])
@@ -282,31 +282,31 @@ export function NewDeliveryPage() {
         const discountRate = deliveryMedications[index]?.discountRate || 0
 
         acc.totalQuantities += deliveredQuantity
-        acc.gratPpv += totalFreeUnits * item.ppv
+        acc.totalFreePpv += totalFreeUnits * item.ppv
         acc.totalPpv += item.ppv * deliveredQuantity
-        acc.totalPphBrut += item.pph * deliveredQuantity
-        acc.totalPphNet +=
+        acc.totalBrutPph += item.pph * deliveredQuantity
+        acc.totalNetPph +=
           item.pph * (1 - discountRate / 100) * deliveredQuantity
 
         return acc
       },
       {
         totalQuantities: 0,
-        gratPpv: 0,
+        totalFreePpv: 0,
         totalPpv: 0,
-        totalPphBrut: 0,
-        totalPphNet: 0
+        totalBrutPph: 0,
+        totalNetPph: 0
       }
     )
 
     setTotals({
       totalProducts: selectedDeliveryItems.length,
       totalQuantities: totals.totalQuantities,
-      gratPpv: totals.gratPpv,
+      totalFreePpv: totals.totalFreePpv,
       totalPpv: totals.totalPpv,
-      totalPphBrut: totals.totalPphBrut,
-      totalPphNet: totals.totalPphNet,
-      discountedPrice: totals.totalPphBrut - totals.totalPphNet
+      totalBrutPph: totals.totalBrutPph,
+      totalNetPph: totals.totalNetPph,
+      discountedAmount: totals.totalBrutPph - totals.totalNetPph
     })
   }, [selectedDeliveryItems, form.getValues().deliveryMedications])
 
@@ -431,16 +431,19 @@ export function NewDeliveryPage() {
       <form
         onSubmit={form.onSubmit((values) => {
           if (!isDeliveryValidated) {
-            createDelivery(values, {
-              onSuccess: () => {
-                toast.success('La livraison a été mise à jour avec succès.')
-                form.reset()
-                setSelectedDeliveryItems([])
-              },
-              onError: () => {
-                toast.error("Quelque chose de grave s'est produit.")
+            createDelivery(
+              { ...values, ...totals },
+              {
+                onSuccess: () => {
+                  toast.success('La livraison a été mise à jour avec succès.')
+                  form.reset()
+                  setSelectedDeliveryItems([])
+                },
+                onError: () => {
+                  toast.error("Quelque chose de grave s'est produit.")
+                }
               }
-            })
+            )
           } else {
             modals.openConfirmModal({
               title: 'Message de Confirmation',
@@ -449,16 +452,21 @@ export function NewDeliveryPage() {
               ),
               labels: { confirm: 'Oui', cancel: 'Non' },
               onConfirm: () =>
-                updateDelivery(values, {
-                  onSuccess: () => {
-                    toast.success('La livraison a été mise à jour avec succès.')
-                    form.reset()
-                    setSelectedDeliveryItems([])
-                  },
-                  onError: () => {
-                    toast.error("Quelque chose de grave s'est produit.")
+                updateDelivery(
+                  { ...values, ...totals },
+                  {
+                    onSuccess: () => {
+                      toast.success(
+                        'La livraison a été mise à jour avec succès.'
+                      )
+                      form.reset()
+                      setSelectedDeliveryItems([])
+                    },
+                    onError: () => {
+                      toast.error("Quelque chose de grave s'est produit.")
+                    }
                   }
-                })
+                )
             })
           }
         })}
@@ -528,7 +536,7 @@ export function NewDeliveryPage() {
             size="lg"
             readOnly
             hideControls
-            value={totals.gratPpv}
+            value={totals.totalFreePpv}
           />
           <NumberInput
             label="TOTAL PPH BRUT"
@@ -536,7 +544,7 @@ export function NewDeliveryPage() {
             size="lg"
             readOnly
             hideControls
-            value={totals.totalPphBrut}
+            value={totals.totalBrutPph}
           />
           <NumberInput
             label="TOTAL PPH NET TTC"
@@ -544,7 +552,7 @@ export function NewDeliveryPage() {
             size="lg"
             readOnly
             hideControls
-            value={totals.totalPphNet}
+            value={totals.totalNetPph}
           />
           <NumberInput
             label="REMISE SUR BL"
@@ -552,7 +560,7 @@ export function NewDeliveryPage() {
             size="lg"
             readOnly
             hideControls
-            value={totals.discountedPrice}
+            value={totals.discountedAmount}
           />
           <NumberInput
             label="NOMBRE PRODUITS"

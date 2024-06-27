@@ -56,7 +56,7 @@ public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 
 public interface IDeliveryService
 {
-    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime? from = null, DateTime? to = null, int supplier = 0, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task<DeliveryBasicDto?> GetDeliveryByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<DeliveryDetailedDto?> GetDeliveryDetails(int deliveryNumber, CancellationToken cancellationToken = default);
 
@@ -78,8 +78,17 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     .ProjectToType<DeliveryBasicDto>()
     .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(
+     DateTime? from = null,
+     DateTime? to = null,
+     int supplier = 0,
+     int pageNumber = 1,
+     int pageSize = 10,
+     CancellationToken cancellationToken = default)
     {
+        from ??= DateTime.UtcNow.AddDays(-7);
+        to ??= DateTime.UtcNow;
+
         var query = dbContext.Deliveries.AsNoTracking()
             .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to);
 
@@ -90,12 +99,12 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         var result = await query
             .OrderBy(d => d.DeliveryDate)
-            // .Include(d => d.DeliveryMedications)
             .ProjectToType<DeliveryDetailedDto>()
             .PaginatedListAsync(1, 1000);
 
         return result;
     }
+
 
     public async Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)
     {
@@ -106,6 +115,11 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         {
             var delivery = new Delivery
             {
+                TotalPpv = request.TotalPpv,
+                TotalFreePpv = request.TotalFreePpv,
+                TotalNetPph = request.TotalNetPph,
+                TotalBrutPph = request.TotalBrutPph,
+                DiscountedAmount = request.DiscountedAmount,
                 UserId = userId,
                 DeliveryDate = request.DeliveryDate,
                 DeliveryNumber = request.DeliveryNumber,
@@ -167,6 +181,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
                     };
                     newOrderDeliveryInventories.Add(newOrderDeliveryInventory);
                     dbContext.OrderDeliveryInventories.Add(newOrderDeliveryInventory);
+                    await dbContext.SaveChangesAsync(cancellationToken);
                 }
 
                 inventory.BoxQuantity += item.DeliveredQuantity + item.TotalFreeUnits;
@@ -237,15 +252,12 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         var requestItemIds = request.DeliveryMedications.Select(dm => dm.OrderItemId).ToList();
 
-        // Find deleted items
         var deletedItems = existingDelivery.OrderDeliveryInventories
             .Where(oldItem => !requestItemIds.Contains(oldItem.Id))
             .ToList();
 
-        // Cache inventory updates to minimize DB calls
         var inventoryUpdates = new Dictionary<int, int>();
 
-        // Process deleted items
         foreach (var item in deletedItems)
         {
             if (!inventoryUpdates.ContainsKey(item.InventoryId))
@@ -256,7 +268,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             dbContext.OrderDeliveryInventories.Remove(item);
         }
 
-        // Process updated and new items
         foreach (var item in request.DeliveryMedications)
         {
             var deliveryItem = existingDelivery.OrderDeliveryInventories
@@ -264,7 +275,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
             if (deliveryItem == null)
             {
-                // New delivery item
                 deliveryItem = new OrderDeliveryInventory
                 {
                     InventoryId = item.InventoryId,
@@ -281,14 +291,12 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             }
             else
             {
-                // Adjust inventory quantity for the old item values
                 if (!inventoryUpdates.ContainsKey(deliveryItem.InventoryId))
                 {
                     inventoryUpdates[deliveryItem.InventoryId] = 0;
                 }
                 inventoryUpdates[deliveryItem.InventoryId] -= deliveryItem.DeliveredQuantity + deliveryItem.TotalFreeUnits;
 
-                // Update existing delivery item
                 deliveryItem.DeliveredQuantity = item.DeliveredQuantity;
                 deliveryItem.DiscountRate = item.DiscountRate;
                 deliveryItem.OrderedQuantity = item.OrderedQuantity;
@@ -300,7 +308,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
                 dbContext.OrderDeliveryInventories.Update(deliveryItem);
             }
 
-            // Update inventory quantity for the new item values
             if (!inventoryUpdates.ContainsKey(item.InventoryId))
             {
                 inventoryUpdates[item.InventoryId] = 0;
@@ -308,7 +315,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             inventoryUpdates[item.InventoryId] += item.DeliveredQuantity + item.TotalFreeUnits;
         }
 
-        // Apply inventory updates
         var inventoryIds = inventoryUpdates.Keys.ToList();
         var inventories = await dbContext.Inventories
             .Where(inv => inventoryIds.Contains(inv.Id))
@@ -320,11 +326,14 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             dbContext.Inventories.Update(inventory);
         }
 
-        // Update the total quantity in the delivery
         existingDelivery.TotalQuantity = request.DeliveryMedications.Sum(item => item.DeliveredQuantity + item.TotalFreeUnits);
+        existingDelivery.TotalPpv = request.TotalPpv;
+        existingDelivery.TotalFreePpv = request.TotalFreePpv;
+        existingDelivery.TotalNetPph = request.TotalNetPph;
+        existingDelivery.TotalBrutPph = request.TotalBrutPph;
+        existingDelivery.DiscountedAmount = request.DiscountedAmount;
         dbContext.Deliveries.Update(existingDelivery);
 
-        // Save changes
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;

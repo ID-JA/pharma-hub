@@ -23,7 +23,7 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult> GetGetDeliveryById([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetDeliveryById([FromRoute] int id, CancellationToken cancellationToken)
     {
         var result = await deliveryService.GetDeliveryByIdAsync(id, cancellationToken);
         return result != null ? Ok(result) : NotFound();
@@ -31,7 +31,7 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
 
 
     [HttpGet("search")]
-    public async Task<ActionResult> GetGetDelivery([FromQuery] int deliveryNumber, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetDelivery([FromQuery] int deliveryNumber, CancellationToken cancellationToken)
     {
         var result = await deliveryService.GetDeliveryDetails(deliveryNumber, cancellationToken);
         return result != null ? Ok(result) : NotFound();
