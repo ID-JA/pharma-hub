@@ -7,7 +7,7 @@ namespace PharmaHub.API.Services.Interfaces;
 public interface ICreditNoteService
 {
     Task<bool> CreateCreditNoteAsync(CreditNoteCreateDto request, CancellationToken cancellationToken = default);
-        Task<CreditNoteBasicDto?> GetCreditNoteAsync(int id, CancellationToken cancellationToken = default);
+    Task<CreditNoteBasicDto?> GetCreditNoteAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> DeleteCreditNote(int id, CancellationToken cancellationToken = default);
     Task<bool> UpdateCreditNote(int id, CreditNoteUpdateDto request, CancellationToken cancellationToken = default);
     Task<CreditNoteDetailDto?> GetCreditNoteDetails(int creditNoteNumber, CancellationToken cancellationToken = default);
@@ -173,10 +173,24 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
 
     public async Task<PaginatedResponse<CreditNoteDetailDto>> SearchCreditNoteDetailsAsync(int? creditNoteNumber = null, DateTime? from = null, DateTime? to = null, int? supplierId = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        from ??= DateTime.UtcNow.AddDays(-7);
-        to ??= DateTime.UtcNow;
+        if (!from.HasValue && !to.HasValue)
+        {
+            to = DateTime.UtcNow.Date;
+            from = to.Value.AddDays(-6);
+        }
+
+        if (from.HasValue && to.HasValue && from > to)
+        {
+            (from, to) = (to, from);
+        }
+
+        if (to.HasValue)
+        {
+            to = to.Value.Date.AddDays(1).AddTicks(-1);
+        }
 
         var query = dbContext.CreditNotes
+            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to))
             .Include(d => d.CreditNoteMedications)
             .AsNoTracking();
 
@@ -185,10 +199,6 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
             query = query.Where(d => d.CreditNoteNumber == creditNoteNumber.Value);
         }
 
-        if (from.HasValue && to.HasValue)
-        {
-            query = query.Where(d => d.CreatedAt >= from.Value && d.CreatedAt <= to.Value);
-        }
 
         if (supplierId.HasValue && supplierId.Value > 0)
         {
