@@ -13,7 +13,7 @@ public interface ISaleService
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
     Task CancelSale(int saleId, int? inventoryId, CancellationToken cancellationToken);
 
-    Task<List<TimeSeriesData>> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
+    Task<SalesWithQuantities> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
 
 }
 
@@ -362,28 +362,81 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         }
     }
 
-    public async Task<List<TimeSeriesData>> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    public async Task<SalesWithQuantities> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
         startDate ??= DateTime.Now.AddMonths(-1);
         endDate ??= DateTime.Now;
 
-        var salesCountByDate = await dbContext.Sales
+        var salesGroupedByDate = await dbContext.Sales
             .Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate)
             .GroupBy(s => s.CreatedAt.Date)
-            .Select(g => new TimeSeriesData
+            .Select(g => new
             {
-                Date = g.Key.ToString("MM/dd/yyyy"),
-                Count = g.Count()
+                Date = g.Key,
+                Returned = g.Count(s => s.Status.ToLower() == "return"),
+                Paid = g.Count(s => s.Status.ToLower() == "paid"),
+                OutOfStock = g.Count(s => s.Status.ToLower() == "outofstock"),
+                Pending = g.Count(s => s.Status.ToLower() == "pending"),
+                SalesQuantities = g.Select(s => new
+                {
+                    s.CreatedAt,
+                    s.TotalQuantities
+                }).ToList()
             })
             .ToListAsync(cancellationToken);
 
-        return salesCountByDate;
+        var salesData = salesGroupedByDate.Select(s => new SalesData
+        {
+            Date = s.Date.ToString("MM/dd/yyyy"),
+            Returned = s.Returned,
+            Paid = s.Paid,
+            OutOfStock = s.OutOfStock,
+            Pending = s.Pending
+        }).ToList();
+
+        var salesQuantities = salesGroupedByDate.SelectMany(s => s.SalesQuantities.Select(q => new SalesQuantity
+        {
+            Date = q.CreatedAt.ToString("MM/dd/yyyy"),
+            Quantity = q.TotalQuantities
+        })).ToList();
+
+        return new SalesWithQuantities
+        {
+            Sales = salesData,
+            SalesQuantities = salesQuantities
+        };
     }
+
 
 }
 
 public class TimeSeriesData
 {
     public string Date { get; set; }
-    public int Count { get; set; }
+    public int Returned { get; set; }
+    public int Paid { get; set; }
+    public int OutOfStock { get; set; }
+    public int Pending { get; set; }
+}
+
+
+public class SalesData
+{
+    public string Date { get; set; }
+    public int Returned { get; set; }
+    public int Paid { get; set; }
+    public int OutOfStock { get; set; }
+    public int Pending { get; set; }
+}
+
+public class SalesQuantity
+{
+    public string Date { get; set; }
+    public int Quantity { get; set; }
+}
+
+public class SalesWithQuantities
+{
+    public List<SalesData> Sales { get; set; }
+    public List<SalesQuantity> SalesQuantities { get; set; }
 }

@@ -70,5 +70,10 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
         };
         return Ok(await deliveryService.GetOrders(searchQuery, cancellationToken));
     }
+    [HttpGet("analytics")]
+    public async Task<ActionResult> GetOrdersAndDeliveriesByDateRangeAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken cancellationToken)
+    {
+        return Ok(await deliveryService.GetOrdersAndDeliveriesByDateRangeAsync(startDate, endDate));
+    }
 
 }
