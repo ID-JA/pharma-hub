@@ -190,7 +190,7 @@ public class CreditNoteService(ApplicationDbContext dbContext, ICurrentUser curr
         }
 
         var query = dbContext.CreditNotes
-            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to))
+            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to) && s.BillId == null)
             .Include(d => d.CreditNoteMedications)
             .AsNoTracking();
 

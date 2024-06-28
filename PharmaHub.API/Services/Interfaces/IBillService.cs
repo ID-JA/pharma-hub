@@ -11,47 +11,74 @@ public interface IBillService
     public Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
     public Task<bool> UpdateBill(int id, BillUpdateDto request, CancellationToken cancellationToken = default);
 
-    // Task<bool> DeleteBill(int id, CancellationToken cancellationToken = default);
-    // Task<bool> UpdateBill(int id, BillDto request, CancellationToken cancellationToken = default);
-    // Task<PaginatedResponse<Bill>> GetBills(string name, CancellationToken cancellationToken);
 }
 public class BillService(ApplicationDbContext dbContext, ICurrentUser currentUser) : IBillService
 {
 
     public async Task<bool> CreateBillAsync(BillCreateDto request, CancellationToken cancellationToken = default)
     {
-        var userId = currentUser.GetUserId();
-        Bill bill = new()
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            UserId = userId,
-            BillNumber = request.BillNumber,
-            BillDate = request.BillDate,
-            PaymentType = request.PaymentType,
-            CheckNumber = request.CheckNumber,
-            EffectNumber = request.EffectNumber,
-            DueDate = request.DueDate,
-            DisbursementDate = request.DisbursementDate,
-            BankName = request.BankName,
-            TotalPayment = request.TotalPayment,
-            Status = "Paid"
-        };
-        dbContext.Bills.Add(bill);
-        await dbContext.SaveChangesAsync(cancellationToken);
+            var userId = currentUser.GetUserId();
+            Bill bill = new()
+            {
+                UserId = userId,
+                BillNumber = request.BillNumber,
+                BillDate = request.BillDate,
+                PaymentType = request.PaymentType,
+                CheckNumber = request.CheckNumber,
+                EffectNumber = request.EffectNumber,
+                DueDate = request.DueDate,
+                DisbursementDate = request.DisbursementDate,
+                BankName = request.BankName,
+                TotalPayment = request.TotalPayment,
+                Status = "Paid"
+            };
 
-        foreach (int deliveryId in request.DeliveryIds)
-        {
-            var delivery = await dbContext.Deliveries.FindAsync([deliveryId]);
-            // var delivery = await  dbContext.Deliveries.Where(d=>d.Id == deliveryId).FistOrDefaultAsync();
+            dbContext.Bills.Add(bill);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
-            if (delivery is null) continue;
+            if (request.DeliveriesIds?.Any() == true)
+            {
+                var deliveries = await dbContext.Deliveries
+                    .Where(d => request.DeliveriesIds.Contains(d.Id))
+                    .ToListAsync(cancellationToken);
 
-            delivery.BillId = bill.Id;
-            dbContext.Deliveries.Update(delivery);
+                foreach (var delivery in deliveries)
+                {
+                    delivery.BillId = bill.Id;
+                }
+
+                dbContext.Deliveries.UpdateRange(deliveries);
+            }
+
+            if (request.CreditNotesIds?.Any() == true)
+            {
+                var creditNotes = await dbContext.CreditNotes
+                    .Where(cn => request.CreditNotesIds.Contains(cn.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var creditNote in creditNotes)
+                {
+                    creditNote.BillId = bill.Id;
+                }
+
+                dbContext.CreditNotes.UpdateRange(creditNotes);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return true;
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
+
     public async Task<BillBasicDto?> GetBillAsync(int id, CancellationToken cancellationToken = default)
     {
         return await dbContext.Bills

@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Divider,
   Grid,
   Group,
   Loader,
@@ -14,12 +15,16 @@ import {
   Title
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
+import { useForm } from '@mantine/form'
 import { userSuppliers } from '@renderer/services/suppliers.service'
 import { http } from '@renderer/utils/http'
-import { useQueries } from '@tanstack/react-query'
+import { useMutation, useQueries } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
+import { zodResolver } from 'mantine-form-zod-resolver'
 import { useMemo, useState, useCallback } from 'react'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 type Supplier = {
   id: number
@@ -83,7 +88,9 @@ type FilterOptions = {
 }
 
 type TransformedData = {
+  id: number
   docNumber: number
+  docType: string
   totalQuantities: number
   totalFreePpv: number
   totalPpv: number
@@ -106,6 +113,24 @@ type TransformedData = {
 
 export const Route = createFileRoute('/_portal/bills/new')({
   component: NewBillPage
+})
+
+const BillCreateDtoSchema = z.object({
+  billNumber: z
+    .string()
+    .refine((data) => data.length > 0, { message: 'Required' }),
+  billDate: z.date(),
+  paymentType: z
+    .string()
+    .refine((data) => data.length > 0, { message: 'Required' }),
+  checkNumber: z.string().optional().nullable(),
+  effectNumber: z.string().optional().nullable(),
+  dueDate: z.date().optional().nullable(),
+  disbursementDate: z.date().optional().nullable(),
+  bankName: z.string().optional().nullable(),
+  totalPayment: z.number(),
+  deliveriesIds: z.array(z.number()).default([]),
+  creditNotesIds: z.array(z.number()).default([])
 })
 
 const transformData = (item: DeliveryNote | CreditNote): TransformedData => {
@@ -137,7 +162,9 @@ const transformData = (item: DeliveryNote | CreditNote): TransformedData => {
       }))
 
   return {
+    id: item.id,
     docNumber: isCreditNote ? item.creditNoteNumber : item.deliveryNumber,
+    docType: isCreditNote ? 'credit-note' : 'delivery-note',
     totalQuantities: item.totalQuantities,
     totalFreePpv: item.totalFreePpv,
     totalPpv: item.totalPpv,
@@ -148,25 +175,10 @@ const transformData = (item: DeliveryNote | CreditNote): TransformedData => {
   }
 }
 
-type Medication = {
-  medicationType: string
-  ppv: number
-  pph: number
-  quantity: number
-  tva: number
-  marge: number
-  totalPurchasePrice: number
-  purchasePriceUnit: number
-  totalFreeUnits: number
-  discountRate: number
-}
-
-// Helper function to process data
 const processData = (data: CreditNote[]) => {
   return data.map((creditNote) => {
     const totals = creditNote.creditNoteMedications.reduce(
       (acc, medication) => {
-        console.log({ medication })
         const acceptedQuantity = medication.acceptedQuantity || 0
         const totalFreeUnits = 0
         const discountRate = 0
@@ -193,6 +205,7 @@ const processData = (data: CreditNote[]) => {
       }
     )
     return {
+      type: 'credit-note',
       ...creditNote,
       ...totals
     }
@@ -205,6 +218,23 @@ function NewBillPage() {
     supplier: null,
     from: dayjs().subtract(1, 'month').toDate(),
     to: dayjs().toDate()
+  })
+
+  const form = useForm({
+    initialValues: {
+      billNumber: '',
+      billDate: new Date(),
+      paymentType: '',
+      checkNumber: '',
+      effectNumber: '',
+      dueDate: undefined,
+      disbursementDate: undefined,
+      bankName: '',
+      totalPayment: 0,
+      deliveriesIds: [],
+      creditNotesIds: []
+    },
+    validate: zodResolver(BillCreateDtoSchema)
   })
 
   const { data: suppliers = [], isLoading: fetchingSuppliers } = userSuppliers()
@@ -235,7 +265,7 @@ function NewBillPage() {
           })
           return response.data.data
         },
-        enabled: Boolean(filterOptions.from && filterOptions.to)
+        enabled: !!filterOptions.supplier
       },
       {
         queryKey: ['credit-notes', filterOptions],
@@ -249,7 +279,7 @@ function NewBillPage() {
           })
           return processData(response.data.data)
         },
-        enabled: Boolean(filterOptions.from && filterOptions.to)
+        enabled: !!filterOptions.supplier
       }
     ]
   })
@@ -265,15 +295,41 @@ function NewBillPage() {
   const handleRowSelect = useCallback(
     (item) => (event) => {
       const transformedItem = transformData(item)
-      setSelectedRows(
-        event.currentTarget.checked
-          ? [...selectedRows, transformedItem]
-          : selectedRows.filter(
+      const isSelected = event.currentTarget.checked
+      const type = transformedItem.docType as 'delivery-note' | 'credit-note'
+      setSelectedRows((prevSelectedRows) =>
+        isSelected
+          ? [...prevSelectedRows, transformedItem]
+          : prevSelectedRows.filter(
               (selected) => selected.docNumber !== transformedItem.docNumber
             )
       )
+
+      if (type === 'delivery-note') {
+        if (isSelected) {
+          form.insertListItem('deliveriesIds', transformedItem.id)
+        } else {
+          const index = form.values.deliveriesIds.indexOf(
+            transformedItem.id as never
+          )
+          if (index > -1) {
+            form.removeListItem('deliveriesIds', index)
+          }
+        }
+      } else if (type === 'credit-note') {
+        if (isSelected) {
+          form.insertListItem('creditNotesIds', transformedItem.id)
+        } else {
+          const index = form.values.creditNotesIds.indexOf(
+            transformedItem.id as never
+          )
+          if (index > -1) {
+            form.removeListItem('creditNotesIds', index)
+          }
+        }
+      }
     },
-    [selectedRows]
+    [form, setSelectedRows]
   )
 
   const rows = useMemo(
@@ -312,13 +368,21 @@ function NewBillPage() {
   )
 
   const totalsByMedicationType = useMemo(() => {
-    const totals: { [key: string]: any } = {}
+    const totals: { [key: string]: any } = {
+      deliveryNote: {},
+      creditNote: {}
+    }
+    let deliveryNoteTotalPurchasePrice = 0
+    let creditNoteTotalPurchasePrice = 0
 
     selectedRows.forEach((item) => {
+      const docType =
+        item.docType === 'delivery-note' ? 'deliveryNote' : 'creditNote'
+
       item.medications.forEach((med) => {
         const key = `${med.medicationType}-${med.tva}-${med.marge}`
-        if (!totals[key]) {
-          totals[key] = {
+        if (!totals[docType][key]) {
+          totals[docType][key] = {
             medicationType: med.medicationType,
             ppv: 0,
             pph: 0,
@@ -332,22 +396,62 @@ function NewBillPage() {
           }
         }
 
-        totals[key].ppv += med.ppv
-        totals[key].pph += med.pph
-        totals[key].quantity += med.quantity
-        totals[key].totalPurchasePrice += med.totalPurchasePrice
-        totals[key].purchasePriceUnit += med.purchasePriceUnit
-        totals[key].totalFreeUnits += med.totalFreeUnits
-        totals[key].discountRate += med.discountRate
+        totals[docType][key].ppv +=
+          med.ppv * med.quantity * (docType === 'creditNote' ? -1 : 1)
+        totals[docType][key].pph += med.pph * med.quantity
+        totals[docType][key].quantity += med.quantity
+        totals[docType][key].totalPurchasePrice +=
+          docType === 'creditNote'
+            ? med.pph * med.quantity * -1
+            : med.totalPurchasePrice
+        totals[docType][key].purchasePriceUnit += med.purchasePriceUnit
+        totals[docType][key].totalFreeUnits += med.totalFreeUnits
+        totals[docType][key].discountRate += med.discountRate
+
+        if (docType === 'deliveryNote') {
+          deliveryNoteTotalPurchasePrice +=
+            totals[docType][key].totalPurchasePrice
+        } else {
+          creditNoteTotalPurchasePrice +=
+            totals[docType][key].totalPurchasePrice
+        }
       })
     })
-
-    return Object.values(totals)
+    form.setFieldValue(
+      'totalPayment',
+      deliveryNoteTotalPurchasePrice - Math.abs(creditNoteTotalPurchasePrice)
+    )
+    return {
+      deliveryNote: Object.values(totals.deliveryNote),
+      creditNote: Object.values(totals.creditNote)
+    }
   }, [selectedRows])
+
+  const renderTableRows = (medTypeArray) => {
+    return medTypeArray.map((medType) => (
+      <Table.Tr
+        key={`${medType.medicationType}-${medType.tva}-${medType.marge}`}
+      >
+        <Table.Td>{medType.medicationType}</Table.Td>
+        <Table.Td>{medType.marge}</Table.Td>
+        <Table.Td>{medType.tva}</Table.Td>
+        <Table.Td>{medType.ppv}</Table.Td>
+        <Table.Td>{medType.totalFreeUnits}</Table.Td>
+        <Table.Td>{medType.pph}</Table.Td>
+        <Table.Td>{medType.totalPurchasePrice}</Table.Td>
+        <Table.Td>{medType.discountRate}</Table.Td>
+      </Table.Tr>
+    ))
+  }
+
+  const { mutateAsync: createBill } = useMutation({
+    mutationFn: async (data: any) => {
+      return (await http.post('/api/bill', data)).data
+    }
+  })
 
   return (
     <Box>
-      {JSON.stringify(totalsByMedicationType)}
       <Group>
         <Select
           required
@@ -406,51 +510,96 @@ function NewBillPage() {
                   <Table.Th>PPV</Table.Th>
                   <Table.Th>Gratuit PPV</Table.Th>
                   <Table.Th>PPH BRUT</Table.Th>
-                  <Table.Th>PPH NET</Table.Th>
+                  <Table.Th>PPH NET TTC</Table.Th>
                   <Table.Th>Dont Remise</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {totalsByMedicationType.map((medType) => (
-                  <Table.Tr
-                    key={`${medType.medicationType}-${medType.tva}-${medType.marge}`}
-                  >
-                    <Table.Td>{medType.medicationType}</Table.Td>
-                    <Table.Td>{medType.marge}</Table.Td>
-                    <Table.Td>{medType.tva}</Table.Td>
-                    <Table.Td>{medType.ppv}</Table.Td>
-                    <Table.Td>{medType.totalFreeUnits}</Table.Td>
-                    <Table.Td>{medType.pph}</Table.Td>
-                    <Table.Td>{medType.totalPurchasePrice}</Table.Td>
-                    <Table.Td>{medType.discountRate}</Table.Td>
-                  </Table.Tr>
-                ))}
+                {renderTableRows(totalsByMedicationType.deliveryNote)}
+                {renderTableRows(totalsByMedicationType.creditNote)}
               </Table.Tbody>
             </Table>
           </ScrollArea>
         </Grid.Col>
         <Grid.Col span={4}>
-          <Stack h="100%">
-            <Box flex="1">
-              <Group grow mb="md">
-                <TextInput type="number" label="N° Facture" />
-                <DatePickerInput label="Date Facture" />
-              </Group>
-              <Radio.Group name="paymentType" label="Type de paiement">
-                <Group mt="xs" grow>
-                  <Radio value="effet" label="Effet" />
-                  <Radio value="chèque" label="Chèque" />
-                  <Radio value="espèce" label="Espèce" />
-                  <Radio value="non-réglée" label="Non Réglée" />
+          <form
+            onSubmit={form.onSubmit(async (values) => {
+              await createBill(values, {
+                onSuccess: () => {
+                  toast.success('Facture enregistre avec succès')
+                  form.reset()
+                  setSelectedRows([]) // Correctly use the state updater function here
+                },
+                onError: () => {
+                  toast.error("Erreur lors de l'enregistrement de la facture")
+                }
+              })
+            })}
+          >
+            <Stack h="100%">
+              <Box flex="1">
+                <Group grow mb="md">
+                  <TextInput
+                    type="number"
+                    label="N° Facture"
+                    {...form.getInputProps('billNumber')}
+                  />
+                  <DatePickerInput
+                    label="Date Facture"
+                    {...form.getInputProps('billDate')}
+                  />
                 </Group>
-              </Radio.Group>
-            </Box>
-            <TextInput size="xl" label="TOTAL TCC" />
-            <Button mt="sm" size="xl">
-              {' '}
-              Validation Facture
-            </Button>
-          </Stack>
+                <Radio.Group
+                  name="paymentType"
+                  label="Type de paiement"
+                  {...form.getInputProps('paymentType')}
+                >
+                  <Group mt="xs" grow>
+                    <Radio value="effet" label="Effet" />
+                    <Radio value="chèque" label="Chèque" />
+                    <Radio value="espèce" label="Espèce" />
+                    <Radio value="non-réglée" label="Non Réglée" />
+                  </Group>
+                </Radio.Group>
+                <Stack mt="md">
+                  <TextInput
+                    disabled={form.getValues().paymentType !== 'effet'}
+                    type="number"
+                    label="N° EFFET"
+                    {...form.getInputProps('effectNumber')}
+                  />
+                  <DatePickerInput
+                    disabled={form.getValues().paymentType !== 'effet'}
+                    label="Échéance Du"
+                    {...form.getInputProps('dueDate')}
+                  />
+                  <Divider />
+                  <TextInput
+                    disabled={form.getValues().paymentType !== 'chèque'}
+                    type="number"
+                    label="N° Chèque"
+                    {...form.getInputProps('checkNumber')}
+                  />
+                  <TextInput
+                    disabled={form.getValues().paymentType !== 'chèque'}
+                    type="number"
+                    label="BANQUE pour gestion relevé bancaire"
+                    {...form.getInputProps('bankName')}
+                  />
+                </Stack>
+              </Box>
+              <TextInput
+                label="TOTAL TCC"
+                description="Valeur TTC = (PPH BL - PPH Avoirs)"
+                size="lg"
+                readOnly
+                {...form.getInputProps('totalPayment')}
+              />
+              <Button mt="sm" size="lg" type="submit">
+                Validation Facture
+              </Button>
+            </Stack>
+          </form>
         </Grid.Col>
       </Grid>
     </Box>

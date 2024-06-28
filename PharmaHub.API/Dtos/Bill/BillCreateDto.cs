@@ -12,9 +12,6 @@ public class BillCreateDto : BaseDto<BillCreateDto, Bill>
 
     public string? BankName { get; set; }
     public decimal TotalPayment { get; set; }
-    public decimal TotalPph { get; set; }
-    public decimal TotalPphBrut { get; set; }
-    public decimal TotalPpv { get; set; }
-    public decimal TotalFreePpv { get; set; }
-    public List<int> DeliveryIds { get; set; }
+    public List<int> DeliveriesIds { get; set; } = [];
+    public List<int> CreditNotesIds { get; set; } = [];
 }

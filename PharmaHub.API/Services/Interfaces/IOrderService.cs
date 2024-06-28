@@ -90,7 +90,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         to ??= DateTime.UtcNow;
 
         var query = dbContext.Deliveries.AsNoTracking()
-            .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to);
+            .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to && d.BillId == null);
 
         if (supplier > 0)
         {
