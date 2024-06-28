@@ -113,5 +113,11 @@ public class MedicamentsController(IMedicationService medicationService, IServic
         return Ok();
     }
 
+    [HttpGet("top-sold-products")]
+    public async Task<ActionResult> GetTopSoldProductsAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        return Ok(await medicationService.GetTopSoldProductsAsync(startDate, endDate));
+    }
+
 
 }

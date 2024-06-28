@@ -21,7 +21,7 @@ public interface IMedicationService : IService<Medication>
     Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
     Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default);
     Task SetupMedicationPartialSale(int id, PartialSaleMedicationConfig request, CancellationToken cancellationToken = default);
-
+    Task<List<TopSoldProduct>> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null);
 }
 
 
@@ -235,4 +235,30 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<List<TopSoldProduct>> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        startDate ??= DateTime.Now.AddYears(-1);
+        endDate ??= DateTime.Now;
+
+        var topSoldProducts = await dbContext.SaleMedications
+            .Where(sm => sm.Sale.CreatedAt >= startDate && sm.Sale.CreatedAt <= endDate)
+            .GroupBy(sm => sm.Inventory.Medication)
+            .Select(g => new TopSoldProduct
+            {
+                MedicationName = g.Key.Name,
+                TotalQuantitySold = g.Sum(sm => sm.Quantity)
+            })
+            .OrderByDescending(p => p.TotalQuantitySold)
+            .Take(10)
+            .ToListAsync();
+
+        return topSoldProducts;
+    }
+}
+
+public class TopSoldProduct
+{
+    public string MedicationName { get; set; }
+    public int TotalQuantitySold { get; set; }
 }

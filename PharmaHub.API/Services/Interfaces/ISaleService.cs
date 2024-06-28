@@ -13,6 +13,8 @@ public interface ISaleService
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
     Task CancelSale(int saleId, int? inventoryId, CancellationToken cancellationToken);
 
+    Task<List<TimeSeriesData>> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
+
 }
 
 
@@ -359,4 +361,29 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             throw new Exception("An error occurred while canceling the sale.", ex);
         }
     }
+
+    public async Task<List<TimeSeriesData>> GetSalesCountByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    {
+        startDate ??= DateTime.Now.AddMonths(-1);
+        endDate ??= DateTime.Now;
+
+        var salesCountByDate = await dbContext.Sales
+            .Where(s => s.CreatedAt >= startDate && s.CreatedAt <= endDate)
+            .GroupBy(s => s.CreatedAt.Date)
+            .Select(g => new TimeSeriesData
+            {
+                Date = g.Key.ToString("MM/dd/yyyy"),
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        return salesCountByDate;
+    }
+
+}
+
+public class TimeSeriesData
+{
+    public string Date { get; set; }
+    public int Count { get; set; }
 }

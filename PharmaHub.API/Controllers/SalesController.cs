@@ -68,4 +68,13 @@ public class SalesController(ISaleService saleService) : ControllerBase
     {
         return Ok(await saleService.GetNextSaleNumberAsync(cancellationToken));
     }
+
+    [HttpGet("count")]
+    [MustHavePermission(AppAction.View, AppResource.Sales)]
+    public async Task<ActionResult> GetSalesCountByDateRange([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken cancellationToken)
+    {
+        var salesCountByDateRange = await saleService.GetSalesCountByDateRangeAsync(startDate, endDate, cancellationToken);
+        return Ok(salesCountByDateRange);
+    }
+
 }

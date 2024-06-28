@@ -1,9 +1,9 @@
 import '@mantine/core/styles.css'
 import 'mantine-react-table/styles.css'
 import '@mantine/dates/styles.css'
+import '@mantine/charts/styles.css'
 
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Button, createTheme, MantineProvider } from '@mantine/core'

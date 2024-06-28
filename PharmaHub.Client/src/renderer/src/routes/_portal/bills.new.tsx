@@ -528,7 +528,7 @@ function NewBillPage() {
                 onSuccess: () => {
                   toast.success('Facture enregistre avec succès')
                   form.reset()
-                  setSelectedRows([]) // Correctly use the state updater function here
+                  setSelectedRows([])
                 },
                 onError: () => {
                   toast.error("Erreur lors de l'enregistrement de la facture")
