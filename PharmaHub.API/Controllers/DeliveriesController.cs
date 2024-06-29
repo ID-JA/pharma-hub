@@ -79,44 +79,17 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
         return Ok(await deliveryService.GetOrdersAndDeliveriesByDateRangeAsync(startDate, endDate));
     }
 
-    [HttpGet("orders/pdf")]
-    public FileStreamResult GetPDF()
+    [HttpGet("document")]
+    public async Task<IActionResult> GetDeliveryDocument([FromQuery] int deliveryNumber, CancellationToken cancellationToken)
     {
-        Document document = Document.Create(container =>
-        {
-            container.Page(page =>
-            {
-                page.Size(PageSizes.A4);
-                page.Margin(2, Unit.Centimetre);
-                page.PageColor(Colors.White);
-                page.DefaultTextStyle(x => x.FontSize(20));
-                page.Header()
-                    .Text("Hello PDF!")
-                    .SemiBold().FontSize(36).FontColor(Colors.Blue.Medium);
+        var delivery = await deliveryService.GetDeliveryDetails(deliveryNumber, cancellationToken);
+        if (delivery is null) return NotFound();
 
-                page.Content()
-                    .PaddingVertical(1, Unit.Centimetre)
-                    .Column(x =>
-                    {
-                        x.Spacing(20);
+        var document = new DeliveryDocument(delivery.ToEntity());
+        var pdfBytes = document.GeneratePdf();
+        var base64String = Convert.ToBase64String(pdfBytes);
 
-                        x.Item().Text(Placeholders.LoremIpsum());
-                        x.Item().Image(Placeholders.Image(200, 100));
-                    });
-
-                page.Footer()
-                    .AlignCenter()
-                    .Text(x =>
-                    {
-                        x.Span("Page ");
-                        x.CurrentPageNumber();
-                    });
-            });
-        });
-        byte[] pdfBytes = document.GeneratePdf();
-        MemoryStream ms = new MemoryStream(pdfBytes);
-        return new FileStreamResult(ms, "application/pdf");
-
+        return Ok(new { Base64 = base64String });
     }
 
 }

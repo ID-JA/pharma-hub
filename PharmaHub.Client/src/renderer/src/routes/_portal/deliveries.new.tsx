@@ -15,8 +15,10 @@ import {
 import { DatePickerInput } from '@mantine/dates'
 import { useForm, zodResolver } from '@mantine/form'
 import { modals } from '@mantine/modals'
+import { Viewer, Worker } from '@react-pdf-viewer/core'
 import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
 import { usePendingOrdersSelectorModal } from '@renderer/components/Orders/PendingOrdersSelectorModal'
+import { base64toBlob } from '@renderer/utils/functions'
 import { http } from '@renderer/utils/http'
 import { IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -24,7 +26,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { memo, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
-
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
+import { version } from 'pdfjs-dist'
+import '@react-pdf-viewer/core/lib/styles/index.css'
+import '@react-pdf-viewer/default-layout/lib/styles/index.css'
 export const Route = createFileRoute('/_portal/deliveries/new')({
   component: NewDeliveryPage
 })
@@ -409,6 +414,7 @@ export function NewDeliveryPage() {
       return res.data
     }
   })
+  const defaultLayoutPluginInstance = defaultLayoutPlugin()
 
   return (
     <Box px="lg" py="md">
@@ -434,8 +440,34 @@ export function NewDeliveryPage() {
             createDelivery(
               { ...values, ...totals },
               {
-                onSuccess: () => {
+                onSuccess: async (data) => {
                   toast.success('La livraison a été mise à jour avec succès.')
+
+                  const response = await http.get(`/api/deliveries/document`, {
+                    params: {
+                      deliveryNumber: form.getValues().deliveryNumber
+                    }
+                  })
+                  const url = URL.createObjectURL(
+                    base64toBlob(response.data.base64)
+                  )
+                  modals.open({
+                    fullScreen: true,
+                    style: {
+                      zIndex: 999999
+                    },
+                    title: 'Ticket',
+                    children: (
+                      <Worker
+                        workerUrl={`https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.Worker.min.js`}
+                      >
+                        <Viewer
+                          fileUrl={url}
+                          plugins={[defaultLayoutPluginInstance]}
+                        />
+                      </Worker>
+                    )
+                  })
                   form.reset()
                   setSelectedDeliveryItems([])
                 },

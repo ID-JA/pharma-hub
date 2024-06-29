@@ -46,6 +46,7 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
 import { version } from 'pdfjs-dist'
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'
+import { base64toBlob } from '@renderer/utils/functions'
 
 export const Route = createFileRoute('/_portal/sales/news')({
   component: SaleNewsPage
@@ -85,23 +86,6 @@ const SaleSchema = z.object({
 })
 
 type Sale = z.infer<typeof SaleSchema>
-
-const pdfContentType = 'application/pdf'
-
-const base64toBlob = (data: string) => {
-  const base64WithoutPrefix = data.substr(
-    `data:${pdfContentType};base64,`.length
-  )
-  const bytes = atob(base64WithoutPrefix)
-  let length = bytes.length
-  let out = new Uint8Array(length)
-
-  while (length--) {
-    out[length] = bytes.charCodeAt(length)
-  }
-
-  return new Blob([out], { type: pdfContentType })
-}
 
 function SaleNewsPage() {
   const queryClient = useQueryClient()

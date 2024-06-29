@@ -60,7 +60,7 @@ public interface IDeliveryService
     Task<DeliveryBasicDto?> GetDeliveryByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<DeliveryDetailedDto?> GetDeliveryDetails(int deliveryNumber, CancellationToken cancellationToken = default);
 
-    Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default);
+    Task<int> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default);
     Task<bool> UpdateDelivery(int id, DeliveryUpdateDto request, CancellationToken cancellationToken = default);
     Task<bool> DeleteDelivery(int id, CancellationToken cancellationToken = default);
 
@@ -108,7 +108,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     }
 
 
-    public async Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)
+    public async Task<int> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)
     {
         var userId = currentUser.GetUserId();
 
@@ -230,7 +230,7 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return true;
+            return delivery.Id;
         }
         catch (Exception)
         {
