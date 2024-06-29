@@ -24,7 +24,7 @@ public class MedicationCreateDto : BaseDto<MedicationCreateDto, Models.Medicatio
     public int MinQuantity { get; set; }
     public int MaxQuantity { get; set; }
     public List<string> UsedBy { get; set; }
-    public bool WithPrescription { get; set; }
+    public string WithPrescription { get; set; }
     public string? Section { get; set; }
     public InventoryCreateDto Inventory { get; set; }
 

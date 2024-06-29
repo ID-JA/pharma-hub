@@ -1,40 +1,53 @@
 import { Select } from '@mantine/core'
-import { useDebouncedState } from '@mantine/hooks'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
 
-const SearchMedicament = ({ setValue, label }) => {
-  const [search, setSearch] = useDebouncedState('', 500)
-
+const SearchMedicament = ({
+  setValue,
+  label,
+  medicationName,
+  search,
+  setSearch,
+  readOnly
+}: {
+  setValue: (v: number) => void
+  label: string
+  medicationName?: any
+  search: string
+  setSearch: (v: string) => void
+  readOnly: boolean
+}) => {
   const { data: medicaments = [] } = useQuery({
     queryKey: ['searchedMedicament', search],
     queryFn: async () => {
       const response = await http.get('/api/medicaments/search/names', {
         params: {
-          query: search
+          query: search || medicationName
         }
       })
       return response.data.map((item) => ({
-        value: item.id.toString(),
-        label: item.name
+        value: item.name,
+        label: item.name,
+        id: item.id
       }))
     },
-    enabled: !!search
+    enabled: !!search || !!medicationName
   })
 
   return (
     <Select
+      readOnly={readOnly}
       clearable
       label={label}
       searchable
       data={medicaments}
-      defaultValue={search}
+      value={medicationName}
       onSearchChange={setSearch}
-      onChange={(value) => {
-        console.log(value)
-        setValue(value)
+      onChange={(v, option: any) => {
+        setValue(option.id)
       }}
     />
   )
 }
+
 export default SearchMedicament

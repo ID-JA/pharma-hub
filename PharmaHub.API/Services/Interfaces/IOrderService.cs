@@ -56,7 +56,7 @@ public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 
 public interface IDeliveryService
 {
-    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime? from = null, DateTime? to = null, int supplier = 0, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task<DeliveryBasicDto?> GetDeliveryByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<DeliveryDetailedDto?> GetDeliveryDetails(int deliveryNumber, CancellationToken cancellationToken = default);
 
@@ -66,6 +66,8 @@ public interface IDeliveryService
 
     Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken);
     Task<PaginatedResponse<OrderItemDetailedDto>> GetOrders(OrderSearchQuery searchQuery, CancellationToken cancellationToken);
+
+    Task<List<OrdersDeliveriesData>> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
 }
 
 
@@ -78,10 +80,19 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     .ProjectToType<DeliveryBasicDto>()
     .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime from, DateTime to, int supplier, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(
+     DateTime? from = null,
+     DateTime? to = null,
+     int supplier = 0,
+     int pageNumber = 1,
+     int pageSize = 10,
+     CancellationToken cancellationToken = default)
     {
+        from ??= DateTime.UtcNow.AddDays(-7);
+        to ??= DateTime.UtcNow;
+
         var query = dbContext.Deliveries.AsNoTracking()
-            .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to);
+            .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to && d.BillId == null);
 
         if (supplier > 0)
         {
@@ -90,90 +101,148 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         var result = await query
             .OrderBy(d => d.DeliveryDate)
-            // .Include(d => d.DeliveryMedications)
             .ProjectToType<DeliveryDetailedDto>()
             .PaginatedListAsync(1, 1000);
 
         return result;
     }
 
+
     public async Task<bool> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)
     {
         var userId = currentUser.GetUserId();
-        Delivery delivery = new()
+
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            UserId = userId,
-            DeliveryDate = request.DeliveryDate,
-            DeliveryNumber = request.DeliveryNumber,
-            TotalQuantity = request.DeliveryMedications.Sum(item => item.DeliveredQuantity),
-            SupplierId = request.SupplierId
-        };
-
-        dbContext.Deliveries.Add(delivery);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        foreach (var item in request.DeliveryMedications)
-        {
-            var inventory = await dbContext.Inventories.FindAsync([item.InventoryId], cancellationToken);
-
-
-
-            // update order items if the order item id is > 0 else we create it
-            if (item.OrderItemId > 0)
+            var delivery = new Delivery
             {
-                var orderItem = await dbContext.OrderDeliveryInventories.FindAsync([item.OrderItemId], cancellationToken);
-                if (orderItem is not null)
+                TotalPpv = request.TotalPpv,
+                TotalFreePpv = request.TotalFreePpv,
+                TotalNetPph = request.TotalNetPph,
+                TotalBrutPph = request.TotalBrutPph,
+                DiscountedAmount = request.DiscountedAmount,
+                UserId = userId,
+                DeliveryDate = request.DeliveryDate,
+                DeliveryNumber = request.DeliveryNumber,
+                TotalQuantity = request.DeliveryMedications.Sum(item => item.DeliveredQuantity),
+                SupplierId = request.SupplierId
+            };
+            dbContext.Deliveries.Add(delivery);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            var inventoryIds = request.DeliveryMedications.Select(dm => dm.InventoryId).Distinct().ToList();
+            var inventories = await dbContext.Inventories
+                .Where(i => inventoryIds.Contains(i.Id))
+                .ToDictionaryAsync(i => i.Id, cancellationToken);
+
+            var inventoryHistories = new List<InventoryHistory>();
+            var updatedOrderIds = new HashSet<int>();
+            var newOrderDeliveryInventories = new List<OrderDeliveryInventory>();
+
+            foreach (var item in request.DeliveryMedications)
+            {
+                if (!inventories.TryGetValue(item.InventoryId, out var inventory))
                 {
-                    orderItem.Status = "Delivered";
-                    orderItem.DeliveryId = delivery.Id;
-                    orderItem.DeliveredQuantity = item.DeliveredQuantity;
-                    orderItem.TotalFreeUnits = item.TotalFreeUnits;
-                    orderItem.DiscountRate = item.DiscountRate;
+                    continue;
+                }
 
-                    dbContext.OrderDeliveryInventories.Update(orderItem);
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                var previousBoxQuantity = inventory.BoxQuantity;
+                var previousUnitQuantity = inventory.UnitQuantity;
 
-                    // Check if all order items for this order have been processed
-                    bool allItemsProcessed = await dbContext.OrderDeliveryInventories
-                        .Where(oi => oi.OrderId == orderItem.OrderId)
-                        .AllAsync(oi => oi.Status == "Delivered", cancellationToken);
+                if (item.OrderItemId > 0)
+                {
+                    var orderDeliveryInventory = await dbContext.OrderDeliveryInventories
+                        .FirstOrDefaultAsync(odi => odi.Id == item.OrderItemId, cancellationToken);
 
-                    if (allItemsProcessed)
+                    if (orderDeliveryInventory != null)
                     {
-                        var orderToUpdate = await dbContext.Orders.FindAsync([orderItem.OrderId], cancellationToken);
-                        if (orderToUpdate is not null)
-                        {
-                            orderToUpdate.Status = "Delivered";
-                            dbContext.Orders.Update(orderToUpdate);
-                        }
+                        orderDeliveryInventory.Status = "Delivered";
+                        orderDeliveryInventory.DeliveryId = delivery.Id;
+                        orderDeliveryInventory.DeliveredQuantity = item.DeliveredQuantity;
+                        orderDeliveryInventory.TotalFreeUnits = item.TotalFreeUnits;
+                        orderDeliveryInventory.DiscountRate = item.DiscountRate;
+
+                        updatedOrderIds.Add(orderDeliveryInventory.OrderId!.Value);
+                        dbContext.OrderDeliveryInventories.Update(orderDeliveryInventory);
+                    }
+                }
+                else
+                {
+                    var newOrderDeliveryInventory = new OrderDeliveryInventory
+                    {
+                        InventoryId = item.InventoryId,
+                        DeliveredQuantity = item.DeliveredQuantity,
+                        DeliveryId = delivery.Id,
+                        DiscountRate = item.DiscountRate,
+                        OrderedQuantity = 0,
+                        Status = "Delivered",
+                        TotalFreeUnits = item.TotalFreeUnits,
+                        PurchasePriceUnit = inventory.Pph,
+                        TotalPurchasePrice = inventory.Pph * item.DeliveredQuantity,
+                    };
+                    newOrderDeliveryInventories.Add(newOrderDeliveryInventory);
+                    dbContext.OrderDeliveryInventories.Add(newOrderDeliveryInventory);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                }
+
+                inventory.BoxQuantity += item.DeliveredQuantity + item.TotalFreeUnits;
+
+                var inventoryHistory = new InventoryHistory
+                {
+                    InventoryId = inventory.Id,
+                    PreviousBoxQuantity = previousBoxQuantity,
+                    PreviousUnitQuantity = previousUnitQuantity,
+                    NewBoxQuantity = inventory.BoxQuantity,
+                    NewUnitQuantity = inventory.UnitQuantity,
+                    ChangeDate = DateTime.UtcNow,
+                    ChangeType = "Refill",
+                    OrderDeliveryInventoryId = item.OrderItemId > 0 ? item.OrderItemId : newOrderDeliveryInventories.Last().Id
+                };
+
+                inventoryHistories.Add(inventoryHistory);
+            }
+
+            dbContext.InventoryHistories.AddRange(inventoryHistories);
+            dbContext.Inventories.UpdateRange(inventories.Values);
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            foreach (var orderId in updatedOrderIds)
+            {
+                bool allItemsProcessed = await dbContext.OrderDeliveryInventories
+                    .Where(oi => oi.OrderId == orderId)
+                    .AllAsync(oi => oi.Status == "Delivered", cancellationToken);
+
+                if (allItemsProcessed)
+                {
+                    var orderToUpdate = await dbContext.Orders
+                        .FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Status = "Delivered";
+                        dbContext.Orders.Update(orderToUpdate);
                     }
                 }
             }
-            else
-            {
-                var deliveryItem = new OrderDeliveryInventory()
-                {
-                    InventoryId = item.InventoryId,
-                    DeliveredQuantity = item.DeliveredQuantity,
-                    DeliveryId = delivery.Id,
-                    DiscountRate = item.DiscountRate,
-                    OrderedQuantity = 0,
-                    Status = "Delivered",
-                    TotalFreeUnits = item.TotalFreeUnits,
-                    PurchasePriceUnit = inventory.Pph,
-                    TotalPurchasePrice = inventory.Pph * item.DeliveredQuantity,
-                };
-
-                dbContext.OrderDeliveryInventories.Add(deliveryItem);
-
-            }
-            if (inventory is null) continue;
-
-            inventory.Quantity += item.DeliveredQuantity + item.TotalFreeUnits;
 
             await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return true;
         }
-        return true;
+        catch (Exception)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
+
+
+
+
+
     public async Task<bool> UpdateDelivery(int id, DeliveryUpdateDto request, CancellationToken cancellationToken = default)
     {
         var existingDelivery = await dbContext.Deliveries
@@ -185,15 +254,12 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         var requestItemIds = request.DeliveryMedications.Select(dm => dm.OrderItemId).ToList();
 
-        // Find deleted items
         var deletedItems = existingDelivery.OrderDeliveryInventories
             .Where(oldItem => !requestItemIds.Contains(oldItem.Id))
             .ToList();
 
-        // Cache inventory updates to minimize DB calls
         var inventoryUpdates = new Dictionary<int, int>();
 
-        // Process deleted items
         foreach (var item in deletedItems)
         {
             if (!inventoryUpdates.ContainsKey(item.InventoryId))
@@ -204,7 +270,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             dbContext.OrderDeliveryInventories.Remove(item);
         }
 
-        // Process updated and new items
         foreach (var item in request.DeliveryMedications)
         {
             var deliveryItem = existingDelivery.OrderDeliveryInventories
@@ -212,7 +277,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
             if (deliveryItem == null)
             {
-                // New delivery item
                 deliveryItem = new OrderDeliveryInventory
                 {
                     InventoryId = item.InventoryId,
@@ -229,14 +293,12 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             }
             else
             {
-                // Adjust inventory quantity for the old item values
                 if (!inventoryUpdates.ContainsKey(deliveryItem.InventoryId))
                 {
                     inventoryUpdates[deliveryItem.InventoryId] = 0;
                 }
                 inventoryUpdates[deliveryItem.InventoryId] -= deliveryItem.DeliveredQuantity + deliveryItem.TotalFreeUnits;
 
-                // Update existing delivery item
                 deliveryItem.DeliveredQuantity = item.DeliveredQuantity;
                 deliveryItem.DiscountRate = item.DiscountRate;
                 deliveryItem.OrderedQuantity = item.OrderedQuantity;
@@ -248,7 +310,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
                 dbContext.OrderDeliveryInventories.Update(deliveryItem);
             }
 
-            // Update inventory quantity for the new item values
             if (!inventoryUpdates.ContainsKey(item.InventoryId))
             {
                 inventoryUpdates[item.InventoryId] = 0;
@@ -256,7 +317,6 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
             inventoryUpdates[item.InventoryId] += item.DeliveredQuantity + item.TotalFreeUnits;
         }
 
-        // Apply inventory updates
         var inventoryIds = inventoryUpdates.Keys.ToList();
         var inventories = await dbContext.Inventories
             .Where(inv => inventoryIds.Contains(inv.Id))
@@ -264,15 +324,18 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
         foreach (var inventory in inventories)
         {
-            inventory.Quantity += inventoryUpdates[inventory.Id];
+            inventory.BoxQuantity += inventoryUpdates[inventory.Id];
             dbContext.Inventories.Update(inventory);
         }
 
-        // Update the total quantity in the delivery
         existingDelivery.TotalQuantity = request.DeliveryMedications.Sum(item => item.DeliveredQuantity + item.TotalFreeUnits);
+        existingDelivery.TotalPpv = request.TotalPpv;
+        existingDelivery.TotalFreePpv = request.TotalFreePpv;
+        existingDelivery.TotalNetPph = request.TotalNetPph;
+        existingDelivery.TotalBrutPph = request.TotalBrutPph;
+        existingDelivery.DiscountedAmount = request.DiscountedAmount;
         dbContext.Deliveries.Update(existingDelivery);
 
-        // Save changes
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -352,6 +415,26 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         return result;
     }
 
+    public async Task<List<OrdersDeliveriesData>> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    {
+        startDate ??= DateTime.Now.AddMonths(-1);
+        endDate ??= DateTime.Now;
+
+        var combinedData = await dbContext.OrderDeliveryInventories
+            .Where(odi => odi.CreatedAt >= startDate && odi.CreatedAt <= endDate)
+            .GroupBy(odi => odi.CreatedAt.Date)
+            .Select(g => new OrdersDeliveriesData
+            {
+                Date = g.Key.ToString("MM/dd/yyyy"),
+                QuantityOrdered = g.Where(odi => odi.OrderId != null).Sum(odi => odi.OrderedQuantity),
+                QuantityReceived = g.Sum(odi => odi.DeliveredQuantity)
+            })
+            .ToListAsync(cancellationToken);
+
+        return combinedData;
+    }
+
+
     // DON'T DELETE IT: we could use this function in the future
     public async Task RollBackQuantityAsync(int itemId)
     {
@@ -391,4 +474,11 @@ public class OrderSearchQuery
     public int Supplier { get; set; }
     public DateTime From { get; set; } = DateTime.Now;
     public DateTime To { get; set; } = DateTime.Now;
+}
+
+public class OrdersDeliveriesData
+{
+    public string Date { get; set; }
+    public int QuantityOrdered { get; set; }
+    public int QuantityReceived { get; set; }
 }

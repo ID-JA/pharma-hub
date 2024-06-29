@@ -36,7 +36,7 @@ export function InventorySelectorDrawer({
     return (
       <Table.Tr key={item.inventory.id}>
         <Table.Td>{item.medication.name}</Table.Td>
-        <Table.Td ta="center">{item.inventory.quantity}</Table.Td>
+        <Table.Td ta="center">{item.inventory.boxQuantity}</Table.Td>
         <Table.Td ta="center">{item.inventory.ppv}</Table.Td>
         <Table.Td ta="center">{item.inventory.pph}</Table.Td>
         <Table.Td ta="center">
@@ -103,7 +103,7 @@ export const useInventorySelector = ({
   const InventorySelectorDrawerButtonCallback = useCallback(() => {
     return (
       <Button onClick={open} variant="light">
-        Select Inventory
+        Sélectionner inventaire
       </Button>
     )
   }, [open])

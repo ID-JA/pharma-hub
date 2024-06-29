@@ -15,6 +15,6 @@ public class InventoryMedicationDto : BaseDto<InventoryMedicationDto, Models.Inv
             .Map(src => src.Inventory.Ppv, dest => dest.Ppv)
             .Map(src => src.Inventory.ExpirationDate, dest => dest.ExpirationDate)
             .Map(src => src.Inventory.Pph, dest => dest.Pph)
-            .Map(src => src.Inventory.Quantity, dest => dest.Quantity);
+            .Map(src => src.Inventory.BoxQuantity, dest => dest.BoxQuantity);
     }
 }

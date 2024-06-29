@@ -1,5 +1,4 @@
 import {
-  Container,
   Fieldset,
   Group,
   TextInput,
@@ -10,7 +9,7 @@ import {
   Checkbox,
   Table
 } from '@mantine/core'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { http } from '@renderer/utils/http'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
@@ -18,7 +17,7 @@ import { IconBarcode, IconCategory } from '@tabler/icons-react'
 import SearchMedicament from '@renderer/components/Medicaments/SearchMedicament'
 
 export const Route = createFileRoute('/_portal/medicaments/consultation')({
-  component: StockDetail
+  component: MedicationConsultationPage
 })
 
 const DEFAULT_VALUE = {
@@ -26,7 +25,7 @@ const DEFAULT_VALUE = {
   name: '',
   dosage: '',
   barcode: '',
-  dci: '',
+  dci: [],
   form: '',
   family: '',
   type: '',
@@ -46,51 +45,69 @@ const DEFAULT_VALUE = {
   quantity: 0,
   minQuantity: 0,
   maxQuantity: 0,
-  usedBy: 0,
+  usedBy: [],
   withPrescription: false,
-  section: ''
+  section: '',
+  inventories: []
 }
 type TMedicament = typeof DEFAULT_VALUE
-function StockDetail() {
-  const [medicamentId, setMedicamentId] = useState(null)
-  const { data } = useQuery<TMedicament>({
-    queryKey: ['medicamentDetail', medicamentId],
+
+function MedicationConsultationPage() {
+  return <StockDetail />
+}
+
+export const useMedication = (id) => {
+  return useQuery<TMedicament>({
+    queryKey: ['medicamentDetail', { id }],
     queryFn: async () => {
-      return (await http.get(`/api/medicaments/${medicamentId}`)).data
+      return (await http.get(`/api/medicaments/${id}`)).data
     },
     initialData: DEFAULT_VALUE,
-    enabled: medicamentId ? true : false
+    enabled: id ? true : false
   })
+}
 
-  const { data: inventories = [] } = useQuery({
-    queryKey: ['medication-inventories', medicamentId],
-    queryFn: async () => {
-      const res = await http.get(`/api/medicaments/${medicamentId}/inventories`)
-      return res.data.inventories
-    },
-    enabled: !!medicamentId
-  })
+function StockDetail() {
+  const searchParams = useSearch({ strict: false }) as { medicationId: number }
+
+  const [medicamentId, setMedicamentId] = useState(searchParams.medicationId)
+  const [search, setSearch] = useState('')
+
+  const { data: medication } = useMedication(
+    searchParams.medicationId || medicamentId
+  )
 
   const totalQuantity = useMemo(
-    () => inventories.reduce((acc, item) => acc + item.quantity, 0),
-    [inventories]
+    () =>
+      medication?.inventories?.reduce(
+        (acc, item: any) => acc + item.quantity,
+        0
+      ),
+    [medication]
   )
 
   return (
     <>
       <Group grow mb="xl">
-        <SearchMedicament label="Nom de produit" setValue={setMedicamentId} />
+        <SearchMedicament
+          medicationName={medicamentId ? medication?.name : ''}
+          label="Nom de produit"
+          setValue={setMedicamentId}
+          search={search}
+          readOnly={!!searchParams.medicationId}
+          setSearch={setSearch}
+        />
         <TextInput
           label="Code Bar"
           leftSection={<IconBarcode />}
           readOnly
-          defaultValue={data.barcode}
+          defaultValue={medication.barcode}
         />
         <TextInput
           label="Form"
           leftSection={<IconCategory />}
           readOnly
-          defaultValue={data.form}
+          defaultValue={medication.form}
         />
       </Group>
       <Group grow align="start">
@@ -100,28 +117,32 @@ function StockDetail() {
               <InputBase
                 label="Medicament Name"
                 readOnly
-                defaultValue={data.name}
+                defaultValue={medication.name}
               />
-              <InputBase label="Section" readOnly defaultValue={data.section} />
+              <InputBase
+                label="Section"
+                readOnly
+                defaultValue={medication.section}
+              />
             </Group>
             <Group>
               <InputBase
                 flex="1"
                 label="Tax Nature"
                 readOnly
-                defaultValue={data.type}
+                defaultValue={medication.type}
               />
               <InputBase
                 w="100px"
                 label="TVA"
                 readOnly
-                defaultValue={data.tva}
+                defaultValue={medication.tva}
               />
               <InputBase
                 w="100px"
                 label="Marge"
                 readOnly
-                defaultValue={data.marge}
+                defaultValue={medication.marge}
               />
             </Group>
           </Fieldset>
@@ -131,36 +152,36 @@ function StockDetail() {
                 w="150px"
                 label="Laboratory"
                 readOnly
-                defaultValue={data.laboratory}
+                defaultValue={medication.laboratory}
               />
               <InputBase
                 w="150px"
                 label="Supplier"
                 readOnly
-                defaultValue={data.laboratory}
+                defaultValue={medication.laboratory}
               />
               <InputBase
                 flex="1"
                 label="Order System:"
                 readOnly
-                defaultValue={data.orderSystem}
+                defaultValue={medication.orderSystem}
               />
             </Group>
             <Group grow>
               <InputBase
                 label="Reimbursement Rate (%)"
                 readOnly
-                defaultValue={data.reimbursementRate}
+                defaultValue={medication.reimbursementRate}
               />
               <InputBase
                 label="PFHT Active:"
                 readOnly
-                defaultValue={data.pfhtActive}
+                defaultValue={medication.pfhtActive}
               />
               <InputBase
                 label="PFHT Not Active:"
                 readOnly
-                defaultValue={data.pfhtNotActive}
+                defaultValue={medication.pfhtNotActive}
               />
             </Group>
           </Fieldset>
@@ -181,7 +202,7 @@ function StockDetail() {
                 name="WithPrescription"
                 readOnly
                 label="With Prescription"
-                value={data.withPrescription.toString()}
+                value={medication.withPrescription.toString()}
               >
                 <Group mt="xs">
                   <Radio value="true" label="Yes" />
@@ -190,8 +211,12 @@ function StockDetail() {
               </Radio.Group>
             </Group>
             <Group grow mb="lg">
-              <InputBase label="DCI" readOnly defaultValue={data.dci} />
-              <InputBase label="Family" readOnly defaultValue={data.family} />
+              <InputBase label="DCI" readOnly defaultValue={medication.dci} />
+              <InputBase
+                label="Family"
+                readOnly
+                defaultValue={medication.family}
+              />
             </Group>
           </Fieldset>
         </Stack>
@@ -206,7 +231,7 @@ function StockDetail() {
             <InputBase
               label="Medicament Name"
               readOnly
-              defaultValue={data.name}
+              defaultValue={medication.name}
             />
           </Group>
           <Table>
@@ -220,7 +245,7 @@ function StockDetail() {
             </Table.Thead>
 
             <Table.Tbody>
-              {inventories.map((item) => (
+              {medication.inventories.map((item: any) => (
                 <Table.Tr key={item.id}>
                   <Table.Td>{item.quantity}</Table.Td>
                   <Table.Td>{item.ppv}</Table.Td>
@@ -232,7 +257,7 @@ function StockDetail() {
               ))}
             </Table.Tbody>
           </Table>
-          <Textarea label="Dosage" readOnly defaultValue={data.dosage} />
+          <Textarea label="Dosage" readOnly defaultValue={medication.dosage} />
         </Stack>
       </Group>
     </>

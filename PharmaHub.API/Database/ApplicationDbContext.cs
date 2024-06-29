@@ -16,14 +16,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(s => s.SaleNumber)
             .HasDefaultValueSql("NEXT VALUE FOR SaleNumbers");
 
-        builder.Entity<InventoryHistory>(entity =>
-        {
-            entity.HasOne(e => e.Inventory)
-                .WithMany(i => i.InventoryHistories)
-                .HasForeignKey(e => e.InventoryId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-        builder.Entity<CreditNoteMedications>(entity =>
+        // builder.Entity<InventoryHistory>(entity =>
+        // {
+        //     entity.HasOne(e => e.Inventory)
+        //         .WithMany(i => i.InventoryHistories)
+        //         .HasForeignKey(e => e.InventoryId)
+        //         .OnDelete(DeleteBehavior.Cascade);
+        // });
+        builder.Entity<CreditNoteMedication>(entity =>
            {
                entity.HasKey(e => new { e.CreditNoteId, e.InventoryId });
 
@@ -94,13 +94,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<OrderDeliveryInventory> OrderDeliveryInventories { get; set; }
     // public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<SaleMedications> SaleMedications { get; set; }
+    public DbSet<SaleMedication> SaleMedications { get; set; }
     // public DbSet<DeliveryMedication> DeliveryMedications { get; set; }
     public DbSet<InventoryHistory> InventoryHistories { get; set; }
     public DbSet<Tax> Taxes { get; set; }
     public DbSet<Client> Clients { get; set; }
     public DbSet<CreditNote> CreditNotes { get; set; }
-    public DbSet<CreditNoteMedications> CreditNoteMedications { get; set; }
+    public DbSet<CreditNoteMedication> CreditNoteMedications { get; set; }
 
 
 }

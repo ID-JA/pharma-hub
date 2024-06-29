@@ -19,9 +19,25 @@ public class SalesController(ISaleService saleService) : ControllerBase
 
     [HttpGet]
     [MustHavePermission(AppAction.View, AppResource.Sales)]
-    public async Task<ActionResult> GetSales(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetSales(
+       [FromQuery] DateTime? from,
+       [FromQuery] DateTime? to,
+       [FromQuery] int? saleNumber,
+       CancellationToken cancellationToken)
     {
-        return Ok(await saleService.GetSalesAsync(cancellationToken));
+        var sales = await saleService.GetSalesAsync(from, to, saleNumber, cancellationToken);
+        return Ok(sales);
+    }
+
+    [HttpDelete("cancel")]
+    [MustHavePermission(AppAction.View, AppResource.Sales)]
+    public async Task<ActionResult> GetSales(
+       [FromQuery] int saleId,
+       [FromQuery] int? saleItemId,
+       CancellationToken cancellationToken)
+    {
+        await saleService.CancelSale(saleId, saleItemId, cancellationToken);
+        return Ok();
     }
 
     [HttpGet("{id:int}")]
@@ -54,11 +70,20 @@ public class SalesController(ISaleService saleService) : ControllerBase
         return Ok(await saleService.GetNextSaleNumberAsync(cancellationToken));
     }
 
+    [HttpGet("count")]
+    [MustHavePermission(AppAction.View, AppResource.Sales)]
+    public async Task<ActionResult> GetSalesCountByDateRange([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken cancellationToken)
+    {
+        var salesCountByDateRange = await saleService.GetSalesCountByDateRangeAsync(startDate, endDate, cancellationToken);
+        return Ok(salesCountByDateRange);
+    }
+
+
     [HttpGet("{id:int}/ticket")]
     public async Task<FileStreamResult?> GetPDF(int id)
     {
         var sale = await saleService.GetSaleAsync(id, CancellationToken.None);
-        if(sale is null) return null;
+        if (sale is null) return null;
         var document = new SaleTicketDocment(sale.ToEntity());
         byte[] pdfBytes = document.GeneratePdf();
         MemoryStream ms = new MemoryStream(pdfBytes);

@@ -15,6 +15,7 @@ import { Route as PortalImport } from './routes/_portal'
 import { Route as IndexImport } from './routes/index'
 import { Route as PortalSettingsImport } from './routes/_portal/settings'
 import { Route as PortalSalesImport } from './routes/_portal/sales'
+import { Route as PortalMedicationsImport } from './routes/_portal/medications'
 import { Route as PortalMedicamentsImport } from './routes/_portal/medicaments'
 import { Route as PortalDashboardImport } from './routes/_portal/dashboard'
 import { Route as PortalSettingsIndexImport } from './routes/_portal/settings/index'
@@ -27,7 +28,7 @@ import { Route as PortalSalesNewImport } from './routes/_portal/sales_.new'
 import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
 import { Route as PortalOrdersNewImport } from './routes/_portal/orders.new'
 import { Route as PortalOrdersConsultationImport } from './routes/_portal/orders.consultation'
-import { Route as PortalMedicationsNewImport } from './routes/_portal/medications.new'
+import { Route as PortalMedicationsNewImport } from './routes/_portal/medications_.new'
 import { Route as PortalMedicamentsFormsImport } from './routes/_portal/medicaments_.forms'
 import { Route as PortalMedicamentsDciImport } from './routes/_portal/medicaments_.dci'
 import { Route as PortalMedicamentsConsultationImport } from './routes/_portal/medicaments_.consultation'
@@ -36,7 +37,8 @@ import { Route as PortalDeliveriesNewImport } from './routes/_portal/deliveries.
 import { Route as PortalDeliveriesConsultationImport } from './routes/_portal/deliveries.consultation'
 import { Route as PortalCreditNotesNewImport } from './routes/_portal/credit-notes.new'
 import { Route as PortalBillsNewImport } from './routes/_portal/bills.new'
-import { Route as PortalMedicationsInventoryNewImport } from './routes/_portal/medications.inventory.new'
+import { Route as PortalMedicationsInventoryNewImport } from './routes/_portal/medications_.inventory.new'
+import { Route as PortalMedicationsEditMedicationIdImport } from './routes/_portal/medications_.edit.$medicationId'
 import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
 
 // Create/Update Routes
@@ -58,6 +60,11 @@ const PortalSettingsRoute = PortalSettingsImport.update({
 
 const PortalSalesRoute = PortalSalesImport.update({
   path: '/sales',
+  getParentRoute: () => PortalRoute,
+} as any)
+
+const PortalMedicationsRoute = PortalMedicationsImport.update({
+  path: '/medications',
   getParentRoute: () => PortalRoute,
 } as any)
 
@@ -175,6 +182,12 @@ const PortalMedicationsInventoryNewRoute =
     getParentRoute: () => PortalRoute,
   } as any)
 
+const PortalMedicationsEditMedicationIdRoute =
+  PortalMedicationsEditMedicationIdImport.update({
+    path: '/medications/edit/$medicationId',
+    getParentRoute: () => PortalRoute,
+  } as any)
+
 const PortalMedicamentsMedicamentIdHistoryRoute =
   PortalMedicamentsMedicamentIdHistoryImport.update({
     path: '/history',
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       path: '/medicaments'
       fullPath: '/medicaments'
       preLoaderRoute: typeof PortalMedicamentsImport
+      parentRoute: typeof PortalImport
+    }
+    '/_portal/medications': {
+      id: '/_portal/medications'
+      path: '/medications'
+      fullPath: '/medications'
+      preLoaderRoute: typeof PortalMedicationsImport
       parentRoute: typeof PortalImport
     }
     '/_portal/sales': {
@@ -367,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMedicamentsMedicamentIdHistoryImport
       parentRoute: typeof PortalMedicamentsMedicamentIdImport
     }
+    '/_portal/medications/edit/$medicationId': {
+      id: '/_portal/medications/edit/$medicationId'
+      path: '/medications/edit/$medicationId'
+      fullPath: '/medications/edit/$medicationId'
+      preLoaderRoute: typeof PortalMedicationsEditMedicationIdImport
+      parentRoute: typeof PortalImport
+    }
     '/_portal/medications/inventory/new': {
       id: '/_portal/medications/inventory/new'
       path: '/medications/inventory/new'
@@ -390,6 +417,7 @@ export const routeTree = rootRoute.addChildren({
         }),
       PortalMedicamentsIndexRoute,
     }),
+    PortalMedicationsRoute,
     PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
     PortalSettingsRoute: PortalSettingsRoute.addChildren({
       PortalSettingsFormsRoute,
@@ -409,8 +437,174 @@ export const routeTree = rootRoute.addChildren({
     PortalSalesNewRoute,
     PortalSalesNewsRoute,
     PortalSettingsTypesRoute,
+    PortalMedicationsEditMedicationIdRoute,
     PortalMedicationsInventoryNewRoute,
   }),
 })
 
 /* prettier-ignore-end */
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/",
+        "/_portal"
+      ]
+    },
+    "/": {
+      "filePath": "index.tsx"
+    },
+    "/_portal": {
+      "filePath": "_portal.tsx",
+      "children": [
+        "/_portal/dashboard",
+        "/_portal/medicaments",
+        "/_portal/medications",
+        "/_portal/sales",
+        "/_portal/settings",
+        "/_portal/bills/new",
+        "/_portal/credit-notes/new",
+        "/_portal/deliveries/consultation",
+        "/_portal/deliveries/new",
+        "/_portal/medicaments/consultation",
+        "/_portal/medicaments/dci",
+        "/_portal/medicaments/forms",
+        "/_portal/medications/new",
+        "/_portal/orders/consultation",
+        "/_portal/orders/new",
+        "/_portal/sales/new",
+        "/_portal/sales/news",
+        "/_portal/settings/types",
+        "/_portal/medications/edit/$medicationId",
+        "/_portal/medications/inventory/new"
+      ]
+    },
+    "/_portal/dashboard": {
+      "filePath": "_portal/dashboard.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medicaments": {
+      "filePath": "_portal/medicaments.tsx",
+      "parent": "/_portal",
+      "children": [
+        "/_portal/medicaments/$medicamentId",
+        "/_portal/medicaments/"
+      ]
+    },
+    "/_portal/medications": {
+      "filePath": "_portal/medications.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/sales": {
+      "filePath": "_portal/sales.tsx",
+      "parent": "/_portal",
+      "children": [
+        "/_portal/sales/$saleId"
+      ]
+    },
+    "/_portal/settings": {
+      "filePath": "_portal/settings.tsx",
+      "parent": "/_portal",
+      "children": [
+        "/_portal/settings/forms",
+        "/_portal/settings/users",
+        "/_portal/settings/"
+      ]
+    },
+    "/_portal/bills/new": {
+      "filePath": "_portal/bills.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/credit-notes/new": {
+      "filePath": "_portal/credit-notes.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/deliveries/consultation": {
+      "filePath": "_portal/deliveries.consultation.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/deliveries/new": {
+      "filePath": "_portal/deliveries.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medicaments/$medicamentId": {
+      "filePath": "_portal/medicaments.$medicamentId.tsx",
+      "parent": "/_portal/medicaments",
+      "children": [
+        "/_portal/medicaments/$medicamentId/history"
+      ]
+    },
+    "/_portal/medicaments/consultation": {
+      "filePath": "_portal/medicaments_.consultation.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medicaments/dci": {
+      "filePath": "_portal/medicaments_.dci.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medicaments/forms": {
+      "filePath": "_portal/medicaments_.forms.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medications/new": {
+      "filePath": "_portal/medications_.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/orders/consultation": {
+      "filePath": "_portal/orders.consultation.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/orders/new": {
+      "filePath": "_portal/orders.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/sales/$saleId": {
+      "filePath": "_portal/sales/$saleId.tsx",
+      "parent": "/_portal/sales"
+    },
+    "/_portal/sales/new": {
+      "filePath": "_portal/sales_.new.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/sales/news": {
+      "filePath": "_portal/sales_.news.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/settings/forms": {
+      "filePath": "_portal/settings.forms.tsx",
+      "parent": "/_portal/settings"
+    },
+    "/_portal/settings/users": {
+      "filePath": "_portal/settings/users.tsx",
+      "parent": "/_portal/settings"
+    },
+    "/_portal/settings/types": {
+      "filePath": "_portal/settings_.types.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medicaments/": {
+      "filePath": "_portal/medicaments.index.tsx",
+      "parent": "/_portal/medicaments"
+    },
+    "/_portal/settings/": {
+      "filePath": "_portal/settings/index.tsx",
+      "parent": "/_portal/settings"
+    },
+    "/_portal/medicaments/$medicamentId/history": {
+      "filePath": "_portal/medicaments.$medicamentId.history.tsx",
+      "parent": "/_portal/medicaments/$medicamentId"
+    },
+    "/_portal/medications/edit/$medicationId": {
+      "filePath": "_portal/medications_.edit.$medicationId.tsx",
+      "parent": "/_portal"
+    },
+    "/_portal/medications/inventory/new": {
+      "filePath": "_portal/medications_.inventory.new.tsx",
+      "parent": "/_portal"
+    }
+  }
+}
+ROUTE_MANIFEST_END */

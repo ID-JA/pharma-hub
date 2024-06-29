@@ -2,10 +2,12 @@
 {
     public class SaleCreateDto
     {
-        public int TotalQuantity { get; set; }
-        public double TotalPrice { get; set; }
+        public int TotalQuantities { get; set; }
         public string Status { get; set; }
-        public float Discount { get; set; }
+        public string? PaymentType { get; set; }
+        public decimal DiscountedAmount { get; set; }
+        public decimal TotalNetPrices { get; set; }
+        public decimal TotalBrutPrices { get; set; }
         public List<SaleMedicationCreateDto> SaleMedications { get; set; }
     }
 }

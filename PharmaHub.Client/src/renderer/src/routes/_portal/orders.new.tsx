@@ -22,6 +22,7 @@ import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
 import { modals } from '@mantine/modals'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_portal/orders/new')({
   component: NewOrder
@@ -122,15 +123,15 @@ const TableHeader = memo(() => (
           zIndex: 1
         }}
       >
-        Product Name
+        Nom Medicament
       </Table.Th>
-      <Table.Th>Quantity inStock</Table.Th>
-      <Table.Th>Quantity Ordered</Table.Th>
-      <Table.Th>Sale Price</Table.Th>
-      <Table.Th>Total Purchase Price</Table.Th>
-      <Table.Th>Discount Rate</Table.Th>
-      <Table.Th>Discounted PPH</Table.Th>
-      <Table.Th>Purchase Price Unit</Table.Th>
+      <Table.Th>Quantité en STOCK</Table.Th>
+      <Table.Th>Quantité Commandé</Table.Th>
+      <Table.Th>PPV</Table.Th>
+      <Table.Th>PPH</Table.Th>
+      <Table.Th>Total PPH</Table.Th>
+      <Table.Th>Taux Remise</Table.Th>
+      <Table.Th>Prix Réduit</Table.Th>
     </Table.Tr>
   </Table.Thead>
 ))
@@ -146,7 +147,7 @@ function NewOrder() {
     discountedPrice: 0
   })
 
-  const { mutate } = useOrderMutation()
+  const { mutate, isPending } = useOrderMutation()
   const isInventorySelected = (inventoryId) => {
     return selectedInventories.some((item) => item.inventoryId == inventoryId)
   }
@@ -171,7 +172,7 @@ function NewOrder() {
               ppv: item.inventory.ppv,
               tva: item.inventory.tva,
               pph: item.inventory.pph,
-              quantityInStock: item.inventory.quantity,
+              quantityInStock: item.inventory.boxQuantity,
               maxQuantity: item.medication.maxQuantity,
               minQuantity: item.medication.minQuantity
             }
@@ -229,29 +230,32 @@ function NewOrder() {
         onSubmit={form.onSubmit((values) => {
           mutate(values, {
             onSuccess: () => {
+              toast.success('La commande a été effectuée avec succès. ')
               setSelectedInventories([])
               form.reset()
               form.setFieldValue('orderDate', new Date())
+            },
+            onError: () => {
+              toast.error('Une erreur est survenue. ')
             }
           })
         })}
       >
-        <Group justify="space-between">
+        <Group justify="space-between" mb="lg">
           <Group>
             <Select
-              label="Select Supplier"
-              placeholder="Select a supplier"
+              label="Sélectionner fournisseur"
               data={[{ value: '1', label: 'ABC Medications' }]}
               {...form.getInputProps('supplierId')}
               key={form.key('supplierId')}
             />
             <DatePickerInput
               readOnly
-              label="Order Date"
+              label="Date Commande"
               {...form.getInputProps('orderDate')}
             />
             <TimeInput
-              label="Order Time"
+              label="Heur Commande"
               readOnly
               value={dayjs(form.getInputProps('orderDate').value).format(
                 'HH:mm'
@@ -260,8 +264,8 @@ function NewOrder() {
           </Group>
           <div>
             <InventorySelectorDrawerButton />
-            <Button type="submit" ml="md">
-              Validate Order
+            <Button type="submit" ml="md" loading={isPending}>
+              Valider la commande
             </Button>
           </div>
         </Group>
@@ -322,7 +326,10 @@ function NewOrder() {
                         onBlur={(event) => {
                           const value = Number(event.target.value)
 
-                          if (value > item.maxQuantity) {
+                          if (
+                            item.maxQuantity !== 0 &&
+                            value > item.maxQuantity
+                          ) {
                             modals.open({
                               title: 'Warning',
                               modalId: 'warning',
@@ -381,6 +388,17 @@ function NewOrder() {
                     <Table.Td>
                       <NumberInput
                         hideControls
+                        readOnly
+                        decimalScale={2}
+                        {...form.getInputProps(
+                          `orderItems.${index}.purchasePriceUnit`
+                        )}
+                        key={form.key(`orderItems.${index}.purchasePriceUnit`)}
+                      />
+                    </Table.Td>
+                    <Table.Td>
+                      <NumberInput
+                        hideControls
                         decimalScale={2}
                         readOnly
                         {...form.getInputProps(
@@ -421,17 +439,6 @@ function NewOrder() {
                         key={form.key(`orderItems.${index}.discountedPPH`)}
                       />
                     </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        hideControls
-                        readOnly
-                        decimalScale={2}
-                        {...form.getInputProps(
-                          `orderItems.${index}.purchasePriceUnit`
-                        )}
-                        key={form.key(`orderItems.${index}.purchasePriceUnit`)}
-                      />
-                    </Table.Td>
                   </Table.Tr>
                 )
               })}
@@ -442,7 +449,7 @@ function NewOrder() {
 
       <Group grow>
         <NumberInput
-          label="Total Products"
+          label="Total Produits"
           size="lg"
           decimalScale={2}
           readOnly
@@ -450,7 +457,7 @@ function NewOrder() {
           value={totals.totalProducts}
         />
         <NumberInput
-          label="Total Quantity"
+          label="Total Quantité"
           size="lg"
           decimalScale={2}
           readOnly
@@ -466,7 +473,7 @@ function NewOrder() {
           value={totals.totalPPV}
         />
         <NumberInput
-          label="Purchase Price"
+          label="Total PPH"
           size="lg"
           decimalScale={2}
           readOnly
@@ -474,7 +481,7 @@ function NewOrder() {
           value={totals.purchasePrice}
         />
         <NumberInput
-          label="Discounted Price"
+          label="Total PPH Réduit"
           size="lg"
           decimalScale={2}
           readOnly

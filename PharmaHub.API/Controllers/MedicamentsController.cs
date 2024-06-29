@@ -37,7 +37,8 @@ public class MedicamentsController(IMedicationService medicationService, IServic
     [HttpGet("{id:int}")]
     public async Task<ActionResult> GetMedicament([FromRoute] int id, CancellationToken cancellationToken)
     {
-        return Ok(await medicationService.GetByIdAsync(id, cancellationToken));
+        var result = await medicationService.GetMedicationDetails(id, cancellationToken);
+        return result is not null ? Ok(result) : NotFound();
     }
 
     [HttpPut("{id:int}")]
@@ -49,18 +50,21 @@ public class MedicamentsController(IMedicationService medicationService, IServic
             return NotFound();
         }
 
-        medicament.Name = request.Detials.Name;
-        medicament.Dci = request.Detials.Dci;
-        medicament.Form = request.Detials.Form;
-        medicament.Tva = request.Detials.Tva;
+        medicament.Name = request.Details.Name;
+        medicament.Dci = request.Details.Dci;
+        medicament.Form = request.Details.Form;
+        medicament.Tva = request.Details.Tva;
         medicament.DiscountRate = 0; // request.DiscountRate, this should be deleted because it belongs to inventory
-        medicament.Pbr = request.Detials.Pbr;
-        medicament.Type = request.Detials.Type;
-        medicament.Marge = request.Detials.Marge;
-        medicament.Barcode = request.Detials.Barcode;
-        medicament.Family = request.Detials.Family;
-        medicament.UsedBy = request.Detials.UsedBy;
-        medicament.WithPrescription = request.Detials.WithPrescription;
+        medicament.Pbr = request.Details.Pbr;
+        medicament.Type = request.Details.Type;
+        medicament.Marge = request.Details.Marge;
+        medicament.Barcode = request.Details.Barcode;
+        medicament.Family = request.Details.Family;
+        medicament.UsedBy = request.Details.UsedBy;
+        medicament.WithPrescription = request.Details.WithPrescription.Equals("yes") ? true : false;
+        medicament.Laboratory = request.Details.Laboratory;
+        medicament.Dosage = request.Details.Dosage;
+        medicament.OrderSystem = request.Details.OrderSystem;
 
         await medicationService.UpdateAsync(medicament, cancellationToken);
         return NoContent();
@@ -101,4 +105,19 @@ public class MedicamentsController(IMedicationService medicationService, IServic
     {
         return Ok(await medicationService.UpdateMedicamentInventory(inventoryId, request, cancellationToken));
     }
+
+    [HttpPatch("{id:int}")]
+    public async Task<ActionResult> SetupMedicationPartialSale([FromRoute] int id, [FromBody] PartialSaleMedicationConfig request, CancellationToken cancellationToken)
+    {
+        await medicationService.SetupMedicationPartialSale(id, request, cancellationToken);
+        return Ok();
+    }
+
+    [HttpGet("top-sold-products")]
+    public async Task<ActionResult> GetTopSoldProductsAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        return Ok(await medicationService.GetTopSoldProductsAsync(startDate, endDate));
+    }
+
+
 }
