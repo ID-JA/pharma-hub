@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <title>Electron</title>
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self';" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="worker-src 'self' 'unsafe-inline';"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="worker-src 'self' blob:;"
+    />
 
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <!-- <meta

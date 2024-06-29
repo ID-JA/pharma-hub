@@ -6,10 +6,10 @@ namespace PharmaHub.API.Services.Interfaces;
 public interface ISaleService
 {
     Task<long> GetNextSaleNumberAsync(CancellationToken cancellationToken = default);
-    Task CreateSale(SaleCreateDto request);
+    Task<int> CreateSale(SaleCreateDto request);
     Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
     Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default);
-    Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
+    Task<SaleDetailedDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
     Task CancelSale(int saleId, int? inventoryId, CancellationToken cancellationToken);
 
@@ -30,7 +30,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         return lastSale != null ? lastSale.SaleNumber + 1 : 100;
     }
 
-    public async Task CreateSale(SaleCreateDto request)
+    public async Task<int> CreateSale(SaleCreateDto request)
     {
         var userId = currentUserService.GetUserId();
         bool isOutOfStock = false;
@@ -141,6 +141,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
             await dbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
+            return sale.Id;
         }
         catch (Exception ex)
         {
@@ -231,9 +232,15 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
     }
 
 
-    public async Task<SaleBasicDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<SaleDetailedDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Sales.Where(s => s.Id == id).ProjectToType<SaleBasicDto>().FirstOrDefaultAsync(cancellationToken);
+        return await dbContext.Sales.Where(s => s.Id == id)
+            .Include(s => s.SaleMedications)
+            .ThenInclude(s => s.Inventory)
+            .ThenInclude(s => s.Medication)
+            .AsNoTracking()
+            .ProjectToType<SaleDetailedDto>()
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task DeleteSale(int id, CancellationToken cancellationToken = default)

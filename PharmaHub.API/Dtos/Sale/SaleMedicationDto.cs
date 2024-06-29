@@ -1,4 +1,4 @@
-﻿using PharmaHub.API.Dtos.Inventory;
+using PharmaHub.API.Dtos.Inventory;
 using PharmaHub.API.Dtos.Medicament;
 
 namespace PharmaHub.API.Dtos.Sale;

@@ -1,4 +1,7 @@
 ﻿using PharmaHub.API.Dtos.Delivery;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace PharmaHub.API.Controllers;
 
@@ -74,6 +77,19 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
     public async Task<ActionResult> GetOrdersAndDeliveriesByDateRangeAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken cancellationToken)
     {
         return Ok(await deliveryService.GetOrdersAndDeliveriesByDateRangeAsync(startDate, endDate));
+    }
+
+    [HttpGet("document")]
+    public async Task<IActionResult> GetDeliveryDocument([FromQuery] int deliveryNumber, CancellationToken cancellationToken)
+    {
+        var delivery = await deliveryService.GetDeliveryDetails(deliveryNumber, cancellationToken);
+        if (delivery is null) return NotFound();
+
+        var document = new DeliveryDocument(delivery.ToEntity());
+        var pdfBytes = document.GeneratePdf();
+        var base64String = Convert.ToBase64String(pdfBytes);
+
+        return Ok(new { Base64 = base64String });
     }
 
 }

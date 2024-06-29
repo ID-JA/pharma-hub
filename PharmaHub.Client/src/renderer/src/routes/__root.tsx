@@ -3,6 +3,8 @@ import 'mantine-react-table/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/charts/styles.css'
 
+import '@react-pdf-viewer/core/lib/styles/index.css'
+
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createTheme, MantineProvider } from '@mantine/core'
