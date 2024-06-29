@@ -60,7 +60,7 @@
 }
 
 .sidebarToggle {
-  z-index: 1000;
+  z-index: 5;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);

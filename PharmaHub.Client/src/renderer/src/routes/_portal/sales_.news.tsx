@@ -41,6 +41,11 @@ import { zodResolver } from 'mantine-form-zod-resolver'
 import { toast } from 'sonner'
 import { modals } from '@mantine/modals'
 import { useMedications } from '@renderer/services/medicaments.service'
+import { Viewer, Worker } from '@react-pdf-viewer/core'
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
+import { version } from 'pdfjs-dist'
+import '@react-pdf-viewer/core/lib/styles/index.css'
+import '@react-pdf-viewer/default-layout/lib/styles/index.css'
 
 export const Route = createFileRoute('/_portal/sales/news')({
   component: SaleNewsPage
@@ -80,6 +85,23 @@ const SaleSchema = z.object({
 })
 
 type Sale = z.infer<typeof SaleSchema>
+
+const pdfContentType = 'application/pdf'
+
+const base64toBlob = (data: string) => {
+  const base64WithoutPrefix = data.substr(
+    `data:${pdfContentType};base64,`.length
+  )
+  const bytes = atob(base64WithoutPrefix)
+  let length = bytes.length
+  let out = new Uint8Array(length)
+
+  while (length--) {
+    out[length] = bytes.charCodeAt(length)
+  }
+
+  return new Blob([out], { type: pdfContentType })
+}
 
 function SaleNewsPage() {
   const queryClient = useQueryClient()
@@ -202,9 +224,14 @@ function SaleNewsPage() {
   const { mutateAsync: createSale, isPending: isCreateSalePending } =
     useMutation({
       mutationFn: async (data: any) => {
-        await http.post('/api/sales', data)
+        const response = await http.post('/api/sales', data)
+        console.log({
+          response
+        })
+        return response.data
       }
     })
+  const defaultLayoutPluginInstance = defaultLayoutPlugin()
 
   const handleSubmit = async (status) => {
     const validationResult = form.validate()
@@ -213,11 +240,42 @@ function SaleNewsPage() {
       await createSale(
         { status, ...(status === 'Paid' && { paymentType: 'Cash' }), ...data },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             form.reset()
             toast.success('La vente a été enregistrée avec succès.')
             queryClient.invalidateQueries({
               queryKey: ['medications']
+            })
+            modals.openConfirmModal({
+              title: 'Message Confirmation',
+              children: <Text> Voulez-vous imprimer ticket de vente?</Text>,
+              labels: { cancel: 'Non', confirm: 'Oui' },
+              onConfirm: async () => {
+                const response = await http.get(
+                  `/api/sales/${data.saleId}/ticket`
+                )
+                const url = URL.createObjectURL(
+                  base64toBlob(response.data.base64)
+                )
+
+                modals.open({
+                  fullScreen: true,
+                  style: {
+                    zIndex: 999999
+                  },
+                  title: 'Ticket',
+                  children: (
+                    <Worker
+                      workerUrl={`https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`}
+                    >
+                      <Viewer
+                        fileUrl={url}
+                        plugins={[defaultLayoutPluginInstance]}
+                      />
+                    </Worker>
+                  )
+                })
+              }
             })
           },
           onError: () => {

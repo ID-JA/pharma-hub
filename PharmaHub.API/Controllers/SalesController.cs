@@ -13,8 +13,8 @@ public class SalesController(ISaleService saleService) : ControllerBase
     [MustHavePermission(AppAction.Create, AppResource.Sales)]
     public async Task<ActionResult> CreateSale([FromBody] SaleCreateDto request)
     {
-        await saleService.CreateSale(request);
-        return Ok();
+        var saleId = await saleService.CreateSale(request);
+        return Ok(new { saleId });
     }
 
     [HttpGet]
@@ -80,14 +80,16 @@ public class SalesController(ISaleService saleService) : ControllerBase
 
 
     [HttpGet("{id:int}/ticket")]
-    public async Task<FileStreamResult?> GetPDF(int id)
+    public async Task<IActionResult> GetPDF(int id)
     {
         var sale = await saleService.GetSaleAsync(id, CancellationToken.None);
-        if (sale is null) return null;
-        var document = new SaleTicketDocment(sale.ToEntity());
-        byte[] pdfBytes = document.GeneratePdf();
-        MemoryStream ms = new MemoryStream(pdfBytes);
-        return new FileStreamResult(ms, "application/pdf");
-    }
+        if (sale is null) return NotFound();
 
+        var document = new SaleTicketDocument(sale.ToEntity());
+        var pdfBytes = document.GeneratePdf();
+
+        var base64String = Convert.ToBase64String(pdfBytes);
+
+        return Ok(new { Base64 = base64String });
+    }
 }
