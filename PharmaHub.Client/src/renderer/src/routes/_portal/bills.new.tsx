@@ -18,7 +18,7 @@ import { DatePickerInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { userSuppliers } from '@renderer/services/suppliers.service'
 import { http } from '@renderer/utils/http'
-import { useMutation, useQueries } from '@tanstack/react-query'
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { zodResolver } from 'mantine-form-zod-resolver'
@@ -247,6 +247,7 @@ function NewBillPage() {
       })),
     [suppliers]
   )
+  const queryClient = useQueryClient()
 
   const [
     { data: deliveries = [], isLoading: fetchingDeliveries },
@@ -254,7 +255,7 @@ function NewBillPage() {
   ] = useQueries({
     queries: [
       {
-        queryKey: ['deliveryNotes', filterOptions],
+        queryKey: ['delivery-notes', filterOptions],
         queryFn: async () => {
           const response = await http.get('/api/deliveries', {
             params: {
@@ -446,7 +447,7 @@ function NewBillPage() {
 
   const { mutateAsync: createBill } = useMutation({
     mutationFn: async (data: any) => {
-      return (await http.post('/api/bill', data)).data
+      return (await http.post('/api/bills', data)).data
     }
   })
 
@@ -529,6 +530,12 @@ function NewBillPage() {
                   toast.success('Facture enregistre avec succès')
                   form.reset()
                   setSelectedRows([])
+                  queryClient.invalidateQueries({
+                    queryKey: ['credit-notes']
+                  })
+                  queryClient.invalidateQueries({
+                    queryKey: ['delivery-notes']
+                  })
                 },
                 onError: () => {
                   toast.error("Erreur lors de l'enregistrement de la facture")

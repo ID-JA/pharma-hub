@@ -25,14 +25,7 @@ function Dashboard() {
       }
     },
     { data: topSoldProducts = [] },
-    {
-      data: ordersDeliveriesInsights = {
-        orders: [],
-        deliveries: [],
-        orderedQuantities: [],
-        deliveredQuantities: []
-      }
-    }
+    { data: ordersDeliveriesQuantities = [] }
   ] = useQueries({
     queries: [
       {
@@ -104,16 +97,20 @@ function Dashboard() {
             data={salesTimeSeries.sales}
             dataKey="date"
             series={[
-              { name: 'returned', color: 'red.6' },
-              { name: 'paid', color: 'green.6' },
-              { name: 'outOfStock', color: 'orange.6' },
-              { name: 'pending', color: 'yellow.6' }
+              { name: 'returned', color: 'red.6', label: 'retourné' },
+              { name: 'paid', color: 'green.6', label: 'payé' },
+              {
+                name: 'outOfStock',
+                color: 'orange.6',
+                label: 'en rupture de stock'
+              },
+              { name: 'pending', color: 'yellow.6', label: 'en attente' }
             ]}
             tickLine="y"
             withBarValueLabel
           />
           <Title order={3} mt="xl">
-            Les Quantités Vendues
+            Quantités Vendues
           </Title>
           <LineChart
             mt="xl"
@@ -121,10 +118,17 @@ function Dashboard() {
             data={salesTimeSeries.salesQuantities}
             series={[{ name: 'quantity', label: 'Quantité' }]}
             dataKey="date"
+            type="gradient"
+            gradientStops={[
+              { offset: 40, color: 'green.5' },
+              { offset: 70, color: 'yellow.5' },
+              { offset: 80, color: 'orange.5' },
+              { offset: 100, color: 'red.6' }
+            ]}
             strokeWidth={5}
             curveType="natural"
-            yAxisProps={{ domain: [-25, 40] }}
-            valueFormatter={(value) => `${value} Unite(s)`}
+            yAxisProps={{ domain: [-0, 40] }}
+            valueFormatter={(value) => `${value} Unit`}
           />
         </Grid.Col>
         <Grid.Col span={6} px="xl">
@@ -137,20 +141,49 @@ function Dashboard() {
             dataKey="medicationName"
             orientation="vertical"
             yAxisProps={{ width: 80 }}
-            series={[{ name: 'totalQuantitySold', color: 'green' }]}
+            series={[
+              {
+                name: 'totalQuantitySold',
+                color: 'green',
+                label: 'Total Quantité'
+              }
+            ]}
+            tickLine="y"
+            withBarValueLabel
+          />
+          <Title order={3} mt="xl">
+            Commandes et Livraisons
+          </Title>
+          <BarChart
+            mt="xl"
+            h={300}
+            data={ordersDeliveriesQuantities}
+            dataKey="date"
+            series={[
+              {
+                name: 'quantityReceived',
+                color: 'green.6',
+                label: 'Quantité Livré'
+              },
+              {
+                name: 'quantityOrdered',
+                color: 'yellow.6',
+                label: 'Quantité Commandé'
+              }
+            ]}
             tickLine="y"
             withBarValueLabel
           />
         </Grid.Col>
       </Grid>
-      <Grid px="xl">
+      {/* <Grid px="xl">
         <Grid.Col span={6}>
           <Title order={3} mb="xl">
             Les Commandes
           </Title>
           <BarChart
             h={300}
-            data={ordersDeliveriesInsights.orders}
+            data={ordersDeliveriesInsights}
             dataKey="date"
             series={[
               { name: 'received', color: 'green.6' },
@@ -165,7 +198,7 @@ function Dashboard() {
           <BarChart
             mt="xl"
             h={300}
-            data={ordersDeliveriesInsights.orderedQuantities}
+            data={ordersDeliveriesInsights}
             series={[{ name: 'quantity', label: 'Quantité' }]}
             dataKey="date"
           />
@@ -176,7 +209,7 @@ function Dashboard() {
           </Title>
           <BarChart
             h={300}
-            data={ordersDeliveriesInsights.deliveries}
+            data={ordersDeliveriesInsights}
             dataKey="date"
             series={[
               { name: 'return', color: 'red.6' },
@@ -191,12 +224,12 @@ function Dashboard() {
           <BarChart
             mt="xl"
             h={300}
-            data={ordersDeliveriesInsights.deliveredQuantities}
+            data={ordersDeliveriesInsights}
             series={[{ name: 'quantity', label: 'Quantité' }]}
             dataKey="date"
           />
         </Grid.Col>
-      </Grid>
+      </Grid> */}
     </div>
   )
 }

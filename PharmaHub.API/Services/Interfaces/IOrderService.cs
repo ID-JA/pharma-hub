@@ -67,7 +67,7 @@ public interface IDeliveryService
     Task<bool> CreateOrder(OrderCreateDto request, CancellationToken cancellationToken);
     Task<PaginatedResponse<OrderItemDetailedDto>> GetOrders(OrderSearchQuery searchQuery, CancellationToken cancellationToken);
 
-    Task<OrdersAndDeliveries> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
+    Task<List<OrdersDeliveriesData>> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
 }
 
 
@@ -415,90 +415,25 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         return result;
     }
 
-    public async Task<OrdersAndDeliveries> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+    public async Task<List<OrdersDeliveriesData>> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
     {
         startDate ??= DateTime.Now.AddMonths(-1);
         endDate ??= DateTime.Now;
 
-        // Fetch orders and project to intermediate result
-        var ordersData = await dbContext.Orders
-            .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-            .Select(o => new
+        var combinedData = await dbContext.OrderDeliveryInventories
+            .Where(odi => odi.CreatedAt >= startDate && odi.CreatedAt <= endDate)
+            .GroupBy(odi => odi.CreatedAt.Date)
+            .Select(g => new OrdersDeliveriesData
             {
-                Date = o.OrderDate.Date,
-                Quantity = o.OrderDeliveryInventories.Sum(odi => odi.OrderedQuantity)
+                Date = g.Key.ToString("MM/dd/yyyy"),
+                QuantityOrdered = g.Where(odi => odi.OrderId != null).Sum(odi => odi.OrderedQuantity),
+                QuantityReceived = g.Sum(odi => odi.DeliveredQuantity)
             })
             .ToListAsync(cancellationToken);
 
-        // Group orders by date
-        var ordersGroupedByDate = ordersData
-            .GroupBy(o => o.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                Quantity = g.Sum(o => o.Quantity)
-            })
-            .ToList();
-
-        // Fetch deliveries and project to intermediate result
-        var deliveriesData = await dbContext.Deliveries
-            .Where(d => d.DeliveryDate >= startDate && d.DeliveryDate <= endDate)
-            .Select(d => new
-            {
-                Date = d.DeliveryDate.Date,
-                IsPaid = d.BillId != null,
-                Quantity = d.OrderDeliveryInventories.Sum(odi => odi.DeliveredQuantity),
-                Received = d.OrderDeliveryInventories.Count(odi => odi.Status.ToLower() == "received")
-            })
-            .ToListAsync(cancellationToken);
-
-        // Group deliveries by date
-        var deliveriesGroupedByDate = deliveriesData
-            .GroupBy(d => d.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                Paid = g.Count(d => d.IsPaid),
-                Return = g.Count(d => !d.IsPaid), // Assuming returned deliveries have a null BillId
-                DeliveredQuantities = g.Sum(d => d.Quantity),
-                Received = g.Sum(d => d.Received)
-            })
-            .ToList();
-
-        var ordersList = ordersGroupedByDate.Select(o => new OrderData
-        {
-            Date = o.Date.ToString("MM/dd/yyyy"),
-            Received = deliveriesGroupedByDate.FirstOrDefault(d => d.Date == o.Date)?.Received ?? 0,
-            Pending = deliveriesGroupedByDate.FirstOrDefault(d => d.Date == o.Date)?.Return ?? 0 // Assuming Pending is related to Return count
-        }).ToList();
-
-        var deliveriesList = deliveriesGroupedByDate.Select(d => new DeliveryData
-        {
-            Date = d.Date.ToString("MM/dd/yyyy"),
-            Paid = d.Paid,
-            Return = d.Return
-        }).ToList();
-
-        var orderedQuantitiesList = ordersGroupedByDate.Select(o => new QuantityData
-        {
-            Date = o.Date.ToString("MM/dd/yyyy"),
-            Quantity = o.Quantity
-        }).ToList();
-
-        var deliveredQuantitiesList = deliveriesGroupedByDate.Select(d => new QuantityData
-        {
-            Date = d.Date.ToString("MM/dd/yyyy"),
-            Quantity = d.DeliveredQuantities
-        }).ToList();
-
-        return new OrdersAndDeliveries
-        {
-            Orders = ordersList,
-            Deliveries = deliveriesList,
-            OrderedQuantities = orderedQuantitiesList,
-            DeliveredQuantities = deliveredQuantitiesList
-        };
+        return combinedData;
     }
+
 
     // DON'T DELETE IT: we could use this function in the future
     public async Task RollBackQuantityAsync(int itemId)
@@ -541,31 +476,9 @@ public class OrderSearchQuery
     public DateTime To { get; set; } = DateTime.Now;
 }
 
-
-public class OrderData
+public class OrdersDeliveriesData
 {
     public string Date { get; set; }
-    public int Received { get; set; }
-    public int Pending { get; set; }
-}
-
-public class DeliveryData
-{
-    public string Date { get; set; }
-    public int Paid { get; set; }
-    public int Return { get; set; }
-}
-
-public class QuantityData
-{
-    public string Date { get; set; }
-    public int Quantity { get; set; }
-}
-
-public class OrdersAndDeliveries
-{
-    public List<OrderData> Orders { get; set; }
-    public List<DeliveryData> Deliveries { get; set; }
-    public List<QuantityData> OrderedQuantities { get; set; }
-    public List<QuantityData> DeliveredQuantities { get; set; }
+    public int QuantityOrdered { get; set; }
+    public int QuantityReceived { get; set; }
 }
