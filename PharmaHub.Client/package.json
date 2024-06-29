@@ -24,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@mantine/charts": "^7.11.0",
+    "@mantine/dropzone": "^7.11.0",
     "@react-pdf-viewer/core": "3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
     "@tanstack/react-query-devtools": "^5.48.0",

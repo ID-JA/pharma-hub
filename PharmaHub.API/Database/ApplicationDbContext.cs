@@ -39,43 +39,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
            });
 
 
-
-
-
-
-
-        // builder.Entity<OrderItem>(entity =>
-        // {
-        //     entity.HasKey(e => new { e.OrderId, e.InventoryId });
-
-        //     entity.HasOne(e => e.Order)
-        //         .WithMany(o => o.OrderItems)
-        //         .HasForeignKey(e => e.OrderId)
-        //         .OnDelete(DeleteBehavior.Cascade);
-
-        //     entity.HasOne(e => e.Inventory)
-        //         .WithMany(i => i.OrderItems)
-        //         .HasForeignKey(e => e.InventoryId)
-        //         .OnDelete(DeleteBehavior.Restrict);
-        // });
-
-        // builder.Entity<DeliveryMedication>(entity =>
-        // {
-        //     entity.HasKey(e => new { e.DeliveryId, e.InventoryId });
-
-        //     entity.HasOne(e => e.Delivery)
-        //         .WithMany(o => o.DeliveryMedications)
-        //         .HasForeignKey(e => e.DeliveryId)
-        //         .OnDelete(DeleteBehavior.Cascade);
-
-        //     entity.HasOne(e => e.Inventory)
-        //         .WithMany(i => i.OrderDeliveryInventor)
-        //         .HasForeignKey(e => e.InventoryId)
-        //         .OnDelete(DeleteBehavior.Restrict);
-
-        //     entity.Property(e => e.Ppv).HasPrecision(10, 2);
-        //     entity.Property(e => e.Pph).HasPrecision(10, 2);
-        // });
+        builder.Entity<AppSetting>(entity =>
+        {
+            entity.HasKey(e => e.SettingKey);
+        });
 
         base.OnModelCreating(builder);
     }
@@ -101,6 +68,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Client> Clients { get; set; }
     public DbSet<CreditNote> CreditNotes { get; set; }
     public DbSet<CreditNoteMedication> CreditNoteMedications { get; set; }
+    public DbSet<AppSetting> AppSettings { get; set; }
 
 
 }

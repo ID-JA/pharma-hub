@@ -6,12 +6,12 @@ import { createFileRoute } from '@tanstack/react-router'
 const links = [
   {
     to: '/settings',
-    label: 'General',
+    label: 'Général',
     exact: true
   },
   {
     to: '/settings/users',
-    label: 'Users management'
+    label: 'Gestion d’utilisateurs'
   }
 ]
 export const Route = createFileRoute('/_portal/settings')({

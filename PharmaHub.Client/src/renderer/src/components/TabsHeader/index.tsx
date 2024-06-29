@@ -29,21 +29,10 @@ export function TabsHeader({
     )
   })
   return (
-    <div className={classes.header}>
-      <Container size="md">
-        <Tabs
-          defaultValue={router.state.location.pathname}
-          variant="outline"
-          visibleFrom="sm"
-          classNames={{
-            root: classes.tabs,
-            list: classes.tabsList,
-            tab: classes.tab
-          }}
-        >
-          <Tabs.List>{items}</Tabs.List>
-        </Tabs>
-      </Container>
+    <div>
+      <Tabs defaultValue={router.state.location.pathname}>
+        <Tabs.List>{items}</Tabs.List>
+      </Tabs>
     </div>
   )
 }

@@ -49,6 +49,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IBillService, BillService>();
     builder.Services.AddScoped<IClientService, ClientService>();
     builder.Services.AddScoped<ICreditNoteService, CreditNoteService>();
+    builder.Services.AddScoped<IAppSettingService, AppSettingService>();
 
 
     builder.Services.AddAuth();
