@@ -330,7 +330,7 @@ function NewBillPage() {
         }
       }
     },
-    [form, setSelectedRows]
+    [setSelectedRows]
   )
 
   const rows = useMemo(
@@ -433,7 +433,7 @@ function NewBillPage() {
       <Table.Tr
         key={`${medType.medicationType}-${medType.tva}-${medType.marge}`}
       >
-        <Table.Td>{medType.medicationType}</Table.Td>
+        {/* <Table.Td>{medType.medicationType}</Table.Td> */}
         <Table.Td>{medType.marge}</Table.Td>
         <Table.Td>{medType.tva}</Table.Td>
         <Table.Td>{medType.ppv}</Table.Td>
@@ -505,7 +505,7 @@ function NewBillPage() {
             <Table style={{ whiteSpace: 'nowrap' }}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Type de produit</Table.Th>
+                  {/* <Table.Th>Type de produit</Table.Th> */}
                   <Table.Th>Marge</Table.Th>
                   <Table.Th>TVA</Table.Th>
                   <Table.Th>PPV</Table.Th>
