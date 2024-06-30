@@ -4,8 +4,17 @@ using QuestPDF.Infrastructure;
 
 
 
-public class SaleTicketDocument(Sale sale) : IDocument
+public class SaleTicketDocument : IDocument
 {
+    private readonly Sale _sale;
+    private readonly Dictionary<string, string> _settings;
+
+    public SaleTicketDocument(Sale sale, Dictionary<string, string> settings)
+    {
+        _sale = sale;
+        _settings = settings;
+    }
+
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
     public DocumentSettings GetSettings() => DocumentSettings.Default;
 
@@ -18,28 +27,36 @@ public class SaleTicketDocument(Sale sale) : IDocument
                 page.Size(PageSizes.A6);
                 page.Header().Element(ComposeHeader);
                 page.Content().Element(ComposeContent);
+                page.Footer()
+                    .Height(30)
+                    .Background(Colors.Grey.Lighten1)
+                    .AlignCenter()
+                    .AlignMiddle()
+                    .Text($"{_settings["pharmacyName"]} - Téléphone: {_settings["phone"]} - Adresse: {_settings["address"]}")
+                    .Bold()
+                    .FontSize(8);
             });
     }
 
     void ComposeHeader(IContainer container)
     {
-        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images/logo.png");
-        byte[] imageData = System.IO.File.ReadAllBytes(imagePath);
+        var logoBase64 = _settings.TryGetValue("logo", out var logoValue) ? logoValue : string.Empty;
+        byte[] imageData = Convert.FromBase64String(logoBase64.Split(',')[1]);
         container.Row(row =>
         {
             row.RelativeItem().Column(column =>
             {
                 column.Spacing(2);
                 column.Item().Height(30).Width(80).Image(imageData);
-                column.Item().Text("Pharmacy Dr.Nazha").FontSize(10).Bold();
+                column.Item().Text(_settings["pharmacyName"]).FontSize(10).Bold();
             });
             row.RelativeItem().Column(column =>
             {
                 column.Spacing(2);
-                column.Item().Text($"Vente Ticket N°: {sale.SaleNumber}").FontSize(10).Bold();
+                column.Item().AlignRight().Text($"Vente Ticket N°: {_sale.SaleNumber}").FontSize(10).Bold();
                 var today = DateOnly.FromDateTime(DateTime.Now);
                 var time = TimeOnly.FromDateTime(DateTime.Now).ToString("HH:mm");
-                column.Item().Text(text =>
+                column.Item().AlignRight().Text(text =>
                 {
                     text.Span($"Du: {today} à {time} ").FontSize(10).Bold();
                 });
@@ -53,7 +70,7 @@ public class SaleTicketDocument(Sale sale) : IDocument
         {
             column.Spacing(2);
             column.Item().Element(ComposeTable);
-            var totalPrice = sale.SaleMedications.Sum(x => x.Quantity * x.Inventory.Ppv);
+            var totalPrice = _sale.SaleMedications.Sum(x => x.Quantity * x.Inventory.Ppv);
             column.Item().AlignRight().Text($"Total Vente: {totalPrice}").FontSize(12).Bold();
         });
     }
@@ -71,14 +88,13 @@ public class SaleTicketDocument(Sale sale) : IDocument
                 columns.RelativeColumn();
             });
 
-
             table.Header(header =>
             {
                 header.Cell().Element(CellStyle).Text("#");
-                header.Cell().Element(CellStyle).Text("Nom Produit").Bold().FontSize(10);
-                header.Cell().Element(CellStyle).AlignRight().Text("P.P.V").Bold().FontSize(10);
-                header.Cell().Element(CellStyle).AlignRight().Text("Quantité").Bold().FontSize(10);
-                header.Cell().Element(CellStyle).AlignRight().Text("Total").Bold().FontSize(10);
+                header.Cell().Element(CellStyle).Text("Nom Produit").Bold().FontSize(8);
+                header.Cell().Element(CellStyle).AlignRight().Text("P.P.V").Bold().FontSize(8);
+                header.Cell().Element(CellStyle).AlignRight().Text("Quantité").Bold().FontSize(8);
+                header.Cell().Element(CellStyle).AlignRight().Text("Total").Bold().FontSize(8);
 
                 static IContainer CellStyle(IContainer container)
                 {
@@ -86,13 +102,13 @@ public class SaleTicketDocument(Sale sale) : IDocument
                 }
             });
 
-            foreach (var item in sale.SaleMedications)
+            foreach (var item in _sale.SaleMedications)
             {
-                table.Cell().Element(CellStyle).Text($"{sale.SaleMedications.IndexOf(item) + 1}").FontSize(10);
-                table.Cell().Element(CellStyle).Text(item.Inventory.Medication.Name).FontSize(10);
-                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Inventory.Ppv}").FontSize(10);
-                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Quantity}").FontSize(10);
-                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Inventory.Ppv * item.Quantity}").FontSize(10);
+                table.Cell().Element(CellStyle).Text($"{_sale.SaleMedications.IndexOf(item) + 1}").FontSize(10);
+                table.Cell().Element(CellStyle).Text(item.Inventory.Medication.Name).FontSize(8);
+                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Inventory.Ppv}").FontSize(8);
+                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Quantity}").FontSize(8);
+                table.Cell().Element(CellStyle).AlignRight().Text($"{item.Inventory.Ppv * item.Quantity}").FontSize(8);
 
                 static IContainer CellStyle(IContainer container)
                 {

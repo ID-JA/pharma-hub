@@ -9,18 +9,20 @@ import {
 } from '@mantine/core'
 import { createFileRoute } from '@tanstack/react-router'
 import '@mantine/dropzone/styles.css'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { useEffect } from 'react'
 import { useForm } from '@mantine/form'
 import { IconUpload, IconPhoto, IconX } from '@tabler/icons-react'
 import { Dropzone, DropzoneProps, IMAGE_MIME_TYPE } from '@mantine/dropzone'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_portal/settings/')({
   component: BasicSettings
 })
 
 function BasicSettings() {
+  const queryClient = useQueryClient()
   const { data: settings, isLoading } = useQuery({
     queryKey: ['app-settings'],
     queryFn: async () => {
@@ -38,7 +40,7 @@ function BasicSettings() {
     }
   })
 
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: async (values: any) => {
       const updatedSettings = Object.keys(values).map((key) => ({
         settingKey: key,
@@ -47,10 +49,14 @@ function BasicSettings() {
       await http.put('/api/settings', updatedSettings)
     },
     onSuccess: () => {
-      console.log('Settings updated successfully')
+      queryClient.invalidateQueries({
+        queryKey: ['app-settings']
+      })
+      toast.success('les modifications sont enregistré avec succès')
     },
     onError: (error) => {
       console.error('Error updating settings:', error)
+      toast.error("une erreur s'est produite")
     }
   })
 
@@ -93,14 +99,17 @@ function BasicSettings() {
       <Title order={3}>Information de pharmacie</Title>
       <Group grow my="md">
         <TextInput
+          required
           label="Nom de pharmacie"
           {...form.getInputProps('pharmacyName')}
         />
         <TextInput
+          required
           label="Adresse pharmacie"
           {...form.getInputProps('address')}
         />
         <TextInput
+          required
           label="Téléphone pharmacie"
           {...form.getInputProps('phone')}
         />
@@ -165,7 +174,9 @@ function BasicSettings() {
           </Group>
         </Dropzone>
       </Group>
-      <Button type="submit">Enregistre Settings</Button>
+      <Button loading={isPending} type="submit">
+        Enregistre Settings
+      </Button>
     </form>
   )
 }

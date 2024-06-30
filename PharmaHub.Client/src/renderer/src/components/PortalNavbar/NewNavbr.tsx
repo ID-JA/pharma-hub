@@ -91,7 +91,7 @@ const appLinks = [
     ),
     label: 'Paramétrage',
     links: [
-      { label: 'Général', to: '/settings/users', exact: true },
+      { label: 'Général', to: '/settings/', exact: true },
       { label: 'Types', to: '/settings/types', exact: true },
       {
         label: 'Forms',
