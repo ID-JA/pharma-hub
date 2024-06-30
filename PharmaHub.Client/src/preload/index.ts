@@ -1,4 +1,4 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
@@ -20,3 +20,10 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.api = api
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  ipcRenderer.on('navigate-to-reset-password', (event, token) => {
+    localStorage.setItem('resetPasswordToken', token)
+    window.location.hash = `#/reset-password?token=${token}`
+  })
+})

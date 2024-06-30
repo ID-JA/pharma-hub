@@ -11,7 +11,7 @@ import { http } from '@renderer/utils/http'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/forget-password')({
@@ -20,16 +20,21 @@ export const Route = createFileRoute('/forget-password')({
 
 function ForgetPasswordPage() {
   const [email, setEmail] = useState('')
-  const { mutateAsync } = useMutation({
+  const navigate = useNavigate()
+
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: async (values: any) => {
-      http.post('/forget-password', values)
+      await http.post('/api/auth/forgot-password', values)
     },
     onSuccess: () => {
       setEmail('')
       toast.success('Email envoyé')
+      navigate({
+        to: '/reset-password'
+      })
     }
   })
-  const navigate = useNavigate()
+
   return (
     <Container
       size={500}
@@ -37,7 +42,8 @@ function ForgetPasswordPage() {
       style={{ display: 'grid', placeItems: 'center' }}
     >
       <form
-        onSubmit={async () => {
+        onSubmit={async (e) => {
+          e.preventDefault()
           await mutateAsync({ email })
         }}
       >
@@ -66,7 +72,7 @@ function ForgetPasswordPage() {
             placeholder="you@mantine.dev"
             onChange={(e) => setEmail(e.currentTarget.value)}
           />
-          <Button fullWidth mt="xl" type="submit">
+          <Button fullWidth mt="xl" type="submit" loading={isPending}>
             Envoyé
           </Button>
         </Paper>

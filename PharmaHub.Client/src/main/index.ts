@@ -1,14 +1,26 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/brand.png?asset'
 import installExtension, {
   REACT_DEVELOPER_TOOLS
 } from 'electron-devtools-installer'
+import path from 'node:path'
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('pharma-hub', process.execPath, [
+      path.resolve(process.argv[1])
+    ])
+  }
+} else {
+  app.setAsDefaultProtocolClient('pharma-hub')
+}
+
+let mainWindow
 
 function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
     show: false,
@@ -23,6 +35,27 @@ function createWindow(): void {
     }
   })
 
+  const gotTheLock = app.requestSingleInstanceLock()
+
+  if (!gotTheLock) {
+    app.quit()
+  } else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.focus()
+
+        const url = commandLine.find((arg) => arg.startsWith('pharma-hub://'))
+        if (url) {
+          const token = url.split('token=')[1]
+          const decodedToken = decodeURIComponent(token)
+          mainWindow.webContents.executeJavaScript(
+            `localStorage.setItem('token', '${decodedToken}'); window.location.hash = '#/reset-password?token=${decodedToken}';`
+          )
+        }
+      }
+    })
+  }
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })

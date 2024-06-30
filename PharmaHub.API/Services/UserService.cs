@@ -19,13 +19,13 @@ public class UserService(ApplicationDbContext dbContext, UserManager<User> userM
 
         string code = await userManager.GeneratePasswordResetTokenAsync(user);
         const string route = "account/reset-password";
-        var endpointUri = new Uri(string.Concat($"{origin}/", route));
-        string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "Token", code);
+        var endpointUri = new Uri(string.Concat($"pharma-hub://", route));
+        string passwordResetUrl = QueryHelpers.AddQueryString(endpointUri.ToString(), "token", code);
 
         var mailRequest = new MailRequest(
             [email],
             "Reset Password",
-            $"Votre jeton de réinitialisation de mot de passe est « {code} ». Vous pouvez réinitialiser votre mot de passe à l'aide du point de terminaison {endpointUri}.");
+            $"'{code}' <a href='{passwordResetUrl}'>Réinitialiser votre mot de passe</a>.");
         await mailService.SendAsync(mailRequest, CancellationToken.None);
         return "Password Reset Mail has been sent to your authorized Email.";
     }
@@ -34,7 +34,6 @@ public class UserService(ApplicationDbContext dbContext, UserManager<User> userM
     {
         var user = await userManager.FindByEmailAsync(request.Email?.Normalize()!);
 
-        // Don't reveal that the user does not exist
         _ = user ?? throw new Exception("An Error has occurred!");
 
         var result = await userManager.ResetPasswordAsync(user, request.Token!, request.Password!);
