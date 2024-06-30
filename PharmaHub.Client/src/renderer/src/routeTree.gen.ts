@@ -26,6 +26,7 @@ import { Route as PortalSettingsTypesImport } from './routes/_portal/settings_.t
 import { Route as PortalSettingsUsersImport } from './routes/_portal/settings/users'
 import { Route as PortalSettingsSectionsImport } from './routes/_portal/settings.sections'
 import { Route as PortalSettingsFormsImport } from './routes/_portal/settings.forms'
+import { Route as PortalSettingsFamiliesImport } from './routes/_portal/settings.families'
 import { Route as PortalSalesNewsImport } from './routes/_portal/sales_.news'
 import { Route as PortalSalesNewImport } from './routes/_portal/sales_.new'
 import { Route as PortalSalesSaleIdImport } from './routes/_portal/sales/$saleId'
@@ -118,6 +119,11 @@ const PortalSettingsSectionsRoute = PortalSettingsSectionsImport.update({
 
 const PortalSettingsFormsRoute = PortalSettingsFormsImport.update({
   path: '/forms',
+  getParentRoute: () => PortalSettingsRoute,
+} as any)
+
+const PortalSettingsFamiliesRoute = PortalSettingsFamiliesImport.update({
+  path: '/families',
   getParentRoute: () => PortalSettingsRoute,
 } as any)
 
@@ -377,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSalesNewsImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/settings/families': {
+      id: '/_portal/settings/families'
+      path: '/families'
+      fullPath: '/settings/families'
+      preLoaderRoute: typeof PortalSettingsFamiliesImport
+      parentRoute: typeof PortalSettingsImport
+    }
     '/_portal/settings/forms': {
       id: '/_portal/settings/forms'
       path: '/forms'
@@ -459,6 +472,7 @@ export const routeTree = rootRoute.addChildren({
     PortalMedicationsRoute,
     PortalSalesRoute: PortalSalesRoute.addChildren({ PortalSalesSaleIdRoute }),
     PortalSettingsRoute: PortalSettingsRoute.addChildren({
+      PortalSettingsFamiliesRoute,
       PortalSettingsFormsRoute,
       PortalSettingsSectionsRoute,
       PortalSettingsUsersRoute,
@@ -559,6 +573,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_portal/settings.tsx",
       "parent": "/_portal",
       "children": [
+        "/_portal/settings/families",
         "/_portal/settings/forms",
         "/_portal/settings/sections",
         "/_portal/settings/users",
@@ -623,6 +638,10 @@ export const routeTree = rootRoute.addChildren({
     "/_portal/sales/news": {
       "filePath": "_portal/sales_.news.tsx",
       "parent": "/_portal"
+    },
+    "/_portal/settings/families": {
+      "filePath": "_portal/settings.families.tsx",
+      "parent": "/_portal/settings"
     },
     "/_portal/settings/forms": {
       "filePath": "_portal/settings.forms.tsx",

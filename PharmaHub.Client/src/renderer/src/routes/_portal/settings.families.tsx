@@ -15,27 +15,27 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useMantineReactTable, MantineReactTable } from 'mantine-react-table'
 import { useMemo } from 'react'
 
-export const Route = createFileRoute('/_portal/settings/forms')({
-  component: MedicationForms
+export const Route = createFileRoute('/_portal/settings/families')({
+  component: MedicationFamilies
 })
 
-function MedicationForms() {
+function MedicationFamilies() {
   const {
-    data: fetchedForms = [],
-    isLoading: isLoadingForms,
-    isFetching: isFetchingForms,
+    data: fetchedFamilies = [],
+    isLoading: isLoadingFamilies,
+    isFetching: isFetchingFamilies,
     refetch
   } = useQuery({
-    queryKey: ['medication-forms'],
+    queryKey: ['medication-families'],
     queryFn: async () => {
-      const res = await http.get('/api/forms')
+      const res = await http.get('/api/families')
       return res.data.data
     }
   })
 
-  const { mutate: deleteForm, isPending: isDeleting } = useMutation({
-    mutationFn: async (formId) => {
-      const res = await http.delete(`/api/forms/${formId}`)
+  const { mutate: deleteFamily, isPending: isDeleting } = useMutation({
+    mutationFn: async (familyId) => {
+      const res = await http.delete(`/api/families/${familyId}`)
       return res.data
     },
     onSuccess: () => {
@@ -43,9 +43,9 @@ function MedicationForms() {
     }
   })
 
-  const { mutateAsync: createForm, isPending: isCreating } = useMutation({
+  const { mutateAsync: createFamily, isPending: isCreating } = useMutation({
     mutationFn: async (values: any) => {
-      const res = await http.post('/api/forms/', {
+      const res = await http.post('/api/families/', {
         ...values,
         id: 0
       })
@@ -55,9 +55,9 @@ function MedicationForms() {
       refetch()
     }
   })
-  const { mutateAsync: updateForm, isPending: isUpdating } = useMutation({
+  const { mutateAsync: updateFamily, isPending: isUpdating } = useMutation({
     mutationFn: async (values: any) => {
-      const res = await http.put(`/api/forms/${values.id}`, {
+      const res = await http.put(`/api/families/${values.id}`, {
         ...values,
         id: 0
       })
@@ -78,10 +78,10 @@ function MedicationForms() {
       },
       {
         accessorKey: 'name',
-        header: 'Norm Forme',
+        header: 'Norm Familles Thérapeutiques',
         size: 300,
         mantineEditTextInputProps: {
-          form: 'text',
+          type: 'text',
           required: true
         }
       },
@@ -89,15 +89,7 @@ function MedicationForms() {
         accessorKey: 'code',
         header: 'Code',
         mantineEditTextInputProps: {
-          form: 'text',
-          required: true
-        }
-      },
-      {
-        accessorKey: 'description',
-        header: 'Description',
-        mantineEditTextInputProps: {
-          form: 'text',
+          type: 'text',
           required: true
         }
       }
@@ -106,14 +98,14 @@ function MedicationForms() {
   )
 
   //CREATE action
-  const handleCreateForm = async ({ values, exitCreatingMode }) => {
-    await createForm(values)
+  const handleCreateFamily = async ({ values, exitCreatingMode }) => {
+    await createFamily(values)
     exitCreatingMode()
   }
 
   //UPDATE action
-  const handleSaveForm = async ({ values, table }) => {
-    await updateForm(values)
+  const handleSaveFamily = async ({ values, table }) => {
+    await updateFamily(values)
     table.setEditingRow(null)
   }
 
@@ -122,18 +114,16 @@ function MedicationForms() {
     modals.openConfirmModal({
       title: 'Message de confirmation',
       children: (
-        <Text>
-          Êtes-vous sûr de vouloir supprimer cette forme "{row.original.name}"?
-        </Text>
+        <Text>Êtes-vous sûr de vouloir supprimer {row.original.name}?</Text>
       ),
       labels: { confirm: 'Supprimer', cancel: 'Annule' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteForm(row.original.id)
+      onConfirm: () => deleteFamily(row.original.id)
     })
 
   const table = useMantineReactTable({
     columns,
-    data: fetchedForms,
+    data: fetchedFamilies,
     enableGlobalFilter: false,
     enableHiding: false,
     enableSorting: false,
@@ -157,9 +147,9 @@ function MedicationForms() {
       }
     },
     // onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateForm,
+    onCreatingRowSave: handleCreateFamily,
     // onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveForm,
+    onEditingRowSave: handleSaveFamily,
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
         <Tooltip label="Edit">
@@ -189,25 +179,25 @@ function MedicationForms() {
           table.setCreatingRow(true)
         }}
       >
-        Ajouter Forme
+        Ajouter Familles Thérapeutiques
       </Button>
     ),
     mantinePaperProps: {
       withBorder: false
     },
     state: {
-      isLoading: isLoadingForms,
-      showProgressBars: isFetchingForms,
+      isLoading: isLoadingFamilies,
+      showProgressBars: isFetchingFamilies,
       isSaving: isCreating || isUpdating || isDeleting
     }
   })
   return (
     <Box mt="md">
       <Title order={2} mb="md">
-        Formes
+        Familles Thérapeutiques
       </Title>
       <MantineReactTable table={table} />
     </Box>
   )
 }
-export default MedicationForms
+export default MedicationFamilies

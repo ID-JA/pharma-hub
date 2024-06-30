@@ -182,11 +182,10 @@ function MedicationTypes() {
   //DELETE action
   const openDeleteConfirmModal = (row) =>
     modals.openConfirmModal({
-      title: 'Êtes-vous sûr de vouloir supprimer ce type?',
+      title: 'Message de confirmation',
       children: (
         <Text>
-          Are you sure you want to delete {row.original.firstName}{' '}
-          {row.original.lastName}? This action cannot be undone.
+          Êtes-vous sûr de vouloir supprimer ce type "{row.original.name}"?
         </Text>
       ),
       labels: { confirm: 'Supprimer', cancel: 'Annule' },

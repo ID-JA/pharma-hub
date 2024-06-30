@@ -76,7 +76,7 @@ export function LinksGroup({
           activeProps={{ className: classes.activeLink }}
         >
           <Box style={{ display: 'flex', alignItems: 'center' }}>
-            <Icon className={classes.linkIcon} stroke={1.5} />
+            {Icon}
             <Box ml="md">{label}</Box>
           </Box>
         </Link>
