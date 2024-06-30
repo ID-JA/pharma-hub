@@ -21,7 +21,8 @@ public static class Extensions
             .AddIdentity<User, Role>()
             .AddSignInManager<SignInManager<User>>()
             .AddRoles<Role>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
         return services;
 

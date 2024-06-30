@@ -11,6 +11,8 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ResetPasswordImport } from './routes/reset-password'
+import { Route as ForgetPasswordImport } from './routes/forget-password'
 import { Route as PortalImport } from './routes/_portal'
 import { Route as IndexImport } from './routes/index'
 import { Route as PortalSettingsImport } from './routes/_portal/settings'
@@ -42,6 +44,16 @@ import { Route as PortalMedicationsEditMedicationIdImport } from './routes/_port
 import { Route as PortalMedicamentsMedicamentIdHistoryImport } from './routes/_portal/medicaments.$medicamentId.history'
 
 // Create/Update Routes
+
+const ResetPasswordRoute = ResetPasswordImport.update({
+  path: '/reset-password',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ForgetPasswordRoute = ForgetPasswordImport.update({
+  path: '/forget-password',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const PortalRoute = PortalImport.update({
   id: '/_portal',
@@ -210,6 +222,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof PortalImport
+      parentRoute: typeof rootRoute
+    }
+    '/forget-password': {
+      id: '/forget-password'
+      path: '/forget-password'
+      fullPath: '/forget-password'
+      preLoaderRoute: typeof ForgetPasswordImport
+      parentRoute: typeof rootRoute
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
     }
     '/_portal/dashboard': {
@@ -440,6 +466,8 @@ export const routeTree = rootRoute.addChildren({
     PortalMedicationsEditMedicationIdRoute,
     PortalMedicationsInventoryNewRoute,
   }),
+  ForgetPasswordRoute,
+  ResetPasswordRoute,
 })
 
 /* prettier-ignore-end */
@@ -451,7 +479,9 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/_portal"
+        "/_portal",
+        "/forget-password",
+        "/reset-password"
       ]
     },
     "/": {
@@ -481,6 +511,12 @@ export const routeTree = rootRoute.addChildren({
         "/_portal/medications/edit/$medicationId",
         "/_portal/medications/inventory/new"
       ]
+    },
+    "/forget-password": {
+      "filePath": "forget-password.tsx"
+    },
+    "/reset-password": {
+      "filePath": "reset-password.tsx"
     },
     "/_portal/dashboard": {
       "filePath": "_portal/dashboard.tsx",

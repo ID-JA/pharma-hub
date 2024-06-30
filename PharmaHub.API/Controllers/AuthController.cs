@@ -3,9 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace PharmaHub.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("/api/[controller]")]
 [ApiController]
-public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager) : ControllerBase
+public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager, RoleManager<Role> roleManager, IUserService userService) : ControllerBase
 {
     [HttpPost("/register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
@@ -61,6 +61,34 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
 
         return Empty;
     }
+
+
+    [HttpPost("forgot-password")]
+    public Task<string> ForgotPasswordAsync(ForgetPasswordRequest request)
+    {
+        return userService.ForgotPasswordAsync(request.Email, $"{Request.Scheme}://{Request.Host.Value}{Request.PathBase.Value}");
+    }
+
+    [HttpPost("reset-password")]
+    public Task<string> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        return userService.ResetPasswordAsync(request);
+    }
+}
+
+
+public class ForgetPasswordRequest
+{
+    public string Email { get; set; }
+
+}
+public class ResetPasswordRequest
+{
+    public string? Email { get; set; }
+
+    public string? Password { get; set; }
+
+    public string? Token { get; set; }
 }
 
 public class RegisterRequest

@@ -33,7 +33,7 @@ var builder = WebApplication.CreateBuilder(args);
         });
     });
 
-
+    builder.Services.Configure<MailSettings>(builder.Configuration.GetSection(nameof(MailSettings)));
     // register custom services
     builder.Services.AddScoped(typeof(IService<>), typeof(Service<>));
     builder.Services.AddScoped<IUserService, UserService>();
@@ -49,6 +49,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IBillService, BillService>();
     builder.Services.AddScoped<IClientService, ClientService>();
     builder.Services.AddScoped<ICreditNoteService, CreditNoteService>();
+    builder.Services.AddScoped<IMailService, SmtpMailService>();
     builder.Services.AddScoped<IAppSettingService, AppSettingService>();
 
 

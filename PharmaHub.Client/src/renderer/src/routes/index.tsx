@@ -13,6 +13,7 @@ import { z } from 'zod'
 import { useForm } from '@mantine/form'
 import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
+import { Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
   component: LoginRoute
@@ -76,6 +77,17 @@ function LoginRoute() {
           <Button fullWidth mt="xl" type="submit" loading={mutation.isPending}>
             Sign in
           </Button>
+          <Link
+            to="/forget-password"
+            style={{
+              textAlign: 'center',
+              display: 'block',
+              color: 'black',
+              marginTop: '.5rem'
+            }}
+          >
+            Forgot password?
+          </Link>
         </Paper>
       </form>
     </Container>
