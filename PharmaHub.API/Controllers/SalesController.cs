@@ -6,7 +6,7 @@ namespace PharmaHub.API.Controllers;
 [Route("/api/[controller]")]
 [ApiController]
 [Authorize]
-public class SalesController(ISaleService saleService) : ControllerBase
+public class SalesController(ISaleService saleService, IAppSettingService settingService) : ControllerBase
 {
 
     [HttpPost]
@@ -85,7 +85,10 @@ public class SalesController(ISaleService saleService) : ControllerBase
         var sale = await saleService.GetSaleAsync(id, CancellationToken.None);
         if (sale is null) return NotFound();
 
-        var document = new SaleTicketDocument(sale.ToEntity());
+        var settings = await settingService.GetAllSettings();
+        var settingsDictionary = settings.ToDictionary(s => s.SettingKey, s => s.SettingValue);
+
+        var document = new SaleTicketDocument(sale.ToEntity(), settingsDictionary);
         var pdfBytes = document.GeneratePdf();
 
         var base64String = Convert.ToBase64String(pdfBytes);
