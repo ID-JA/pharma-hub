@@ -23,7 +23,7 @@ public class SuppliersController(ISupplierService supplierService) : ControllerB
 
     [HttpGet("{id:int}")]
     [MustHavePermission(AppAction.View, AppResource.Suppliers)]
-    public async Task<ActionResult> GetOrders([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetSupplierById([FromRoute] int id, CancellationToken cancellationToken)
     {
         var result = await supplierService.GetByIdAsync(id, cancellationToken);
         return result != null ? Ok(result) : NotFound();

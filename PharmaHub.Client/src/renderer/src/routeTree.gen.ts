@@ -15,6 +15,7 @@ import { Route as ResetPasswordImport } from './routes/reset-password'
 import { Route as ForgetPasswordImport } from './routes/forget-password'
 import { Route as PortalImport } from './routes/_portal'
 import { Route as IndexImport } from './routes/index'
+import { Route as PortalSuppliersImport } from './routes/_portal/suppliers'
 import { Route as PortalSettingsImport } from './routes/_portal/settings'
 import { Route as PortalSalesImport } from './routes/_portal/sales'
 import { Route as PortalMedicationsImport } from './routes/_portal/medications'
@@ -65,6 +66,11 @@ const PortalRoute = PortalImport.update({
 const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const PortalSuppliersRoute = PortalSuppliersImport.update({
+  path: '/suppliers',
+  getParentRoute: () => PortalRoute,
 } as any)
 
 const PortalSettingsRoute = PortalSettingsImport.update({
@@ -285,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSettingsImport
       parentRoute: typeof PortalImport
     }
+    '/_portal/suppliers': {
+      id: '/_portal/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof PortalSuppliersImport
+      parentRoute: typeof PortalImport
+    }
     '/_portal/bills/new': {
       id: '/_portal/bills/new'
       path: '/bills/new'
@@ -478,6 +491,7 @@ export const routeTree = rootRoute.addChildren({
       PortalSettingsUsersRoute,
       PortalSettingsIndexRoute,
     }),
+    PortalSuppliersRoute,
     PortalBillsNewRoute,
     PortalCreditNotesNewRoute,
     PortalDeliveriesConsultationRoute,
@@ -523,6 +537,7 @@ export const routeTree = rootRoute.addChildren({
         "/_portal/medications",
         "/_portal/sales",
         "/_portal/settings",
+        "/_portal/suppliers",
         "/_portal/bills/new",
         "/_portal/credit-notes/new",
         "/_portal/deliveries/consultation",
@@ -579,6 +594,10 @@ export const routeTree = rootRoute.addChildren({
         "/_portal/settings/users",
         "/_portal/settings/"
       ]
+    },
+    "/_portal/suppliers": {
+      "filePath": "_portal/suppliers.tsx",
+      "parent": "/_portal"
     },
     "/_portal/bills/new": {
       "filePath": "_portal/bills.new.tsx",
