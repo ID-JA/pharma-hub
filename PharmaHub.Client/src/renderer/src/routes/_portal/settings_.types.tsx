@@ -10,6 +10,7 @@ import {
   Table,
   Tabs,
   Text,
+  Title,
   Tooltip
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
@@ -181,7 +182,7 @@ function MedicationTypes() {
   //DELETE action
   const openDeleteConfirmModal = (row) =>
     modals.openConfirmModal({
-      title: 'Are you sure you want to delete this user?',
+      title: 'Êtes-vous sûr de vouloir supprimer ce type?',
       children: (
         <Text>
           Are you sure you want to delete {row.original.firstName}{' '}
@@ -387,6 +388,9 @@ function MedicationsByType() {
         }))}
       />
       <Box mt="md">
+        <Title order={2} mb="md">
+          Formes
+        </Title>
         <MantineReactTable table={table} />
       </Box>
     </div>

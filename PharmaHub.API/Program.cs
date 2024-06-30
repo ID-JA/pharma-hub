@@ -51,6 +51,7 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<ICreditNoteService, CreditNoteService>();
     builder.Services.AddScoped<IMailService, SmtpMailService>();
     builder.Services.AddScoped<IAppSettingService, AppSettingService>();
+    builder.Services.AddScoped<ISectionService, SectionService>();
 
 
     builder.Services.AddAuth();

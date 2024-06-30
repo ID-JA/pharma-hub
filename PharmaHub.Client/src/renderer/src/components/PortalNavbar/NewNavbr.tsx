@@ -95,12 +95,12 @@ const appLinks = [
       { label: 'Types', to: '/settings/types', exact: true },
       {
         label: 'Forms',
-        to: '/deliveries/new',
+        to: '/settings/forms',
         exact: true
       },
       {
         label: 'Rayon',
-        to: '/deliveries/consultation',
+        to: '/settings/sections',
         exact: true
       },
       { label: 'Familles Thérapeutiques', to: '/', exact: true }

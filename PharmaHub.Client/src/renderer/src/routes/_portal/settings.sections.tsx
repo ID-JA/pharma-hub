@@ -15,27 +15,27 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useMantineReactTable, MantineReactTable } from 'mantine-react-table'
 import { useMemo } from 'react'
 
-export const Route = createFileRoute('/_portal/settings/forms')({
-  component: MedicationForms
+export const Route = createFileRoute('/_portal/settings/sections')({
+  component: MedicationSections
 })
 
-function MedicationForms() {
+function MedicationSections() {
   const {
-    data: fetchedForms = [],
-    isLoading: isLoadingForms,
-    isFetching: isFetchingForms,
+    data: fetchedSections = [],
+    isLoading: isLoadingSections,
+    isFetching: isFetchingSections,
     refetch
   } = useQuery({
-    queryKey: ['medication-forms'],
+    queryKey: ['medication-sections'],
     queryFn: async () => {
-      const res = await http.get('/api/forms')
+      const res = await http.get('/api/sections')
       return res.data.data
     }
   })
 
-  const { mutate: deleteForm, isPending: isDeleting } = useMutation({
-    mutationFn: async (formId) => {
-      const res = await http.delete(`/api/forms/${formId}`)
+  const { mutate: deleteSection, isPending: isDeleting } = useMutation({
+    mutationFn: async (sectionId) => {
+      const res = await http.delete(`/api/sections/${sectionId}`)
       return res.data
     },
     onSuccess: () => {
@@ -43,9 +43,9 @@ function MedicationForms() {
     }
   })
 
-  const { mutateAsync: createForm, isPending: isCreating } = useMutation({
+  const { mutateAsync: createSection, isPending: isCreating } = useMutation({
     mutationFn: async (values: any) => {
-      const res = await http.post('/api/forms/', {
+      const res = await http.post('/api/sections/', {
         ...values,
         id: 0
       })
@@ -55,9 +55,9 @@ function MedicationForms() {
       refetch()
     }
   })
-  const { mutateAsync: updateForm, isPending: isUpdating } = useMutation({
+  const { mutateAsync: updateSection, isPending: isUpdating } = useMutation({
     mutationFn: async (values: any) => {
-      const res = await http.put(`/api/forms/${values.id}`, {
+      const res = await http.put(`/api/sections/${values.id}`, {
         ...values,
         id: 0
       })
@@ -78,10 +78,10 @@ function MedicationForms() {
       },
       {
         accessorKey: 'name',
-        header: 'Norm Forme',
+        header: 'Norm Rayon',
         size: 300,
         mantineEditTextInputProps: {
-          form: 'text',
+          type: 'text',
           required: true
         }
       },
@@ -89,15 +89,7 @@ function MedicationForms() {
         accessorKey: 'code',
         header: 'Code',
         mantineEditTextInputProps: {
-          form: 'text',
-          required: true
-        }
-      },
-      {
-        accessorKey: 'description',
-        header: 'Description',
-        mantineEditTextInputProps: {
-          form: 'text',
+          type: 'text',
           required: true
         }
       }
@@ -106,21 +98,21 @@ function MedicationForms() {
   )
 
   //CREATE action
-  const handleCreateForm = async ({ values, exitCreatingMode }) => {
-    await createForm(values)
+  const handleCreateSection = async ({ values, exitCreatingMode }) => {
+    await createSection(values)
     exitCreatingMode()
   }
 
   //UPDATE action
-  const handleSaveForm = async ({ values, table }) => {
-    await updateForm(values)
+  const handleSaveSection = async ({ values, table }) => {
+    await updateSection(values)
     table.setEditingRow(null)
   }
 
   //DELETE action
   const openDeleteConfirmModal = (row) =>
     modals.openConfirmModal({
-      title: 'Êtes-vous sûr de vouloir supprimer cette forme?',
+      title: 'Êtes-vous sûr de vouloir supprimer ce Rayon?',
       children: (
         <Text>
           Are you sure you want to delete {row.original.firstName}{' '}
@@ -129,12 +121,12 @@ function MedicationForms() {
       ),
       labels: { confirm: 'Supprimer', cancel: 'Annule' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteForm(row.original.id)
+      onConfirm: () => deleteSection(row.original.id)
     })
 
   const table = useMantineReactTable({
     columns,
-    data: fetchedForms,
+    data: fetchedSections,
     enableGlobalFilter: false,
     enableHiding: false,
     enableSorting: false,
@@ -158,9 +150,9 @@ function MedicationForms() {
       }
     },
     // onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateForm,
+    onCreatingRowSave: handleCreateSection,
     // onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveForm,
+    onEditingRowSave: handleSaveSection,
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
         <Tooltip label="Edit">
@@ -190,25 +182,25 @@ function MedicationForms() {
           table.setCreatingRow(true)
         }}
       >
-        Ajouter Forme
+        Ajouter Rayon
       </Button>
     ),
     mantinePaperProps: {
       withBorder: false
     },
     state: {
-      isLoading: isLoadingForms,
-      showProgressBars: isFetchingForms,
+      isLoading: isLoadingSections,
+      showProgressBars: isFetchingSections,
       isSaving: isCreating || isUpdating || isDeleting
     }
   })
   return (
     <Box mt="md">
       <Title order={2} mb="md">
-        Formes
+        Rayons
       </Title>
       <MantineReactTable table={table} />
     </Box>
   )
 }
-export default MedicationForms
+export default MedicationSections
