@@ -259,9 +259,10 @@ function NewBillPage() {
         queryFn: async () => {
           const response = await http.get('/api/deliveries', {
             params: {
-              supplier: filterOptions.supplier,
+              supplierId: filterOptions.supplier,
               from: filterOptions.from,
-              to: filterOptions.to
+              to: filterOptions.to,
+              status: 'pending'
             }
           })
           return response.data.data
@@ -273,7 +274,7 @@ function NewBillPage() {
         queryFn: async () => {
           const response = await http.get('/api/credit-notes', {
             params: {
-              supplier: filterOptions.supplier,
+              supplierId: filterOptions.supplier,
               from: filterOptions.from,
               to: filterOptions.to
             }

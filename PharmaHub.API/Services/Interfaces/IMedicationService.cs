@@ -172,7 +172,7 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         {
             MedicationId = id,
             ExpirationDate = request.ExpirationDate,
-            Quantity = request.Quantity,
+            BoxQuantity = request.Quantity,
             Pph = request.Pph,
             Ppv = request.Ppv
         };

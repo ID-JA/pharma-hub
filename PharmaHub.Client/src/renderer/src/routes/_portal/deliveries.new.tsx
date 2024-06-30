@@ -23,13 +23,14 @@ import { http } from '@renderer/utils/http'
 import { IconTrash } from '@tabler/icons-react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
 import { version } from 'pdfjs-dist'
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'
+import { userSuppliers } from '@renderer/services/suppliers.service'
 export const Route = createFileRoute('/_portal/deliveries/new')({
   component: NewDeliveryPage
 })
@@ -93,6 +94,16 @@ export function NewDeliveryPage() {
     return selectedDeliveryItems.some((item) => item.key === key)
   }
 
+  const { data: suppliers = [], isLoading: fetchingSuppliers } = userSuppliers()
+
+  const suppliersMemo = useMemo(
+    () =>
+      suppliers.map((s: any) => ({
+        value: s.id.toString(),
+        label: s.name
+      })),
+    [suppliers]
+  )
   const { PendingOrdersSelector, PendingOrdersSelectorButton } =
     usePendingOrdersSelectorModal({
       onAddOrderItem(orderItem) {
@@ -506,13 +517,10 @@ export function NewDeliveryPage() {
         <Group justify="space-between" mb="md">
           <Group>
             <Select
-              data={[
-                {
-                  label: 'Supplier 1',
-                  value: '1'
-                }
-              ]}
-              label="Selection Fournisseur"
+              required
+              label="Fournisseur"
+              data={suppliersMemo}
+              disabled={fetchingSuppliers}
               {...form.getInputProps('supplierId')}
             />
             <InputBase

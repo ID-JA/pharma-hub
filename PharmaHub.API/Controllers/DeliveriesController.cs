@@ -20,9 +20,9 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
 
     [HttpGet]
     [MustHavePermission(AppAction.View, AppResource.Orders)]
-    public async Task<ActionResult> GetDeliveries(CancellationToken cancellationToken, [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] int supplier, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult> GetDeliveries([FromQuery] int? deliveryNumber, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int? supplierId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string status = "pending", CancellationToken cancellationToken = default)
     {
-        return Ok(await deliveryService.GetDeliveriesAsync(from, to, supplier, pageNumber, pageSize, cancellationToken));
+        return Ok(await deliveryService.GetDeliveriesAsync(deliveryNumber, from, to, supplierId, pageNumber, pageSize, status, cancellationToken));
     }
 
     [HttpGet("{id:int}")]
@@ -72,6 +72,25 @@ public class DeliveriesController(IDeliveryService deliveryService) : Controller
             To = to,
         };
         return Ok(await deliveryService.GetOrders(searchQuery, cancellationToken));
+    }
+    [HttpGet("orders/search")]
+    public async Task<ActionResult> SearchOrdersAsync(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] int? supplierId,
+        [FromQuery] string? status,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        OrderSearchQuery searchQuery = new()
+        {
+            Status = status,
+            Supplier = supplierId,
+            From = from,
+            To = to,
+        };
+        return Ok(await deliveryService.SearchOrdersAsync(searchQuery, pageNumber, pageSize, cancellationToken));
     }
     [HttpGet("analytics")]
     public async Task<ActionResult> GetOrdersAndDeliveriesByDateRangeAsync([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, CancellationToken cancellationToken)

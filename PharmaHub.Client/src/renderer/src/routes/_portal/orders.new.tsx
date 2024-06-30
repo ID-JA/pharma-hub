@@ -12,7 +12,7 @@ import {
 import { createFileRoute } from '@tanstack/react-router'
 import { DatePickerInput, TimeInput } from '@mantine/dates'
 import dayjs from 'dayjs'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { IconTrash } from '@tabler/icons-react'
 import { calculatePPH, calculatePurchasePrice } from '@renderer/utils/functions'
 import { useForm } from '@mantine/form'
@@ -23,6 +23,7 @@ import { http } from '@renderer/utils/http'
 import { useInventorySelector } from '@renderer/components/Inventories/InventorySelectorDrawer'
 import { modals } from '@mantine/modals'
 import { toast } from 'sonner'
+import { userSuppliers } from '@renderer/services/suppliers.service'
 
 export const Route = createFileRoute('/_portal/orders/new')({
   component: NewOrder
@@ -223,6 +224,17 @@ function NewOrder() {
     })
   }, [form.getValues().orderItems])
 
+  const { data: suppliers = [], isLoading: fetchingSuppliers } = userSuppliers()
+
+  const suppliersMemo = useMemo(
+    () =>
+      suppliers.map((s: any) => ({
+        value: s.id.toString(),
+        label: s.name
+      })),
+    [suppliers]
+  )
+
   return (
     <Box p="md">
       <InventorySelectorDrawer />
@@ -244,10 +256,11 @@ function NewOrder() {
         <Group justify="space-between" mb="lg">
           <Group>
             <Select
-              label="Sélectionner fournisseur"
-              data={[{ value: '1', label: 'ABC Medications' }]}
+              required
+              label="Fournisseur"
+              data={suppliersMemo}
+              disabled={fetchingSuppliers}
               {...form.getInputProps('supplierId')}
-              key={form.key('supplierId')}
             />
             <DatePickerInput
               readOnly

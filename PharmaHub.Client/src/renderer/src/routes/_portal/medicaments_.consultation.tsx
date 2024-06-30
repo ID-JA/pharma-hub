@@ -247,7 +247,7 @@ function StockDetail() {
             <Table.Tbody>
               {medication.inventories.map((item: any) => (
                 <Table.Tr key={item.id}>
-                  <Table.Td>{item.quantity}</Table.Td>
+                  <Table.Td>{item.boxQuantity}</Table.Td>
                   <Table.Td>{item.ppv}</Table.Td>
                   <Table.Td>{item.pph}</Table.Td>
                   <Table.Td>

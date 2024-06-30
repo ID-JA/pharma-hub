@@ -95,7 +95,7 @@ function NewInventoryPage() {
       },
       {
         accessorKey: 'quantity',
-        header: 'Quantity',
+        header: 'Quantité',
         mantineEditTextInputProps: {
           type: 'number',
           required: true,
@@ -110,7 +110,7 @@ function NewInventoryPage() {
       },
       {
         accessorKey: 'expirationDate',
-        header: 'Expiration Date',
+        header: 'Péremption',
         Cell: ({ cell }) => dayjs(cell.getValue<Date>()).format('DD/MM/YYYY'),
         mantineEditTextInputProps: {
           type: 'date',
@@ -186,20 +186,11 @@ function NewInventoryPage() {
     onEditingRowSave: handleSaveInventory,
     renderRowActions: ({ row, table }) => (
       <Flex gap="md">
-        <ActionIcon
-          onClick={() => table.setEditingRow(row)}
-          size="sm"
-          variant="light"
-        >
-          <IconEdit style={{ height: '50%', width: '50%' }} stroke={1.2} />
+        <ActionIcon onClick={() => table.setEditingRow(row)}>
+          <IconEdit style={{ height: '80%', width: '80%' }} stroke={1.2} />
         </ActionIcon>
-        <ActionIcon
-          color="red"
-          onClick={() => openDeleteConfirmModal(row)}
-          size="sm"
-          variant="light"
-        >
-          <IconTrash style={{ height: '50%', width: '50%' }} stroke={1.2} />
+        <ActionIcon color="red" onClick={() => openDeleteConfirmModal(row)}>
+          <IconTrash style={{ height: '80%', width: '80%' }} stroke={1.2} />
         </ActionIcon>
       </Flex>
     ),
@@ -212,7 +203,7 @@ function NewInventoryPage() {
             table.setCreatingRow(true)
           }}
         >
-          Create New Inventory
+          Ajouter Inventaire
         </Button>
       </Group>
     ),
@@ -232,8 +223,8 @@ function NewInventoryPage() {
         />
       </Group>
       <Group grow mb="lg">
-        <InputBase label="Section" value={data?.section} readOnly />
-        <InputBase label="Form" value={data?.form} readOnly />
+        <InputBase label="Rayon" value={data?.section} readOnly />
+        <InputBase label="Forme" value={data?.form} readOnly />
       </Group>
       <MantineReactTable table={table} />
     </>

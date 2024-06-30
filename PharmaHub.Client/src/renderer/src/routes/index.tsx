@@ -1,6 +1,7 @@
 import {
   Button,
   Container,
+  Image,
   Paper,
   PasswordInput,
   TextInput,
@@ -14,6 +15,7 @@ import { useForm } from '@mantine/form'
 import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { Link } from '@tanstack/react-router'
+import brandImage from '@renderer/assets/brand.png'
 
 export const Route = createFileRoute('/')({
   component: LoginRoute
@@ -59,7 +61,7 @@ function LoginRoute() {
           mutation.mutate(values)
         })}
       >
-        <Title ta="center">PharmaHub App</Title>
+        <Image miw={300} src={brandImage} />
         <Paper withBorder shadow="md" p={30} mt={30} radius="md" w="100%">
           <TextInput
             label="Email"

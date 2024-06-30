@@ -26,11 +26,10 @@ public class OrderBasicDto : BaseDto<OrderBasicDto, Order>
 public class OrderDetailedDto : BaseDto<OrderDetailedDto, Order>
 {
     public int Id { get; set; }
-    public DateTime DeliveryDate { get; set; }
+    public DateTime OrderDate { get; set; }
     public string Status { get; set; }
-    public int SupplierId { get; set; }
     public Supplier Supplier { get; set; }
-    public List<OrderItemDetailedDto> OrderItems { get; set; }
+    public List<OrderDeliveryInventoryBasicDto> OrderDeliveryInventories { get; set; }
 }
 
 public class OrderItemCreateDto : BaseDto<OrderItemCreateDto, OrderItem>
@@ -56,7 +55,7 @@ public class OrderItemDetailedDto : BaseDto<OrderItemDetailedDto, OrderItem>
 
 public interface IDeliveryService
 {
-    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(DateTime? from = null, DateTime? to = null, int supplier = 0, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(int? deliveryNumber = null, DateTime? from = null, DateTime? to = null, int? supplierId = null, int pageNumber = 1, int pageSize = 10, string status = "pending", CancellationToken cancellationToken = default);
     Task<DeliveryBasicDto?> GetDeliveryByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<DeliveryDetailedDto?> GetDeliveryDetails(int deliveryNumber, CancellationToken cancellationToken = default);
 
@@ -68,6 +67,7 @@ public interface IDeliveryService
     Task<PaginatedResponse<OrderItemDetailedDto>> GetOrders(OrderSearchQuery searchQuery, CancellationToken cancellationToken);
 
     Task<List<OrdersDeliveriesData>> GetOrdersAndDeliveriesByDateRangeAsync(DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
+    Task<PaginatedResponse<OrderDetailedDto>> SearchOrdersAsync(OrderSearchQuery searchQuery, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
 }
 
 
@@ -80,32 +80,49 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
     .ProjectToType<DeliveryBasicDto>()
     .FirstOrDefaultAsync(cancellationToken);
 
-    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(
-     DateTime? from = null,
-     DateTime? to = null,
-     int supplier = 0,
-     int pageNumber = 1,
-     int pageSize = 10,
-     CancellationToken cancellationToken = default)
+    public async Task<PaginatedResponse<DeliveryDetailedDto>> GetDeliveriesAsync(int? deliveryNumber = null, DateTime? from = null, DateTime? to = null, int? supplierId = null, int pageNumber = 1, int pageSize = 10, string status = "pending", CancellationToken cancellationToken = default)
     {
-        from ??= DateTime.UtcNow.AddDays(-7);
-        to ??= DateTime.UtcNow;
-
-        var query = dbContext.Deliveries.AsNoTracking()
-            .Where(d => d.DeliveryDate >= from && d.DeliveryDate <= to && d.BillId == null);
-
-        if (supplier > 0)
+        if (!from.HasValue && !to.HasValue)
         {
-            query = query.Where(d => d.SupplierId == supplier);
+            to = DateTime.UtcNow.Date;
+            from = to.Value.AddDays(-6);
+        }
+
+        if (from.HasValue && to.HasValue && from > to)
+        {
+            (from, to) = (to, from);
+        }
+
+        if (to.HasValue)
+        {
+            to = to.Value.Date.AddDays(1).AddTicks(-1);
+        }
+
+        var query = dbContext.Deliveries
+            .Where(s => (!from.HasValue || s.CreatedAt >= from) &&
+                        (!to.HasValue || s.CreatedAt <= to) &&
+                        (status == "pending" ? s.BillId == null : s.BillId != null))
+            .Include(d => d.OrderDeliveryInventories)
+            .AsNoTracking();
+
+        if (deliveryNumber.HasValue)
+        {
+            query = query.Where(d => d.DeliveryNumber == deliveryNumber.Value);
+        }
+
+        if (supplierId.HasValue && supplierId.Value > 0)
+        {
+            query = query.Where(d => d.SupplierId == supplierId.Value);
         }
 
         var result = await query
-            .OrderBy(d => d.DeliveryDate)
+            .OrderBy(d => d.CreatedAt)
             .ProjectToType<DeliveryDetailedDto>()
-            .PaginatedListAsync(1, 1000);
+            .PaginatedListAsync(pageNumber, pageSize);
 
         return result;
     }
+
 
 
     public async Task<int> CreateDeliveryAsync(DeliveryCreateDto request, CancellationToken cancellationToken = default)
@@ -407,6 +424,58 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
         return await query.ProjectToType<OrderItemDetailedDto>().PaginatedListAsync(1, 1000);
     }
 
+    public async Task<PaginatedResponse<OrderDetailedDto>> SearchOrdersAsync(OrderSearchQuery searchQuery, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        // Ensure the searchQuery has a valid date range
+        if (!searchQuery.From.HasValue && !searchQuery.To.HasValue)
+        {
+            searchQuery.To = DateTime.UtcNow.Date;
+            searchQuery.From = searchQuery.To.Value.AddDays(-6);
+        }
+
+        if (searchQuery.From.HasValue && searchQuery.To.HasValue && searchQuery.From > searchQuery.To)
+        {
+            (searchQuery.From, searchQuery.To) = (searchQuery.To, searchQuery.From);
+        }
+
+        searchQuery.To = searchQuery.To?.Date.AddDays(1).AddTicks(-1);
+
+        // Define the base query
+        var query = dbContext.Orders
+            .Include(o => o.OrderDeliveryInventories)
+            .AsQueryable();
+
+        // // Apply filters
+        // if (!string.IsNullOrEmpty(searchQuery.Status))
+        // {
+        //     query = query.Where(o => o.Status == searchQuery.Status);
+        // }
+
+        if (searchQuery.Supplier > 0)
+        {
+            query = query.Where(o => o.SupplierId == searchQuery.Supplier);
+        }
+
+        if (searchQuery.From.HasValue)
+        {
+            query = query.Where(o => o.OrderDate >= searchQuery.From);
+        }
+
+        if (searchQuery.To.HasValue)
+        {
+            query = query.Where(o => o.OrderDate <= searchQuery.To);
+        }
+
+        // Order by CreatedAt and paginate the results
+        var result = await query
+            .OrderBy(o => o.OrderDate)
+            .ProjectToType<OrderDetailedDto>()
+            .PaginatedListAsync(pageNumber, pageSize);
+
+        return result;
+    }
+
+
     public async Task<DeliveryDetailedDto?> GetDeliveryDetails(int deliveryNumber, CancellationToken cancellationToken = default)
     {
         var result = await dbContext.Deliveries.Where(d => d.DeliveryNumber == deliveryNumber)
@@ -470,10 +539,10 @@ public class DeliveryService(ApplicationDbContext dbContext, ICurrentUser curren
 
 public class OrderSearchQuery
 {
-    public string Status { get; set; } = "";
-    public int Supplier { get; set; }
-    public DateTime From { get; set; } = DateTime.Now;
-    public DateTime To { get; set; } = DateTime.Now;
+    public string? Status { get; set; }
+    public int? Supplier { get; set; }
+    public DateTime? From { get; set; } = DateTime.Now;
+    public DateTime? To { get; set; } = DateTime.Now;
 }
 
 public class OrdersDeliveriesData

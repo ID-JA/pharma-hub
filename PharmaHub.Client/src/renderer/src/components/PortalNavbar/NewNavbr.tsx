@@ -1,7 +1,8 @@
 import classes from './NewNavbar.module.css'
 import { LinksGroup } from './LinksGroup'
-import { ScrollArea } from '@mantine/core'
+import { Button, ScrollArea } from '@mantine/core'
 import brandImage from '@renderer/assets/brand.png'
+import { useNavigate } from '@tanstack/react-router'
 
 const appLinks = [
   {
@@ -146,6 +147,8 @@ export function NewNavbar() {
     <LinksGroup {...item} key={item.label} />
   ))
 
+  const navigate = useNavigate()
+
   return (
     <>
       <div className={classes.header}>
@@ -154,6 +157,19 @@ export function NewNavbar() {
       <ScrollArea className={classes.links}>
         <div className={classes.linksInner}>{links}</div>
       </ScrollArea>
+      <div className={classes.footer}>
+        <Button
+          fullWidth
+          size="xl"
+          onClick={() => {
+            navigate({
+              to: '/'
+            })
+          }}
+        >
+          Quité
+        </Button>
+      </div>
     </>
   )
 }
