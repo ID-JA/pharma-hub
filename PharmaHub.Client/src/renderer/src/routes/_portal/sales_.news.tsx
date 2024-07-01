@@ -3,7 +3,7 @@ import {
   useDebouncedState,
   useToggle
 } from '@mantine/hooks'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   TextInput,
@@ -93,7 +93,7 @@ function SaleNewsPage() {
   const [searchValue, setSearchValue] = useDebouncedState('', 500)
   const [isUsingBarcodeScanner, toggle] = useToggle<boolean>([false, true])
   const barcodeInputRef = useRef<HTMLInputElement>(null)
-
+  const navigate = useNavigate()
   const { data: medications = [], isLoading } = useMedications({
     searchValue,
     searchFieldName
@@ -415,10 +415,33 @@ function SaleNewsPage() {
           <Button fullWidth mb="md">
             D.C.I Famille Thérap.
           </Button>
-          <Button fullWidth mb="md">
+          <Button
+            fullWidth
+            mb="md"
+            onClick={() => {
+              navigate({
+                to: '/sales',
+                search: {
+                  status: 'Pending'
+                }
+              })
+            }}
+          >
             Reprendre Vente
           </Button>
-          <Button fullWidth>Retour Client</Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              navigate({
+                to: '/sales',
+                search: {
+                  status: 'Paid'
+                }
+              })
+            }}
+          >
+            Retour Client
+          </Button>
         </div>
       </Group>
       <Group

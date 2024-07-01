@@ -13,30 +13,40 @@ import {
   Flex,
   Loader,
   rem,
-  ActionIcon
+  ActionIcon,
+  Select
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import {
   IconChevronDown,
   IconChevronRight,
+  IconPlayerPlay,
   IconShoppingCartPlus,
   IconTrash
 } from '@tabler/icons-react'
 import { useDebouncedState, useElementSize } from '@mantine/hooks'
 import { http } from '@renderer/utils/http'
 import { modals } from '@mantine/modals'
+import { z } from 'zod'
+
+const saleSearchSchema = z.object({
+  status: z.string().optional()
+})
 
 export const Route = createFileRoute('/_portal/sales')({
+  validateSearch: saleSearchSchema,
   component: SaleData
 })
 
 function SaleData() {
+  const searchParams = Route.useSearch()
   const { ref, height } = useElementSize()
   const [value, setValue] = useState<[Date | null, Date | null]>([
     dayjs().subtract(1, 'week').toDate(),
     dayjs().toDate()
   ])
   const [saleNumber, setSaleNumber] = useDebouncedState('', 500)
+  const [status, setStatus] = useState(searchParams.status || '')
 
   const {
     error,
@@ -49,7 +59,8 @@ function SaleData() {
       {
         from: value[0],
         to: value[1],
-        saleNumber
+        saleNumber,
+        status
       }
     ],
     queryFn: () =>
@@ -58,7 +69,8 @@ function SaleData() {
           params: {
             from: value[0],
             to: value[1],
-            saleNumber
+            saleNumber,
+            status
           }
         })
         .then((res) => res.data),
@@ -88,6 +100,25 @@ function SaleData() {
           defaultValue={saleNumber}
           onChange={(e) => setSaleNumber(e.currentTarget.value)}
           label="N° Vente"
+        />
+        <Select
+          value={status}
+          data={[
+            {
+              label: 'en attente',
+              value: 'Pending'
+            },
+            {
+              label: 'hors stock',
+              value: 'OutOfStock'
+            },
+            {
+              label: 'payé',
+              value: 'Paid'
+            }
+          ]}
+          onChange={(value) => setStatus(value || '')}
+          label="Status"
         />
         {isLoading && <Loader size="sm" mt="lg" />}
       </Group>
@@ -219,7 +250,9 @@ function Row({ row }) {
                 ? 'red'
                 : row.status === 'OutOfStock'
                   ? 'yellow'
-                  : 'green'
+                  : row.status === 'Pending'
+                    ? 'orange'
+                    : 'green'
             }
           >
             {row.status || 'N/A'}
@@ -235,6 +268,11 @@ function Row({ row }) {
         <Table.Td>{row.totalNetPrices}</Table.Td>
         <Table.Td>{row.discountedAmount}</Table.Td>
         <Table.Td>
+          {row.status === 'Pending' && (
+            <ActionIcon onClick={handleRemoveSale} mr="md">
+              <IconPlayerPlay size="1.5rem" stroke={1.2} />
+            </ActionIcon>
+          )}
           <ActionIcon
             color="red"
             onClick={handleRemoveSale}

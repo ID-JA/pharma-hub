@@ -23,9 +23,10 @@ public class SalesController(ISaleService saleService, IAppSettingService settin
        [FromQuery] DateTime? from,
        [FromQuery] DateTime? to,
        [FromQuery] int? saleNumber,
+       [FromQuery] string? status,
        CancellationToken cancellationToken)
     {
-        var sales = await saleService.GetSalesAsync(from, to, saleNumber, cancellationToken);
+        var sales = await saleService.GetSalesAsync(from, to, saleNumber, status, cancellationToken);
         return Ok(sales);
     }
 

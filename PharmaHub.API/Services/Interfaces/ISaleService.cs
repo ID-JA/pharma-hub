@@ -8,7 +8,7 @@ public interface ISaleService
     Task<long> GetNextSaleNumberAsync(CancellationToken cancellationToken = default);
     Task<int> CreateSale(SaleCreateDto request);
     Task<bool> UpdateSale(int id, SaleUpdateDto request, CancellationToken cancellationToken = default);
-    Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default);
+    Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, string? status = null, CancellationToken cancellationToken = default);
     Task<SaleDetailedDto?> GetSaleAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteSale(int id, CancellationToken cancellationToken = default);
     Task CancelSale(int saleId, int? inventoryId, CancellationToken cancellationToken);
@@ -197,7 +197,7 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
 
     }
 
-    public async Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, CancellationToken cancellationToken = default)
+    public async Task<List<SaleDetailedDto>> GetSalesAsync(DateTime? from = null, DateTime? to = null, int? saleNumber = null, string? status = null, CancellationToken cancellationToken = default)
     {
         if (!from.HasValue && !to.HasValue)
         {
@@ -216,12 +216,16 @@ public class SaleService(ApplicationDbContext dbContext, IService<Sale> saleRepo
         }
 
         var query = dbContext.Sales
-            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to))
-            .Where(s => s.Status != "Pending"); // Exclude sales with status "Pending"
+            .Where(s => (!from.HasValue || s.CreatedAt >= from) && (!to.HasValue || s.CreatedAt <= to));
 
         if (saleNumber.HasValue)
         {
             query = query.Where(s => s.SaleNumber == saleNumber.Value);
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(s => s.Status == status);
         }
 
         var result = await query
