@@ -108,9 +108,22 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         if (string.IsNullOrWhiteSpace(searchQuery.Query) || string.IsNullOrWhiteSpace(searchQuery.Field))
         {
             return await query
-            .Include(m => m.Inventories)
-            .ProjectToType<MedicationDetailedDto>()
-            .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
+                .Include(m => m.Inventories)
+                .ProjectToType<MedicationDetailedDto>()
+                .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
+        }
+
+        if (searchQuery.Field == "name_position")
+        {
+            var medications = await query.Include(m => m.Inventories).ToListAsync(cancellationToken);
+            var filteredMedications = medications.Where(m => NameMatchesPosition(m.Name, searchQuery.Query));
+            var pagedMedications = filteredMedications
+                .Skip((searchQuery.PageNumber - 1) * searchQuery.PageSize)
+                .Take(searchQuery.PageSize)
+                .ToList();
+
+            var result = new PaginatedResponse<MedicationDetailedDto>(filteredMedications.Select(m => m.Adapt<MedicationDetailedDto>()).ToList(), filteredMedications.Count(), 1, 1000);
+            return result;
         }
 
         query = searchQuery.Field switch
@@ -125,6 +138,44 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         return await query.ProjectToType<MedicationDetailedDto>()
             .PaginatedListAsync(searchQuery.PageNumber, searchQuery.PageSize);
     }
+
+    private bool NameMatchesPosition(string name, string pattern)
+    {
+        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(pattern))
+        {
+            return false;
+        }
+
+        var nameChars = name.ToCharArray();
+        var patternChars = pattern.ToCharArray();
+
+        int patternIndex = 0;
+
+        for (int i = 0; i < nameChars.Length; i++)
+        {
+            if (patternIndex >= patternChars.Length)
+            {
+                return true;
+            }
+
+            if (patternChars[patternIndex] == ',')
+            {
+                patternIndex++;
+            }
+
+            if (patternIndex < patternChars.Length &&
+                patternChars[patternIndex] != ',' &&
+                char.ToLower(patternChars[patternIndex]) == char.ToLower(nameChars[i]))
+            {
+                patternIndex++;
+            }
+        }
+
+        return patternIndex == patternChars.Length;
+    }
+
+
+
 
     public Task<bool> UpdateMedicament(int id, MedicationUpdateDto request, CancellationToken cancellationToken = default)
     {

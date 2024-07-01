@@ -16,6 +16,7 @@ import { useMutation } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { Link } from '@tanstack/react-router'
 import brandImage from '@renderer/assets/brand.png'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/')({
   component: LoginRoute
@@ -47,6 +48,9 @@ function LoginRoute() {
       navigate({
         to: '/dashboard'
       })
+    },
+    onError: () => {
+      toast.error('email ou password incorrect!!!')
     }
   })
   return (

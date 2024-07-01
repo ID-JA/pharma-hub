@@ -351,9 +351,10 @@ function SaleNewsPage() {
                   onChange={(e) => setSearchFieldName(e.currentTarget.value)}
                   data={[
                     { value: 'name', label: 'Nom' },
-                    { value: 'barcode', label: 'Barcode' },
+                    { value: 'barcode', label: 'Code barre' },
                     { value: 'type', label: 'Type' },
-                    { value: 'ppv', label: 'PPV' }
+                    { value: 'ppv', label: 'PPV' },
+                    { value: 'name_position', label: 'Matche Position' }
                   ]}
                   rightSectionWidth={28}
                   styles={{
@@ -361,13 +362,13 @@ function SaleNewsPage() {
                       fontWeight: 500,
                       borderTopLeftRadius: 0,
                       borderBottomLeftRadius: 0,
-                      width: rem(95),
+                      width: rem(150),
                       marginRight: rem(-2)
                     }
                   }}
                 />
               }
-              rightSectionWidth={95}
+              rightSectionWidth={150}
             />
             {isLoading && <Loader size="sm" mt="lg" />}
           </Group>
