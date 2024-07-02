@@ -25,7 +25,8 @@ function Dashboard() {
       }
     },
     { data: topSoldProducts = [] },
-    { data: ordersDeliveriesQuantities = [] }
+    { data: ordersDeliveriesQuantities = [] },
+    { data: notSoldProducts = [] }
   ] = useQueries({
     queries: [
       {
@@ -60,6 +61,17 @@ function Dashboard() {
           ).data
           return res
         }
+      },
+      {
+        queryKey: ['product-not-sold', filterOptions],
+        queryFn: async () => {
+          const res = (
+            await http.get('/api/medicaments/not-sold', {
+              params: filterOptions
+            })
+          ).data
+          return res
+        }
       }
     ]
   })
@@ -75,6 +87,7 @@ function Dashboard() {
   }
   return (
     <div>
+      {JSON.stringify(notSoldProducts)}
       <SegmentedControl
         mb="lg"
         value={value}

@@ -68,20 +68,18 @@ function LoginRoute() {
         <Image miw={300} src={brandImage} />
         <Paper withBorder shadow="md" p={30} mt={30} radius="md" w="100%">
           <TextInput
-            label="Email"
-            placeholder="you@mantine.dev"
+            label="Nom d'utilisateur"
             key={form.key('email')}
             {...form.getInputProps('email')}
           />
           <PasswordInput
-            label="Password"
-            placeholder="Your password"
+            label="Mote de passe"
             mt="md"
             key={form.key('password')}
             {...form.getInputProps('password')}
           />
           <Button fullWidth mt="xl" type="submit" loading={mutation.isPending}>
-            Sign in
+            Se Connecter
           </Button>
           <Link
             to="/forget-password"
@@ -89,10 +87,11 @@ function LoginRoute() {
               textAlign: 'center',
               display: 'block',
               color: 'black',
-              marginTop: '.5rem'
+              marginTop: '.5rem',
+              fontSize: '14px'
             }}
           >
-            Forgot password?
+            Mot de passe est Oublié?
           </Link>
         </Paper>
       </form>

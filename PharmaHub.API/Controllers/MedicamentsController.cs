@@ -119,5 +119,9 @@ public class MedicamentsController(IMedicationService medicationService, IServic
         return Ok(await medicationService.GetTopSoldProductsAsync(startDate, endDate));
     }
 
-
+    [HttpGet("not-sold")]
+    public async Task<ActionResult> GetNotSoldMedications([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    {
+        return Ok(await medicationService.GetMedicationNotSold(startDate, endDate));
+    }
 }
