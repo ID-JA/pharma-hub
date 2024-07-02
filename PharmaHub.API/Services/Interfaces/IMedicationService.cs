@@ -316,6 +316,8 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             .Distinct()
             .ToListAsync();
 
+        var medicationsCount = await dbContext.Medications.CountAsync();
+
         var medicationNotSold = await dbContext.Inventories
             .Where(i => !soldInventories.Contains(i.Id))
             .Include(i => i.Medication)
@@ -331,3 +333,4 @@ public class TopSoldProduct
     public string MedicationName { get; set; }
     public int TotalQuantitySold { get; set; }
 }
+

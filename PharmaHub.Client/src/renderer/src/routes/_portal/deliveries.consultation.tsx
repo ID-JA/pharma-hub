@@ -4,7 +4,9 @@ import {
   Box,
   Flex,
   Group,
+  InputBase,
   Loader,
+  NumberInput,
   ScrollArea,
   Select,
   Table,
@@ -13,10 +15,12 @@ import {
   rem
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
+import { useForm } from '@mantine/form'
 import { modals } from '@mantine/modals'
 import { userSuppliers } from '@renderer/services/suppliers.service'
 import { http } from '@renderer/utils/http'
 import {
+  IconCardboards,
   IconChevronDown,
   IconChevronRight,
   IconShoppingCartPlus,
@@ -26,6 +30,7 @@ import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_portal/deliveries/consultation')({
   component: DeliveriesOrdersConsultation
@@ -498,13 +503,15 @@ function CreditNoteRow({ row }) {
         </Table.Td>
       </Table.Tr>
       {expanded && (
-        <CreditNoteItems creditNoteMedications={row.creditNoteMedications} />
+        <CreditNoteItems
+          data={{ creditNoteId: row.id, items: row.creditNoteMedications }}
+        />
       )}
     </>
   )
 }
 
-function CreditNoteItems({ creditNoteMedications }) {
+function CreditNoteItems({ data }) {
   return (
     <Table.Tr>
       <Table.Td colSpan={9} bg="gray.1">
@@ -516,20 +523,112 @@ function CreditNoteItems({ creditNoteMedications }) {
               <Table.Th>Quantité Accepté</Table.Th>
               <Table.Th>PPH Refusée</Table.Th>
               <Table.Th>Motif</Table.Th>
+              <Table.Th>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {creditNoteMedications.map((item) => (
-              <Table.Tr key={item.id}>
-                <Table.Td>{item.inventory.medication.name}</Table.Td>
-                <Table.Td>{item.issuedQuantity}</Table.Td>
-                <Table.Td>{item.acceptedQuantity}</Table.Td>
-                <Table.Td>{item.refusedQuantity}</Table.Td>
-                <Table.Td>{item.motif}</Table.Td>
-              </Table.Tr>
+            {data.items.map((item) => (
+              <CreditNoteItem
+                key={item.id}
+                item={item}
+                creditNoteId={data.creditNoteId}
+              />
             ))}
           </Table.Tbody>
         </Table>
+      </Table.Td>
+    </Table.Tr>
+  )
+}
+
+function CreditNoteItem({ item, creditNoteId }) {
+  const form = useForm({
+    initialValues: {
+      motif: item.motif || '',
+      issuedQuantity: item.issuedQuantity || 0,
+      acceptedQuantity: item.acceptedQuantity || 0,
+      refusedQuantity: item.refusedQuantity || 0,
+      inventoryId: item.inventory.id || 0
+    }
+  })
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await http.put(
+        `/api/credit-notes/${creditNoteId}/medications`,
+        data
+      )
+      return res.data
+    }
+  })
+  return (
+    <Table.Tr key={item.id}>
+      <Table.Td>{item.inventory.medication.name}</Table.Td>
+      <Table.Td>
+        <NumberInput
+          w={100}
+          min={0}
+          readOnly
+          {...form.getInputProps('issuedQuantity')}
+        />
+      </Table.Td>
+      <Table.Td>
+        <NumberInput
+          max={form.getValues().issuedQuantity}
+          w={100}
+          min={0}
+          {...form.getInputProps('acceptedQuantity')}
+          onChange={(value) => {
+            form.setFieldValue('acceptedQuantity', value)
+            if (form.getValues().refusedQuantity > 0) {
+              form.setFieldValue(
+                'refusedQuantity',
+                form.getValues().issuedQuantity - Number(value)
+              )
+            }
+          }}
+        />
+      </Table.Td>
+      <Table.Td>
+        <NumberInput
+          w={100}
+          min={0}
+          max={
+            form.getValues().issuedQuantity - form.getValues().acceptedQuantity
+          }
+          {...form.getInputProps('refusedQuantity')}
+        />
+      </Table.Td>
+      <Table.Td>
+        <InputBase {...form.getInputProps('motif')} />
+      </Table.Td>
+      <Table.Td>
+        <Group>
+          <ActionIcon
+            loading={isPending}
+            onClick={async () => {
+              await mutateAsync(form.getValues(), {
+                onSuccess: () => {
+                  toast.success('mise à jour')
+                }
+              })
+            }}
+          >
+            <IconCardboards />
+          </ActionIcon>
+          {/* <ActionIcon
+            color="red"
+            onClick={() => {
+              modals.openConfirmModal({
+                title: 'Message de confirmation',
+                children: <Text>vous voulez supprimé ce élément?</Text>,
+                labels: { confirm: 'Oui', cancel: 'Non' }
+              })
+            }}
+          >
+            <IconTrash />
+          </ActionIcon> */}
+        </Group>
       </Table.Td>
     </Table.Tr>
   )

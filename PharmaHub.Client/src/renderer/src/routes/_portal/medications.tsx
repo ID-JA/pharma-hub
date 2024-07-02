@@ -7,6 +7,7 @@ import {
   Table,
   Tabs,
   TextInput,
+  Title,
   rem
 } from '@mantine/core'
 import { IconEye, IconPencil, IconTrashX } from '@tabler/icons-react'
@@ -17,12 +18,18 @@ import { useMedications } from '@renderer/services/medicaments.service'
 import { useQuery } from '@tanstack/react-query'
 import { http } from '@renderer/utils/http'
 import { DatePickerInput } from '@mantine/dates'
+import { z } from 'zod'
 
+const medicationsSearchParams = z.object({
+  active: z.string().optional()
+})
 export const Route = createFileRoute('/_portal/medications')({
+  validateSearch: medicationsSearchParams,
   component: MedicationsListPage
 })
 
 function MedicationsListPage() {
+  const { active } = Route.useSearch()
   return (
     <Container
       size="1500px"
@@ -30,7 +37,7 @@ function MedicationsListPage() {
       py="md"
       style={{ borderRadius: '10px' }}
     >
-      <Tabs defaultValue="all-medications">
+      <Tabs defaultValue={active || 'all-medications'}>
         <Tabs.List>
           <Tabs.Tab value="all-medications">Medicaments</Tabs.Tab>
           <Tabs.Tab value="medications-not-sold">Medicaments Dormant</Tabs.Tab>
@@ -59,6 +66,9 @@ function ListOfMedications() {
   const navigate = useNavigate()
   return (
     <>
+      <Title my="md" order={2}>
+        Les Produits
+      </Title>
       <TextInput
         w="400px"
         label="Recherche Produits"
@@ -172,6 +182,9 @@ function MedicationsNotSold() {
 
   return (
     <div>
+      <Title my="md" order={2}>
+        Produits Dormants
+      </Title>
       <DatePickerInput
         w={200}
         type="range"

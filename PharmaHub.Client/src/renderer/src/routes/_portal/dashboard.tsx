@@ -1,8 +1,17 @@
 import { BarChart, LineChart } from '@mantine/charts'
-import { Grid, Group, SegmentedControl, Title } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Grid,
+  Group,
+  SegmentedControl,
+  Text,
+  Title
+} from '@mantine/core'
 import { http } from '@renderer/utils/http'
+import { IconEye } from '@tabler/icons-react'
 import { useQueries } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 
@@ -85,9 +94,10 @@ function Dashboard() {
       endDate: dayjs().add(1, 'day').toDate()
     })
   }
+
+  const navigate = useNavigate()
   return (
     <div>
-      {JSON.stringify(notSoldProducts)}
       <SegmentedControl
         mb="lg"
         value={value}
@@ -100,6 +110,29 @@ function Dashboard() {
           { label: 'dernière année', value: '-365' }
         ]}
       />
+      <Group>
+        <Group my="xl">
+          <Text fw="bold" fz="20px" td="underline">
+            Produit Dormants:
+          </Text>
+          <Text fw="bold" fz="20px">
+            {notSoldProducts.length}
+          </Text>
+          <ActionIcon
+            variant="light"
+            onClick={() => {
+              navigate({
+                to: '/medications',
+                search: {
+                  active: 'medications-not-sold'
+                }
+              })
+            }}
+          >
+            <IconEye />
+          </ActionIcon>
+        </Group>
+      </Group>
       <Grid px="xl" mt="md">
         <Grid.Col span={6}>
           <Title order={3} mb="xl">
@@ -189,60 +222,6 @@ function Dashboard() {
           />
         </Grid.Col>
       </Grid>
-      {/* <Grid px="xl">
-        <Grid.Col span={6}>
-          <Title order={3} mb="xl">
-            Les Commandes
-          </Title>
-          <BarChart
-            h={300}
-            data={ordersDeliveriesInsights}
-            dataKey="date"
-            series={[
-              { name: 'received', color: 'green.6' },
-              { name: 'pending', color: 'yellow.6' }
-            ]}
-            tickLine="y"
-            withBarValueLabel
-          />
-          <Title order={3} mt="xl">
-            Quantités Commandées
-          </Title>
-          <BarChart
-            mt="xl"
-            h={300}
-            data={ordersDeliveriesInsights}
-            series={[{ name: 'quantity', label: 'Quantité' }]}
-            dataKey="date"
-          />
-        </Grid.Col>
-        <Grid.Col span={6} px="xl">
-          <Title order={3} mb="xl">
-            Les Livraisons
-          </Title>
-          <BarChart
-            h={300}
-            data={ordersDeliveriesInsights}
-            dataKey="date"
-            series={[
-              { name: 'return', color: 'red.6' },
-              { name: 'paid', color: 'green.6' }
-            ]}
-            tickLine="y"
-            withBarValueLabel
-          />
-          <Title order={3} mt="xl">
-            Quantités Livrées
-          </Title>
-          <BarChart
-            mt="xl"
-            h={300}
-            data={ordersDeliveriesInsights}
-            series={[{ name: 'quantity', label: 'Quantité' }]}
-            dataKey="date"
-          />
-        </Grid.Col>
-      </Grid> */}
     </div>
   )
 }
