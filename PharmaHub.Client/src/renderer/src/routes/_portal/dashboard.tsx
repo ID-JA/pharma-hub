@@ -33,7 +33,7 @@ function Dashboard() {
         salesQuantities: []
       }
     },
-    { data: topSoldProducts = [] },
+    { data: topSoldProductsResult = { topProducts: [], totalProducts: 0 } },
     { data: ordersDeliveriesQuantities = [] },
     { data: notSoldProducts = [] }
   ] = useQueries({
@@ -132,6 +132,27 @@ function Dashboard() {
             <IconEye />
           </ActionIcon>
         </Group>
+        <Group my="xl">
+          <Text fw="bold" fz="20px" td="underline">
+            Total des Produit:
+          </Text>
+          <Text fw="bold" fz="20px">
+            {topSoldProductsResult.totalProducts}
+          </Text>
+          <ActionIcon
+            variant="light"
+            onClick={() => {
+              navigate({
+                to: '/medications',
+                search: {
+                  active: 'all-medications'
+                }
+              })
+            }}
+          >
+            <IconEye />
+          </ActionIcon>
+        </Group>
       </Group>
       <Grid px="xl" mt="md">
         <Grid.Col span={6}>
@@ -183,7 +204,7 @@ function Dashboard() {
           </Title>
           <BarChart
             h={300}
-            data={topSoldProducts}
+            data={topSoldProductsResult.topProducts}
             dataKey="medicationName"
             orientation="vertical"
             yAxisProps={{ width: 80 }}

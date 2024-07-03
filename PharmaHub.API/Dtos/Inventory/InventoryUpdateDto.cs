@@ -4,7 +4,7 @@ public class InventoryUpdateDto : BaseDto<InventoryUpdateDto, Models.Inventory>
 {
     public int Id { get; set; }
 
-    public int Quantity { get; set; }
+    public int BoxQuantity { get; set; }
 
     public DateTime ExpirationDate { get; set; }
 

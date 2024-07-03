@@ -337,8 +337,7 @@ function NewOrder() {
                         )}
                         key={form.key(`orderItems.${index}.orderedQuantity`)}
                         onBlur={(event) => {
-                          const value = Number(event.target.value)
-
+                          const value = Number(event.currentTarget.value)
                           if (
                             item.maxQuantity !== 0 &&
                             value > item.maxQuantity

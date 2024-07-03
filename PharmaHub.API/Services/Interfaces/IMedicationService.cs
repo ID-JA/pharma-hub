@@ -21,7 +21,7 @@ public interface IMedicationService : IService<Medication>
     Task<bool> DeleteMedicamentInventory(int id, CancellationToken cancellationToken);
     Task<MedicationDetailedDto?> GetMedicationDetails(int id, CancellationToken cancellationToken = default);
     Task SetupMedicationPartialSale(int id, PartialSaleMedicationConfig request, CancellationToken cancellationToken = default);
-    Task<List<TopSoldProduct>> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<TopSoldProductsResult> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null);
     Task<List<InventoryDetailedDto>> GetMedicationNotSold(DateTime startDate, DateTime endDate);
 }
 
@@ -78,7 +78,6 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             {
                 MedicationId = medicament.Id,
                 ExpirationDate = request.Inventory.ExpirationDate,
-                Quantity = request.Inventory.Quantity,
                 BoxQuantity = request.Inventory.Quantity,
                 Pph = request.Inventory.Pph,
                 Ppv = request.Inventory.Ppv,
@@ -187,7 +186,7 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
     {
         var medicamentQte = await dbContext.Inventories
             .Where(m => m.Id == inventoryId)
-            .Select(m => m.Quantity)
+            .Select(m => m.BoxQuantity)
             .FirstOrDefaultAsync(cancellationToken);
         return medicamentQte >= orderedQuantity;
     }
@@ -240,7 +239,7 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
         if (inventory is null) return false;
 
         inventory.ExpirationDate = request.ExpirationDate;
-        inventory.BoxQuantity = request.Quantity;
+        inventory.BoxQuantity = request.BoxQuantity;
         inventory.Pph = request.Pph;
         inventory.Ppv = request.Ppv;
 
@@ -287,11 +286,12 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
-
-    public async Task<List<TopSoldProduct>> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<TopSoldProductsResult> GetTopSoldProductsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         startDate ??= DateTime.Now.AddYears(-1);
         endDate ??= DateTime.Now;
+
+        var totalProducts = await dbContext.Medications.CountAsync();
 
         var topSoldProducts = await dbContext.SaleMedications
             .Where(sm => sm.Sale.CreatedAt >= startDate && sm.Sale.CreatedAt <= endDate)
@@ -305,7 +305,11 @@ public class MedicationService(ApplicationDbContext dbContext) : Service<Medicat
             .Take(10)
             .ToListAsync();
 
-        return topSoldProducts;
+        return new TopSoldProductsResult
+        {
+            TopProducts = topSoldProducts,
+            TotalProducts = totalProducts
+        };
     }
 
     public async Task<List<InventoryDetailedDto>> GetMedicationNotSold(DateTime startDate, DateTime endDate)
@@ -333,4 +337,11 @@ public class TopSoldProduct
     public string MedicationName { get; set; }
     public int TotalQuantitySold { get; set; }
 }
+
+public class TopSoldProductsResult
+{
+    public List<TopSoldProduct> TopProducts { get; set; }
+    public int TotalProducts { get; set; }
+}
+
 

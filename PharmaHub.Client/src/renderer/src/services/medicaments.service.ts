@@ -82,7 +82,9 @@ export const useCreateMedicament = () => {
   return useMutation({
     mutationFn: async (data: any) =>
       (await http.post('/api/medicaments', data)).data,
-    onSuccess: () => toast.success('created successfully !!!')
+    onSuccess: () => toast.success('created successfully !!!'),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ['medicaments'] })
   })
 }
 

@@ -80,7 +80,7 @@ function StockDetail() {
   const totalQuantity = useMemo(
     () =>
       medication?.inventories?.reduce(
-        (acc, item: any) => acc + item.quantity,
+        (acc, item: any) => acc + item.boxQuantity,
         0
       ),
     [medication]
@@ -130,19 +130,19 @@ function StockDetail() {
                 flex="1"
                 label="Tax Nature"
                 readOnly
-                defaultValue={medication.type}
+                value={medication.type}
               />
               <InputBase
                 w="100px"
                 label="TVA"
                 readOnly
-                defaultValue={medication.tva}
+                value={medication.tva}
               />
               <InputBase
                 w="100px"
                 label="Marge"
                 readOnly
-                defaultValue={medication.marge}
+                value={medication.marge}
               />
             </Group>
           </Fieldset>

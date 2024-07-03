@@ -237,12 +237,7 @@ function MedicationDetail({ data }) {
           <Group grow>
             <Select
               label="Système de commande"
-              data={[
-                'Manuel',
-                'Stock Minimum Et Stock Maximum',
-                'Commande = Ventes De La Journée',
-                'Couverture De Stock'
-              ]}
+              data={['Manuel', 'Stock Minimum Et Stock Maximum']}
               {...form.getInputProps('orderSystem')}
             />
             {form.getValues().orderSystem ===

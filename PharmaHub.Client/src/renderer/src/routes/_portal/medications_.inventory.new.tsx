@@ -94,7 +94,7 @@ function NewInventoryPage() {
         }
       },
       {
-        accessorKey: 'quantity',
+        accessorKey: 'boxQuantity',
         header: 'Quantité',
         mantineEditTextInputProps: {
           type: 'number',

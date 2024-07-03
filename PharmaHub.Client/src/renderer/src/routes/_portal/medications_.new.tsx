@@ -209,12 +209,7 @@ function NewMedicationPage() {
             <Group grow>
               <Select
                 label="Système de commande"
-                data={[
-                  'MANUEL',
-                  'STOCK MINIMUM ET STOCK MAXIMUM',
-                  'COMMANDE=VENTES DE LA JOURNÉE',
-                  'COUVERTURE DE STOCK'
-                ]}
+                data={['MANUEL', 'STOCK MINIMUM ET STOCK MAXIMUM']}
                 {...form.getInputProps('orderSystem')}
               />
               {form.getValues().orderSystem ===

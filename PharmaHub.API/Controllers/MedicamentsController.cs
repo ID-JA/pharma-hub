@@ -61,6 +61,8 @@ public class MedicamentsController(IMedicationService medicationService, IServic
         medicament.Barcode = request.Details.Barcode;
         medicament.Family = request.Details.Family;
         medicament.UsedBy = request.Details.UsedBy;
+        medicament.MaxQuantity = request.Details.MaxQuantity;
+        medicament.MinQuantity = request.Details.MinQuantity;
         medicament.WithPrescription = request.Details.WithPrescription.Equals("yes") ? true : false;
         medicament.Laboratory = request.Details.Laboratory;
         medicament.Dosage = request.Details.Dosage;
